@@ -1,0 +1,18 @@
+{% extends 'recruitment/base.html' %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white p-8 border border-gray-200 rounded-lg shadow text-center">
+    <div class="inline-flex items-center justify-center w-16 h-16 mb-6 bg-green-100 rounded-full">
+        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+    </div>
+    <h2 class="text-2xl font-bold mb-2 text-gray-900">Currículo submetido com sucesso!</h2>
+    <p class="mb-6 text-gray-600">O seu currículo foi recebido e analisado pela nossa Inteligência Artificial. Os recrutadores irão entrar em contacto em breve.</p>
+
+    <div class="bg-blue-50 p-4 rounded-lg mb-6 text-left">
+        <p class="text-blue-800 font-semibold text-center">A sua pontuação IA: {{ user.resume.score }}%</p>
+        <p class="text-blue-600 text-sm mt-2"><strong>Análise:</strong> {{ user.resume.feedback }}</p>
+    </div>
+
+    <a href="{% url 'home' %}" class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Voltar ao Início</a>
+</div>
+{% endblock %}

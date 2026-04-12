@@ -1,0 +1,38 @@
+{% extends 'recruitment/base.html' %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto bg-white p-8 border border-gray-200 rounded-lg shadow">
+    <div class="flex items-center justify-between mb-8">
+        <h2 class="text-3xl font-bold text-gray-900">Editar o meu Currículo</h2>
+        <a href="{% url 'resume_detail' resume.pk %}" class="text-gray-600 hover:text-gray-900 flex items-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg>
+            Voltar
+        </a>
+    </div>
+
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+        
+        {% for field in form %}
+        <div>
+            <label for="{{ field.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+            <p class="mt-1 text-sm text-gray-500">{{ field.help_text }}</p>
+            {% endif %}
+            {% if field.errors %}
+            <div class="mt-1 text-red-600 text-sm">
+                {{ field.errors }}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <div class="flex justify-end pt-4">
+            <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                Guardar Alterações
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

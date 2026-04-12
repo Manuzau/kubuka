@@ -1,0 +1,28 @@
+# Ambiente virtual Python
+venv/
+env/
+.venv/
+
+# Base de dados local
+db.sqlite3
+
+# Ficheiros de configuração sensíveis
+.env
+
+# Ficheiros de CV submetidos pelos candidatos
+media/resumes/
+
+# Ficheiros Python compilados
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ficheiros do sistema operativo
+.DS_Store
+Thumbs.db
+
+# Ficheiros do editor de código
+.vscode/
+.idea/
+*.swp

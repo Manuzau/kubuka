@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-AO">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}KUBUKA{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
+    <style>
+        input[type="text"], input[type="password"], input[type="email"], input[type="file"], textarea, select {
+            background-color: #f9fafb;
+            border: 1px solid #d1d5db;
+            color: #111827;
+            font-size: 0.875rem;
+            border-radius: 0.5rem;
+            display: block;
+            width: 100%;
+            padding: 0.625rem;
+        }
+        input:focus {
+            border-color: #3b82f6;
+            outline: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <nav class="bg-white border-b border-gray-200 px-4 py-2.5">
+        <div class="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl">
+            <a href="{% url 'home' %}" class="flex items-center">
+                <span class="self-center text-xl font-semibold whitespace-nowrap text-blue-600">KUBUKA</span>
+            </a>
+            <div class="flex items-center lg:order-2">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'profile' %}" class="text-gray-800 hover:text-blue-600 font-medium mr-4">Olá, {{ user.username }}</a>
+                    {% if user.is_candidate %}
+                        {% if user.has_resume %}
+                            <a href="{% url 'resume_detail' user.resume.pk %}" class="text-gray-800 hover:bg-gray-50 font-medium rounded-lg text-sm px-4 py-2 mr-2">Ver Análise do CV</a>
+                            <a href="{% url 'upload_resume' %}" class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-4 py-2 mr-2">Actualizar Currículo</a>
+                        {% else %}
+                            <a href="{% url 'upload_resume' %}" class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-4 py-2 mr-2">Submeter Currículo</a>
+                        {% endif %}
+                    {% endif %}
+                    {% if user.is_admin or user.is_staff %}
+                        <a href="{% url 'admin_dashboard' %}" class="text-gray-800 hover:bg-gray-50 font-medium rounded-lg text-sm px-4 py-2 mr-2">Painel do Recrutador</a>
+                    {% endif %}
+                    <form action="{% url 'logout' %}" method="post" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="text-gray-800 hover:bg-gray-50 font-medium rounded-lg text-sm px-4 py-2">Sair</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}" class="text-gray-800 hover:bg-gray-50 font-medium rounded-lg text-sm px-4 py-2 mr-2">Login</a>
+                    <a href="{% url 'signup' %}" class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-4 py-2">Criar Conta</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto mt-8 px-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+</body>
+</html>
