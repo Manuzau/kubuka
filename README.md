@@ -1,6 +1,6 @@
 # KUBUKA - Recrutamento e Seleção com IA
 
-KUBUKA é Sistema web automatiza o processo de triagem e pré-selecção de candidatos
+KUBUKA é Sistema web que automatiza o processo de triagem e pré-selecção de candidatos
 em empresas angolanas, utilizando Inteligência Artificial para analisar
 currículos e gerar pontuações de compatibilidade.
 
