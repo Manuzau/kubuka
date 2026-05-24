@@ -73,6 +73,9 @@
 
             <!-- Acções -->
             <div class="mt-auto space-y-2">
+                <a href="{% url 'job_detail' job.pk %}" class="block w-full text-center py-2 px-4 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+                    Ver detalhes
+                </a>
                 {% with app=job.user_application %}
                 {% if app %}
                     {% if app.status == 'pending' %}

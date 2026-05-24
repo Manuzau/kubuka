@@ -6,6 +6,7 @@ class User(AbstractUser):
     is_candidate = models.BooleanField(default=False)
     is_recruiter = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
+    company = models.CharField(max_length=200, blank=True, null=True, verbose_name="Empresa")
 
     def __str__(self):
         return self.username

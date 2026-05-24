@@ -8,11 +8,12 @@ from django.views.generic import CreateView, ListView, TemplateView, DetailView,
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.http import HttpResponse
+from django.core.paginator import Paginator
 
 from django.db.models import Avg, Count, Q
 from django.db.models.functions import TruncWeek
 from .models import User, Resume, Job, Application
-from .forms import CandidateSignupForm, RecruiterSignupForm, ResumeUploadForm, ResumeUpdateForm, JobForm
+from .forms import CandidateSignupForm, RecruiterSignupForm, ResumeUploadForm, ResumeUpdateForm, JobForm, ProfileEditForm
 from .cv_processor import extract_text_from_pdf
 from .ai_service import send_cv_to_n8n, send_application_for_scoring
 from .notifications import notify_candidate
@@ -104,7 +105,15 @@ def upload_success(request):
 
 @login_required
 def profile_view(request):
-    return render(request, 'recruitment/profile.html')
+    if request.method == 'POST':
+        form = ProfileEditForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Perfil actualizado com sucesso.')
+            return redirect('profile')
+    else:
+        form = ProfileEditForm(instance=request.user)
+    return render(request, 'recruitment/profile.html', {'form': form})
 
 
 # ---------------------------------------------------------------------------
@@ -253,6 +262,12 @@ def admin_dashboard(request, view_mode=None):
         context['kanban'] = kanban
         return render(request, 'recruitment/dashboard_kanban.html', context)
 
+    # Tabela: paginar
+    paginator = Paginator(context['applications'], 20)
+    page_obj = paginator.get_page(request.GET.get('page', 1))
+    context['page_obj'] = page_obj
+    context['applications'] = page_obj
+
     return render(request, 'recruitment/dashboard.html', context)
 
 
@@ -375,6 +390,23 @@ class JobListView(LoginRequiredMixin, ListView):
             }
             for job in context['jobs']:
                 job.user_application = apps_by_job.get(job.pk)
+        return context
+
+
+class JobDetailView(LoginRequiredMixin, DetailView):
+    model = Job
+    template_name = 'recruitment/job_detail.html'
+    context_object_name = 'job'
+
+    def get_queryset(self):
+        return Job.objects.filter(is_active=True)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.user.is_candidate:
+            context['user_application'] = Application.objects.filter(
+                candidate=self.request.user, job=self.object
+            ).first()
         return context
 
 

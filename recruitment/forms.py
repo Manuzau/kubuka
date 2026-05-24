@@ -34,6 +34,18 @@ class ResumeUpdateForm(forms.ModelForm):
         }
 
 
+class ProfileEditForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'email', 'company')
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
+            'last_name': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
+            'email': forms.EmailInput(attrs={'class': 'w-full p-2 border rounded'}),
+            'company': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
+        }
+
+
 class JobForm(forms.ModelForm):
     class Meta:
         model = Job
