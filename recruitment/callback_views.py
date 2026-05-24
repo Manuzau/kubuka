@@ -5,6 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.conf import settings
 from .models import Resume, Application
+from .notifications import notify_candidate
 
 logger = logging.getLogger(__name__)
 
@@ -148,4 +149,5 @@ def application_update_status(request, application_id: int):
         update_fields.append('recruiter_notes')
 
     application.save(update_fields=update_fields)
+    notify_candidate(application)
     return JsonResponse({'success': True, 'application_id': application_id, 'status': application.status})

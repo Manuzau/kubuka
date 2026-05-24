@@ -14,6 +14,8 @@ from .models import User, Resume, Job, Application
 from .forms import CandidateSignupForm, RecruiterSignupForm, ResumeUploadForm, ResumeUpdateForm, JobForm
 from .cv_processor import extract_text_from_pdf
 from .ai_service import send_cv_to_n8n, send_application_for_scoring
+from .notifications import notify_candidate
+from .models import Notification
 
 logger = logging.getLogger(__name__)
 
@@ -119,6 +121,27 @@ def my_applications(request):
         .order_by('-applied_at')
     )
     return render(request, 'recruitment/my_applications.html', {'applications': applications})
+
+
+# ---------------------------------------------------------------------------
+# Notificações — Candidato
+# ---------------------------------------------------------------------------
+
+@login_required
+def notifications_view(request):
+    if not request.user.is_candidate:
+        return redirect('home')
+    notifications = Notification.objects.filter(user=request.user).select_related('application__job')
+    # Mark all as read on visit
+    Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+    return render(request, 'recruitment/notifications.html', {'notifications': notifications})
+
+
+@login_required
+def mark_notification_read(request, pk):
+    if request.method == 'POST':
+        Notification.objects.filter(pk=pk, user=request.user).update(is_read=True)
+    return redirect('notifications')
 
 
 # ---------------------------------------------------------------------------
@@ -357,6 +380,7 @@ def application_update_status_view(request, pk):
             update_fields.append('recruiter_notes')
 
         application.save(update_fields=update_fields)
+        notify_candidate(application)
         label = application.get_status_display()
         messages.success(request, f'Candidatura de {application.candidate.username} marcada como: {label}.')
     else:
