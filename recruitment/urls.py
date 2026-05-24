@@ -9,6 +9,12 @@ from .callback_views import (
     application_update_status,
 )
 
+_PWD_RESET_TEMPLATES = {
+    'template_name': 'recruitment/password_reset.html',
+    'email_template_name': 'recruitment/emails/password_reset_email.txt',
+    'subject_template_name': 'recruitment/emails/password_reset_subject.txt',
+}
+
 router = DefaultRouter()
 router.register(r'api/resumes', api_views.ResumeViewSet, basename='resume-api')
 router.register(r'api/profile', api_views.UserProfileViewSet, basename='profile-api')
@@ -34,8 +40,15 @@ urlpatterns = [
     path('resume/<int:pk>/', views.ResumeDetailView.as_view(), name='resume_detail'),
     path('resume/<int:pk>/edit/', views.ResumeUpdateView.as_view(), name='resume_edit'),
 
+    # Reset de palavra-passe
+    path('password-reset/', auth_views.PasswordResetView.as_view(**_PWD_RESET_TEMPLATES), name='password_reset'),
+    path('password-reset/done/', auth_views.PasswordResetDoneView.as_view(template_name='recruitment/password_reset_done.html'), name='password_reset_done'),
+    path('password-reset-confirm/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name='recruitment/password_reset_confirm.html'), name='password_reset_confirm'),
+    path('password-reset-complete/', auth_views.PasswordResetCompleteView.as_view(template_name='recruitment/password_reset_complete.html'), name='password_reset_complete'),
+
     # Vagas — candidato
     path('jobs/', views.JobListView.as_view(), name='job_list'),
+    path('jobs/<int:pk>/', views.JobDetailView.as_view(), name='job_detail'),
     path('jobs/<int:pk>/apply/', views.apply_job, name='apply_job'),
     path('my-applications/', views.my_applications, name='my_applications'),
 
