@@ -25,7 +25,7 @@ def send_cv_to_n8n(resume):
     headers = {'X-Kubuka-Secret': getattr(settings, 'N8N_CALLBACK_SECRET', '')}
 
     try:
-        response = requests.post(webhook_url, json=payload, headers=headers, timeout=15)
+        response = requests.post(webhook_url, json=payload, headers=headers, timeout=30)
         response.raise_for_status()
         logger.info(f"[ai_service] CV {resume.pk} enviado ao n8n — status {response.status_code}")
         return True
@@ -59,7 +59,7 @@ def send_application_for_scoring(application):
     headers = {'X-Kubuka-Secret': getattr(settings, 'N8N_CALLBACK_SECRET', '')}
 
     try:
-        response = requests.post(webhook_url, json=payload, headers=headers, timeout=15)
+        response = requests.post(webhook_url, json=payload, headers=headers, timeout=30)
         response.raise_for_status()
         logger.info(f"[ai_service] Application {application.pk} enviada ao n8n — status {response.status_code}")
         return True
