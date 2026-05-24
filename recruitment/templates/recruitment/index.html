@@ -1,16 +1,73 @@
 {% extends 'recruitment/base.html' %}
 
+{% block title %}KUBUKA — Recrutamento Inteligente com IA{% endblock %}
+
 {% block content %}
-<div class="py-8 px-4 mx-auto max-w-screen-xl text-center lg:py-16">
-    <h1 class="mb-4 text-4xl font-extrabold tracking-tight leading-none text-gray-900 md:text-5xl lg:text-6xl">Recrutamento Inteligente com IA</h1>
-    <p class="mb-8 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 lg:px-48">A nossa plataforma analisa currículos automaticamente com IA para identificar os melhores talentos para a sua empresa.</p>
-    <div class="flex flex-col space-y-4 sm:flex-row sm:justify-center sm:space-y-0 sm:space-x-4">
-        <a href="{% url 'signup' %}" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-blue-700 hover:bg-blue-800">
-            Começar agora
-            <svg class="w-3.5 h-3.5 ml-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
-            </svg>
-        </a>
+<!-- Hero -->
+<div style="background-color:#0F2A4A;" class="px-4 py-20 text-center">
+    <div class="max-w-3xl mx-auto">
+        <span class="inline-block text-xs font-semibold uppercase tracking-widest px-3 py-1 rounded-full mb-4" style="background:rgba(59,191,173,0.15);color:#3BBFAD;">Sistema de Pré-Selecção com IA</span>
+        <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-5 leading-tight">
+            Recrutamento Inteligente<br>com Inteligência Artificial
+        </h1>
+        <p class="text-lg text-white/70 mb-8 max-w-xl mx-auto">
+            A plataforma que analisa currículos automaticamente, identifica os melhores talentos e simplifica o processo de pré-selecção para empresas angolanas.
+        </p>
+        <div class="flex flex-col sm:flex-row justify-center gap-3">
+            <a href="{% url 'signup' %}" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-white text-sm" style="background:#1B6CA8;">
+                Começar agora
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 14 10"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/></svg>
+            </a>
+            <a href="{% url 'login' %}" class="inline-flex items-center justify-center px-6 py-3 rounded-lg font-semibold text-white text-sm border border-white/30 hover:bg-white/10 transition-colors">
+                Iniciar Sessão
+            </a>
+        </div>
     </div>
+</div>
+
+<!-- Features -->
+<div class="max-w-5xl mx-auto px-4 py-16">
+    <h2 class="text-center text-2xl font-bold mb-2" style="color:#0F2A4A;">Como funciona</h2>
+    <p class="text-center text-gray-500 text-sm mb-10">Três passos simples do upload ao recrutamento</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Card 1 -->
+        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style="background:#EFF6FF;">
+                <svg class="w-6 h-6" style="color:#1B6CA8;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                </svg>
+            </div>
+            <h3 class="font-bold text-gray-900 mb-2">Submeta o seu CV</h3>
+            <p class="text-sm text-gray-500">Carregue o seu currículo em PDF. O sistema extrai automaticamente todo o conteúdo relevante.</p>
+        </div>
+        <!-- Card 2 -->
+        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style="background:#ECFDF5;">
+                <svg class="w-6 h-6" style="color:#3BBFAD;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h16a2 2 0 012 2v10a2 2 0 01-2 2h-2"/>
+                </svg>
+            </div>
+            <h3 class="font-bold text-gray-900 mb-2">Análise por IA</h3>
+            <p class="text-sm text-gray-500">O modelo <strong>llama3.2</strong> avalia as suas competências, experiência e formação e gera um perfil detalhado.</p>
+        </div>
+        <!-- Card 3 -->
+        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style="background:#FFF7ED;">
+                <svg class="w-6 h-6" style="color:#F97316;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+            </div>
+            <h3 class="font-bold text-gray-900 mb-2">Encontre vagas</h3>
+            <p class="text-sm text-gray-500">Candidate-se a vagas com um clique. A IA calcula automaticamente a sua compatibilidade com cada vaga.</p>
+        </div>
+    </div>
+</div>
+
+<!-- CTA bottom -->
+<div class="border-t border-gray-200 py-10 text-center px-4">
+    <p class="text-gray-500 text-sm mb-4">É recrutador? Crie uma conta e comece a receber candidaturas pré-avaliadas pela IA.</p>
+    <a href="{% url 'signup_recruiter' %}" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg font-semibold text-sm border-2" style="border-color:#3BBFAD;color:#0F6E56;">
+        Registar como Recrutador
+    </a>
 </div>
 {% endblock %}

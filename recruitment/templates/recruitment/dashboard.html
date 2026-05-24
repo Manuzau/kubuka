@@ -1,6 +1,6 @@
 {% extends 'recruitment/base.html' %}
 
-{% block title %}Dashboard — KUBUKA{% endblock %}
+{% block title %}Painel de Candidatos — KUBUKA{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 py-8">
@@ -15,16 +15,35 @@
     </div>
     {% endif %}
 
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
-        <h2 class="text-2xl font-bold text-gray-900">Painel de Candidatos</h2>
-        <a href="{% url 'job_manage' %}" class="text-sm text-blue-600 hover:underline">Gerir Vagas →</a>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+        <div>
+            <h2 class="text-2xl font-bold" style="color:#0F2A4A;">Painel de Candidatos</h2>
+            <p class="text-sm text-gray-500 mt-0.5">Gira candidaturas e tome decisões de pré-selecção</p>
+        </div>
+        <a href="{% url 'job_manage' %}" class="text-sm font-medium px-4 py-2 rounded-lg text-white" style="background:#3BBFAD;">Gerir Vagas →</a>
+    </div>
+
+    <!-- Métricas -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Total de Candidatos</p>
+            <p class="text-3xl font-extrabold" style="color:#0F2A4A;">{{ total_candidates }}</p>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Pré-seleccionados</p>
+            <p class="text-3xl font-extrabold" style="color:#3BBFAD;">{{ pre_selected_count }}</p>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Score Médio (CV)</p>
+            <p class="text-3xl font-extrabold" style="color:#1B6CA8;">{{ avg_score }}%</p>
+        </div>
     </div>
 
     <!-- Filtros -->
-    <form method="get" class="bg-white shadow rounded-lg p-4 mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <form method="get" class="bg-white border border-gray-200 rounded-xl p-4 mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">Vaga</label>
-            <select name="job" class="w-full p-2 border rounded text-sm">
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Vaga</label>
+            <select name="job" class="w-full p-2 border rounded-lg text-sm">
                 <option value="">Todas as vagas</option>
                 {% for job in jobs %}
                 <option value="{{ job.id }}" {% if selected_job == job.id|stringformat:"s" %}selected{% endif %}>{{ job.title }}</option>
@@ -32,12 +51,12 @@
             </select>
         </div>
         <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">Score mínimo (%)</label>
-            <input type="number" name="min_score" value="{{ min_score }}" min="0" max="100" placeholder="ex: 60" class="w-full p-2 border rounded text-sm">
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Score mínimo (%)</label>
+            <input type="number" name="min_score" value="{{ min_score }}" min="0" max="100" placeholder="ex: 60" class="w-full p-2 border rounded-lg text-sm">
         </div>
         <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">Estado</label>
-            <select name="status" class="w-full p-2 border rounded text-sm">
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Estado</label>
+            <select name="status" class="w-full p-2 border rounded-lg text-sm">
                 <option value="">Todos</option>
                 <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pendente</option>
                 <option value="pre_selected" {% if status_filter == 'pre_selected' %}selected{% endif %}>Pré-seleccionado</option>
@@ -45,53 +64,62 @@
             </select>
         </div>
         <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">Competência</label>
-            <input type="text" name="skills" value="{{ skills_filter }}" placeholder="ex: Python" class="w-full p-2 border rounded text-sm">
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Competência</label>
+            <input type="text" name="skills" value="{{ skills_filter }}" placeholder="ex: Python" class="w-full p-2 border rounded-lg text-sm">
         </div>
         <div class="sm:col-span-2 lg:col-span-4 flex gap-3">
-            <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">Filtrar</button>
-            <a href="{% url 'admin_dashboard' %}" class="px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded hover:bg-gray-200">Limpar</a>
+            <button type="submit" class="px-5 py-2 text-white text-sm font-medium rounded-lg" style="background:#1B6CA8;">Filtrar</button>
+            <a href="{% url 'admin_dashboard' %}" class="px-5 py-2 bg-gray-100 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-200">Limpar</a>
         </div>
     </form>
 
-    <!-- Tabela de candidaturas -->
-    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+    <!-- Tabela -->
+    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
         <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left text-gray-500">
-                <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                    <tr>
-                        <th class="px-4 py-3">Candidato</th>
-                        <th class="px-4 py-3">Vaga</th>
-                        <th class="px-4 py-3">Score Correspondência</th>
-                        <th class="px-4 py-3">Estado</th>
-                        <th class="px-4 py-3">Acções</th>
+            <table class="w-full text-sm text-left">
+                <thead>
+                    <tr style="background-color:#0F2A4A;">
+                        <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white/80">Candidato</th>
+                        <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white/80">Vaga</th>
+                        <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white/80">Score</th>
+                        <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white/80">Estado</th>
+                        <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white/80">Acções</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="divide-y divide-gray-100">
                     {% for app in applications %}
-                    <tr class="border-b hover:bg-gray-50">
+                    <tr class="hover:bg-blue-50 transition-colors">
                         <td class="px-4 py-3">
-                            <a href="{% url 'resume_detail' app.candidate.resume.pk %}" class="font-medium text-gray-900 hover:text-blue-600">
-                                {{ app.candidate.username }}
-                            </a>
-                            <div class="text-xs text-gray-400">{{ app.candidate.email }}</div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style="background:#1B6CA8;">
+                                    {{ app.candidate.username|first|upper }}
+                                </div>
+                                <div>
+                                    {% if app.candidate.resume %}
+                                    <a href="{% url 'resume_detail' app.candidate.resume.pk %}" class="font-semibold text-gray-900 hover:underline" style="color:#0F2A4A;">{{ app.candidate.username }}</a>
+                                    {% else %}
+                                    <span class="font-semibold" style="color:#0F2A4A;">{{ app.candidate.username }}</span>
+                                    {% endif %}
+                                    <div class="text-xs text-gray-400">{{ app.candidate.email }}</div>
+                                </div>
+                            </div>
                         </td>
-                        <td class="px-4 py-3 text-gray-700">{{ app.job.title }}</td>
+                        <td class="px-4 py-3 text-gray-600 text-sm">{{ app.job.title }}</td>
                         <td class="px-4 py-3">
                             <div class="flex items-center gap-2">
-                                <div class="w-20 bg-gray-200 rounded-full h-2">
-                                    <div class="bg-blue-600 h-2 rounded-full" style="width: {{ app.similarity_score }}%"></div>
+                                <div class="w-20 bg-gray-200 rounded-full h-2 flex-shrink-0">
+                                    <div class="h-2 rounded-full" style="width:{{ app.similarity_score }}%;background:{% if app.similarity_score >= 80 %}#16A34A{% elif app.similarity_score >= 60 %}#EAB308{% else %}#DC2626{% endif %};"></div>
                                 </div>
-                                <span class="font-semibold text-gray-800">{{ app.similarity_score }}%</span>
+                                <span class="font-bold text-sm {% if app.similarity_score >= 80 %}text-green-700{% elif app.similarity_score >= 60 %}text-yellow-700{% else %}text-red-600{% endif %}">{{ app.similarity_score }}%</span>
                             </div>
                         </td>
                         <td class="px-4 py-3">
                             {% if app.status == 'pre_selected' %}
-                                <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded border border-green-400">Pré-seleccionado</span>
+                                <span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">Pré-seleccionado</span>
                             {% elif app.status == 'rejected' %}
-                                <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded border border-red-400">Rejeitado</span>
+                                <span class="bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">Rejeitado</span>
                             {% else %}
-                                <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded border border-yellow-300">Pendente</span>
+                                <span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">Pendente</span>
                             {% endif %}
                         </td>
                         <td class="px-4 py-3">
@@ -100,14 +128,14 @@
                                 <form method="post" action="{% url 'application_update_status_view' app.pk %}">
                                     {% csrf_token %}
                                     <input type="hidden" name="status" value="pre_selected">
-                                    <button type="submit" class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded hover:bg-green-200">Pré-seleccionar</button>
+                                    <button type="submit" class="px-2.5 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-lg hover:bg-green-200">Pré-sel.</button>
                                 </form>
                                 {% endif %}
                                 {% if app.status != 'rejected' %}
                                 <form method="post" action="{% url 'application_update_status_view' app.pk %}">
                                     {% csrf_token %}
                                     <input type="hidden" name="status" value="rejected">
-                                    <button type="submit" class="px-2 py-1 bg-red-100 text-red-700 text-xs rounded hover:bg-red-200">Rejeitar</button>
+                                    <button type="submit" class="px-2.5 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-lg hover:bg-red-200">Rejeitar</button>
                                 </form>
                                 {% endif %}
                             </div>
@@ -115,7 +143,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="5" class="px-4 py-8 text-center text-gray-400">Nenhuma candidatura encontrada.</td>
+                        <td colspan="5" class="px-4 py-12 text-center text-gray-400 text-sm">Nenhuma candidatura encontrada.</td>
                     </tr>
                     {% endfor %}
                 </tbody>

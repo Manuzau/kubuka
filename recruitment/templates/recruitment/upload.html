@@ -1,36 +1,54 @@
 {% extends 'recruitment/base.html' %}
 
-{% block content %}
-<div class="max-w-2xl mx-auto bg-white p-8 border border-gray-200 rounded-lg shadow">
-    <h2 class="text-2xl font-bold mb-6 text-gray-900">Submissão de Currículo (PDF)</h2>
-    <p class="mb-4 text-gray-600">O nosso sistema vai analisar o seu currículo automaticamente com Inteligência Artificial e gerar uma pontuação de compatibilidade com as vagas disponíveis.</p>
+{% block title %}Submeter Currículo — KUBUKA{% endblock %}
 
-    <form method="post" enctype="multipart/form-data" id="upload-form">
-        {% csrf_token %}
+{% block content %}
+<div class="max-w-xl mx-auto px-4 py-12">
+    <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-8">
         <div class="mb-6">
-            <label class="block mb-2 text-sm font-medium text-gray-900" for="file_input">Selecione o ficheiro</label>
-            {{ form.file }}
-            <p class="mt-1 text-sm text-gray-500" id="file_input_help">Apenas ficheiros em formato PDF são aceites.</p>
+            <h2 class="text-2xl font-bold mb-1" style="color:#0F2A4A;">Submeter Currículo</h2>
+            <p class="text-sm text-gray-500">O modelo de IA vai analisar o seu perfil e gerar uma pontuação automática.</p>
         </div>
 
-        <button type="submit" id="submit-btn" class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
-            <span id="btn-text">Submeter para Análise</span>
-            <div id="loading-spinner" class="hidden ml-3">
-                <svg aria-hidden="true" class="w-4 h-4 text-white animate-spin fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
-                    <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
-                </svg>
+        <form method="post" enctype="multipart/form-data" id="upload-form">
+            {% csrf_token %}
+            <div class="mb-6">
+                <label class="block text-sm font-semibold text-gray-700 mb-3">Ficheiro PDF</label>
+                <div style="border:2px dashed #1B6CA8;border-radius:12px;background:#EFF6FF;padding:2.5rem 1rem;text-align:center;">
+                    <svg class="w-12 h-12 mx-auto mb-3" style="color:#1B6CA8;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    {{ form.file }}
+                    <p class="text-sm font-medium text-gray-700 mt-2">Clique para seleccionar o ficheiro</p>
+                    <p class="text-xs text-gray-400 mt-1">Apenas PDF · Máximo 5 MB · A IA analisa automaticamente</p>
+                </div>
+                {% if form.file.errors %}
+                <p class="text-red-600 text-xs mt-2">{{ form.file.errors.0 }}</p>
+                {% endif %}
             </div>
-        </button>
-    </form>
+
+            <button type="submit" id="submit-btn" class="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg font-semibold text-white text-sm" style="background:#1B6CA8;">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                </svg>
+                <span id="btn-text">Submeter para Análise</span>
+                <div id="loading-spinner" class="hidden">
+                    <svg class="w-4 h-4 text-white animate-spin" fill="none" viewBox="0 0 100 101">
+                        <path d="M100 50.59C100 78.2 77.61 100.59 50 100.59S0 78.2 0 50.59 22.39.59 50 .59s50 22.39 50 50z" fill="currentColor" opacity=".25"/>
+                        <path d="M93.97 39.04c2.43-.64 3.9-3.13 3.04-5.49A50 50 0 0050 .59v9.08a41 41 0 0135.52 20.39c1.18 2.09 3.06 3.71 5.48 3.07 1.13-.3 1.95-1.28 2.97-3.09z" fill="currentColor"/>
+                    </svg>
+                </div>
+            </button>
+        </form>
+    </div>
 </div>
 
 <script>
     document.getElementById('upload-form').addEventListener('submit', function() {
-        document.getElementById('btn-text').innerText = 'A processar com IA...';
+        document.getElementById('btn-text').innerText = 'A processar...';
         document.getElementById('loading-spinner').classList.remove('hidden');
         document.getElementById('submit-btn').disabled = true;
-        document.getElementById('submit-btn').classList.add('opacity-50', 'cursor-not-allowed');
+        document.getElementById('submit-btn').style.opacity = '0.7';
     });
 </script>
 {% endblock %}
