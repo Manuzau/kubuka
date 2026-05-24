@@ -1,5 +1,7 @@
 {% extends 'recruitment/base.html' %}
 
+{% block title %}Início — KUBUKA{% endblock %}
+
 {% block content %}
 <div class="py-12 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -9,16 +11,20 @@
                 Olá, {{ user.username }}!
             </p>
             <p class="mt-4 max-w-2xl text-xl text-gray-500 lg:mx-auto">
-                Gira o seu currículo e acompanhe as análises de IA num só lugar.
+                {% if user.is_candidate %}
+                    Gira o seu currículo e candidate-se a vagas num só lugar.
+                {% elif user.is_recruiter or user.is_staff or user.is_admin %}
+                    Gira vagas, consulte candidatos e tome decisões de pré-selecção.
+                {% endif %}
             </p>
         </div>
 
         <div class="mt-10">
             <div class="space-y-10 md:space-y-0 md:grid md:grid-cols-2 md:gap-x-8 md:gap-y-10">
+
                 {% if user.is_candidate %}
                     {% if user.has_resume %}
-                    <!-- Card: Ver Currículo -->
-                    <div class="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-500 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-100">
+                    <div class="relative group bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-100">
                         <div>
                             <span class="rounded-lg inline-flex p-3 bg-blue-50 text-blue-700 ring-4 ring-white">
                                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -30,22 +36,14 @@
                             <h3 class="text-lg font-medium">
                                 <a href="{% url 'resume_detail' user.resume.pk %}" class="focus:outline-none">
                                     <span class="absolute inset-0" aria-hidden="true"></span>
-                                    A Minha Análise
+                                    A Minha Análise de CV
                                 </a>
                             </h3>
-                            <p class="mt-2 text-sm text-gray-500">
-                                Consulte a análise da IA, a sua pontuação e edite as informações do seu currículo.
-                            </p>
+                            <p class="mt-2 text-sm text-gray-500">Consulte a análise da IA, a sua pontuação e edite as informações do seu currículo.</p>
                         </div>
-                        <span class="pointer-events-none absolute top-6 right-6 text-gray-300 group-hover:text-gray-400" aria-hidden="true">
-                            <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M20 4h1a1 1 0 00-1-1v1zm-1 12a1 1 0 102 0 1 1 0 00-2 0zm-9-8a1 1 0 00-1 1v1zm1 12a1 1 0 102 0 1 1 0 00-2 0zm-9-8a1 1 0 00-1 1v1zm1 12a1 1 0 102 0 1 1 0 00-2 0z" />
-                            </svg>
-                        </span>
                     </div>
                     {% else %}
-                    <!-- Card: Submeter Currículo -->
-                    <div class="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-500 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-100">
+                    <div class="relative group bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-100">
                         <div>
                             <span class="rounded-lg inline-flex p-3 bg-green-50 text-green-700 ring-4 ring-white">
                                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -60,59 +58,71 @@
                                     Submeter Currículo
                                 </a>
                             </h3>
-                            <p class="mt-2 text-sm text-gray-500">
-                                Submeta o seu currículo em PDF e receba uma análise automática baseada em Inteligência Artificial.
-                            </p>
+                            <p class="mt-2 text-sm text-gray-500">Submeta o seu currículo em PDF e receba uma análise automática com Inteligência Artificial.</p>
                         </div>
                     </div>
                     {% endif %}
+
+                    <div class="relative group bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-100">
+                        <div>
+                            <span class="rounded-lg inline-flex p-3 bg-indigo-50 text-indigo-700 ring-4 ring-white">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="mt-8">
+                            <h3 class="text-lg font-medium">
+                                <a href="{% url 'job_list' %}" class="focus:outline-none">
+                                    <span class="absolute inset-0" aria-hidden="true"></span>
+                                    Ver Vagas Disponíveis
+                                </a>
+                            </h3>
+                            <p class="mt-2 text-sm text-gray-500">Explore as oportunidades de emprego e candidate-se com o seu currículo.</p>
+                        </div>
+                    </div>
                 {% endif %}
 
-                {% if user.is_staff or user.is_admin %}
-                <!-- Card: Dashboard Admin -->
-                <div class="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-500 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-100">
-                    <div>
-                        <span class="rounded-lg inline-flex p-3 bg-purple-50 text-purple-700 ring-4 ring-white">
-                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                            </svg>
-                        </span>
+                {% if user.is_recruiter or user.is_staff or user.is_admin %}
+                    <div class="relative group bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-100">
+                        <div>
+                            <span class="rounded-lg inline-flex p-3 bg-purple-50 text-purple-700 ring-4 ring-white">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="mt-8">
+                            <h3 class="text-lg font-medium">
+                                <a href="{% url 'admin_dashboard' %}" class="focus:outline-none">
+                                    <span class="absolute inset-0" aria-hidden="true"></span>
+                                    Painel de Candidatos
+                                </a>
+                            </h3>
+                            <p class="mt-2 text-sm text-gray-500">Consulte candidatos, scores de correspondência e gira o processo de pré-selecção.</p>
+                        </div>
                     </div>
-                    <div class="mt-8">
-                        <h3 class="text-lg font-medium">
-                            <a href="{% url 'admin_dashboard' %}" class="focus:outline-none">
-                                <span class="absolute inset-0" aria-hidden="true"></span>
-                                Painel do Recrutador
-                            </a>
-                        </h3>
-                        <p class="mt-2 text-sm text-gray-500">
-                            Consulte todos os candidatos, pontuações e gira o processo de recrutamento.
-                        </p>
+
+                    <div class="relative group bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-100">
+                        <div>
+                            <span class="rounded-lg inline-flex p-3 bg-yellow-50 text-yellow-700 ring-4 ring-white">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="mt-8">
+                            <h3 class="text-lg font-medium">
+                                <a href="{% url 'job_manage' %}" class="focus:outline-none">
+                                    <span class="absolute inset-0" aria-hidden="true"></span>
+                                    Gestão de Vagas
+                                </a>
+                            </h3>
+                            <p class="mt-2 text-sm text-gray-500">Crie, edite e publique vagas de emprego para receber candidaturas.</p>
+                        </div>
                     </div>
-                </div>
                 {% endif %}
 
-                <!-- Card: Perfil (Substituído por Vagas) -->
-                <div class="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-500 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-100">
-                    <div>
-                        <span class="rounded-lg inline-flex p-3 bg-indigo-50 text-indigo-700 ring-4 ring-white">
-                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                            </svg>
-                        </span>
-                    </div>
-                    <div class="mt-8">
-                        <h3 class="text-lg font-medium">
-                            <a href="{% url 'job_list' %}" class="focus:outline-none">
-                                <span class="absolute inset-0" aria-hidden="true"></span>
-                                Ver Vagas Disponíveis
-                            </a>
-                        </h3>
-                        <p class="mt-2 text-sm text-gray-500">
-                            Explore as oportunidades de emprego disponíveis e candidate-se com seu currículo.
-                        </p>
-                    </div>
-                </div>
             </div>
         </div>
     </div>

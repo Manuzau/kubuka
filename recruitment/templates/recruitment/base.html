@@ -50,7 +50,8 @@
                     </form>
                 {% else %}
                     <a href="{% url 'login' %}" class="text-gray-800 hover:bg-gray-50 font-medium rounded-lg text-sm px-4 py-2 mr-2">Login</a>
-                    <a href="{% url 'signup' %}" class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-4 py-2">Criar Conta</a>
+                    <a href="{% url 'signup' %}" class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-4 py-2 mr-2">Candidato</a>
+                    <a href="{% url 'signup_recruiter' %}" class="text-blue-700 border border-blue-700 hover:bg-blue-50 font-medium rounded-lg text-sm px-4 py-2">Recrutador</a>
                 {% endif %}
             </div>
         </div>

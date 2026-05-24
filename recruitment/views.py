@@ -8,7 +8,7 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 
 from .models import User, Resume, Job, Application
-from .forms import CandidateSignupForm, ResumeUploadForm, ResumeUpdateForm, JobForm
+from .forms import CandidateSignupForm, RecruiterSignupForm, ResumeUploadForm, ResumeUpdateForm, JobForm
 from .cv_processor import extract_text_from_pdf
 from .ai_service import send_cv_to_n8n, send_application_for_scoring
 
@@ -34,6 +34,23 @@ class SignupView(CreateView):
         user = form.save(commit=False)
         user.is_candidate = True
         user.save()
+        return super().form_valid(form)
+
+
+class RecruiterSignupView(CreateView):
+    model = User
+    form_class = RecruiterSignupForm
+    template_name = 'recruitment/signup_recruiter.html'
+    success_url = reverse_lazy('login')
+
+    def form_valid(self, form):
+        user = form.save(commit=False)
+        user.is_recruiter = True
+        user.save()
+        messages.success(
+            self.request,
+            'Conta de recrutador criada com sucesso. Pode agora iniciar sessão.'
+        )
         return super().form_valid(form)
 
 
