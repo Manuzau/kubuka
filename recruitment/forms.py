@@ -37,7 +37,7 @@ class ResumeUpdateForm(forms.ModelForm):
 class JobForm(forms.ModelForm):
     class Meta:
         model = Job
-        fields = ('title', 'company', 'description', 'requirements', 'location', 'salary_range', 'is_active')
+        fields = ('title', 'company', 'description', 'requirements', 'location', 'salary_range', 'deadline', 'is_active')
         widgets = {
             'title': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
             'company': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
@@ -45,4 +45,5 @@ class JobForm(forms.ModelForm):
             'requirements': forms.Textarea(attrs={'rows': 5, 'class': 'w-full p-2 border rounded'}),
             'location': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
             'salary_range': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
+            'deadline': forms.DateInput(attrs={'class': 'w-full p-2 border rounded', 'type': 'date'}),
         }

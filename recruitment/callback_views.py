@@ -120,6 +120,7 @@ def application_update_status(request, application_id: int):
     except json.JSONDecodeError:
         return JsonResponse({'error': 'JSON inválido.'}, status=400)
 
+    from django.utils.dateparse import parse_datetime
     new_status = data.get('status')
     valid = [s[0] for s in Application.STATUS_CHOICES]
     if new_status not in valid:
@@ -130,6 +131,21 @@ def application_update_status(request, application_id: int):
     except Application.DoesNotExist:
         return JsonResponse({'error': f'Application {application_id} não encontrada.'}, status=404)
 
+    update_fields = ['status', 'updated_at']
     application.status = new_status
-    application.save(update_fields=['status'])
+
+    if new_status == 'interview_scheduled':
+        interview_date_str = data.get('interview_date')
+        if interview_date_str:
+            interview_date = parse_datetime(interview_date_str)
+            if interview_date:
+                application.interview_date = interview_date
+                update_fields.append('interview_date')
+
+    recruiter_notes = data.get('recruiter_notes')
+    if recruiter_notes is not None:
+        application.recruiter_notes = recruiter_notes
+        update_fields.append('recruiter_notes')
+
+    application.save(update_fields=update_fields)
     return JsonResponse({'success': True, 'application_id': application_id, 'status': application.status})

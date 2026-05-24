@@ -1,3 +1,4 @@
+import csv
 import logging
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
@@ -6,8 +7,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, ListView, TemplateView, DetailView, UpdateView
 from django.urls import reverse_lazy
 from django.contrib import messages
+from django.http import HttpResponse
 
-from django.db.models import Avg
+from django.db.models import Avg, Count
 from .models import User, Resume, Job, Application
 from .forms import CandidateSignupForm, RecruiterSignupForm, ResumeUploadForm, ResumeUpdateForm, JobForm
 from .cv_processor import extract_text_from_pdf
@@ -166,19 +168,21 @@ def admin_dashboard(request):
     if request.user.is_recruiter and not (request.user.is_staff or request.user.is_admin):
         base_qs = base_qs.filter(job__created_by=request.user)
 
-    total_candidates = Resume.objects.count()
-    pre_selected_count = base_qs.filter(status='pre_selected').count()
-    avg_score = round(Resume.objects.aggregate(avg=Avg('score'))['avg'] or 0, 1)
+    total = base_qs.count()
+    pre_selected = base_qs.filter(status='pre_selected').count()
+    interviews = base_qs.filter(status='interview_scheduled').count()
+    avg_score = round(base_qs.aggregate(avg=Avg('similarity_score'))['avg'] or 0, 1)
 
     context = {
         'applications': applications,
         'jobs': jobs,
-        'selected_job': job_id,
-        'min_score': min_score,
-        'status_filter': status_filter,
-        'skills_filter': skills_filter,
-        'total_candidates': total_candidates,
-        'pre_selected_count': pre_selected_count,
+        'current_job': job_id,
+        'current_min_score': min_score,
+        'current_status': status_filter,
+        'current_skills': skills_filter,
+        'total': total,
+        'pre_selected': pre_selected,
+        'interviews': interviews,
         'avg_score': avg_score,
     }
     return render(request, 'recruitment/dashboard.html', context)
@@ -277,9 +281,10 @@ class JobRecruiterListView(LoginRequiredMixin, ListView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
+        qs = Job.objects.annotate(application_count=Count('applications'))
         if self.request.user.is_staff or self.request.user.is_admin:
-            return Job.objects.all().order_by('-created_at')
-        return Job.objects.filter(created_by=self.request.user).order_by('-created_at')
+            return qs.order_by('-created_at')
+        return qs.filter(created_by=self.request.user).order_by('-created_at')
 
 
 class JobCreateView(LoginRequiredMixin, CreateView):
@@ -329,19 +334,63 @@ def application_update_status_view(request, pk):
         messages.error(request, 'Acesso restrito a recrutadores.')
         return redirect('home')
 
+    from django.utils.dateparse import parse_datetime
     application = get_object_or_404(Application, pk=pk)
     new_status = request.POST.get('status')
     valid = [s[0] for s in Application.STATUS_CHOICES]
 
     if new_status in valid:
+        update_fields = ['status', 'updated_at']
         application.status = new_status
-        application.save(update_fields=['status'])
-        label = {'pre_selected': 'Pré-seleccionado', 'rejected': 'Rejeitado', 'pending': 'Pendente'}.get(new_status, new_status)
+
+        if new_status == 'interview_scheduled':
+            interview_date_str = request.POST.get('interview_date')
+            if interview_date_str:
+                interview_date = parse_datetime(interview_date_str)
+                if interview_date:
+                    application.interview_date = interview_date
+                    update_fields.append('interview_date')
+
+        recruiter_notes = request.POST.get('recruiter_notes')
+        if recruiter_notes is not None:
+            application.recruiter_notes = recruiter_notes
+            update_fields.append('recruiter_notes')
+
+        application.save(update_fields=update_fields)
+        label = application.get_status_display()
         messages.success(request, f'Candidatura de {application.candidate.username} marcada como: {label}.')
     else:
         messages.error(request, 'Estado inválido.')
 
     return redirect('admin_dashboard')
+
+
+@login_required
+def export_applications_csv(request):
+    if not (request.user.is_recruiter or request.user.is_staff or request.user.is_admin):
+        return redirect('home')
+
+    applications = Application.objects.select_related('candidate', 'candidate__resume', 'job').order_by('-similarity_score')
+    if request.user.is_recruiter and not (request.user.is_staff or request.user.is_admin):
+        applications = applications.filter(job__created_by=request.user)
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="candidaturas.csv"'
+    response.write('﻿')  # BOM for Excel UTF-8
+
+    writer = csv.writer(response)
+    writer.writerow(['Candidato', 'Email', 'Vaga', 'Empresa', 'Score (%)', 'Estado', 'Data de Candidatura'])
+    for app in applications:
+        writer.writerow([
+            app.candidate.username,
+            app.candidate.email,
+            app.job.title,
+            app.job.company,
+            app.similarity_score,
+            app.get_status_display(),
+            app.applied_at.strftime('%Y-%m-%d %H:%M'),
+        ])
+    return response
 
 
 @login_required

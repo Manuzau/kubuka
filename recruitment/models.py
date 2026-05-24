@@ -42,6 +42,7 @@ class Job(models.Model):
     location = models.CharField(max_length=100, verbose_name="Localização")
     salary_range = models.CharField(max_length=100, blank=True, null=True, verbose_name="Faixa Salarial")
     is_active = models.BooleanField(default=True, verbose_name="Vaga Activa")
+    deadline = models.DateField(blank=True, null=True, verbose_name="Prazo de Candidatura")
     created_by = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='jobs_created', verbose_name="Criado por"
@@ -54,20 +55,25 @@ class Job(models.Model):
 
 class Application(models.Model):
     STATUS_CHOICES = [
-        ('pending', 'Pendente'),
-        ('pre_selected', 'Pré-seleccionado'),
-        ('rejected', 'Rejeitado'),
+        ('pending',              'Pendente'),
+        ('pre_selected',         'Pré-seleccionado'),
+        ('rejected',             'Rejeitado'),
+        ('interview_scheduled',  'Entrevista Agendada'),
     ]
 
     candidate = models.ForeignKey(User, on_delete=models.CASCADE, related_name='applications')
     job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='applications')
     similarity_score = models.FloatField(default=0.0)
     match_feedback = models.TextField(blank=True, null=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='pending')
+    recruiter_notes = models.TextField(blank=True, null=True, verbose_name="Notas internas do recrutador")
+    interview_date = models.DateTimeField(blank=True, null=True, verbose_name="Data da entrevista")
     applied_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         unique_together = ('candidate', 'job')
+        ordering = ['-similarity_score']
 
     def __str__(self):
-        return f"{self.candidate.username} → {self.job.title} ({self.status})"
+        return f"{self.candidate.username} → {self.job.title} ({self.get_status_display()})"
