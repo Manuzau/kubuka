@@ -132,3 +132,13 @@ AUTH_USER_MODEL = 'recruitment.User'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
 LOGIN_URL = 'login'
+
+N8N_WEBHOOK_URL = env('N8N_WEBHOOK_URL', default='')
+N8N_SECRET_TOKEN = env('N8N_SECRET_TOKEN', default='')
+CALLBACK_SECRET = env('CALLBACK_SECRET', default='')
+
+# n8n + Ollama
+N8N_WEBHOOK_CV_URL = env('N8N_WEBHOOK_CV_URL', default='')
+N8N_WEBHOOK_SCORE_URL = env('N8N_WEBHOOK_SCORE_URL', default='')
+N8N_CALLBACK_SECRET = env('N8N_CALLBACK_SECRET', default='')
+DJANGO_BASE_URL = env('DJANGO_BASE_URL', default='http://localhost:8000')

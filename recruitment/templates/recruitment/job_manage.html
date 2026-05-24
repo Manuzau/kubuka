@@ -1,0 +1,78 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}Gestão de Vagas — KUBUKA{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8">
+
+    {% if messages %}
+    <div class="mb-6">
+        {% for message in messages %}
+        <div class="p-4 mb-3 text-sm rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700{% elif message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+        <h2 class="text-2xl font-bold text-gray-900">Gestão de Vagas</h2>
+        <div class="flex gap-3">
+            <a href="{% url 'admin_dashboard' %}" class="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded hover:bg-gray-200">Ver Candidatos</a>
+            <a href="{% url 'job_create' %}" class="px-4 py-2 text-sm text-white bg-blue-600 rounded hover:bg-blue-700">+ Nova Vaga</a>
+        </div>
+    </div>
+
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left text-gray-500">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3">Título</th>
+                        <th class="px-4 py-3">Empresa</th>
+                        <th class="px-4 py-3">Localização</th>
+                        <th class="px-4 py-3">Candidaturas</th>
+                        <th class="px-4 py-3">Estado</th>
+                        <th class="px-4 py-3">Acções</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for job in jobs %}
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="px-4 py-3 font-medium text-gray-900">{{ job.title }}</td>
+                        <td class="px-4 py-3">{{ job.company }}</td>
+                        <td class="px-4 py-3">{{ job.location }}</td>
+                        <td class="px-4 py-3">{{ job.applications.count }}</td>
+                        <td class="px-4 py-3">
+                            {% if job.is_active %}
+                                <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded border border-green-400">Activa</span>
+                            {% else %}
+                                <span class="bg-gray-100 text-gray-600 text-xs font-medium px-2.5 py-0.5 rounded border border-gray-300">Inactiva</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex gap-2">
+                                <a href="{% url 'job_edit' job.pk %}" class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded hover:bg-blue-200">Editar</a>
+                                <form method="post" action="{% url 'job_toggle_active' job.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="px-2 py-1 text-xs rounded {% if job.is_active %}bg-yellow-100 text-yellow-700 hover:bg-yellow-200{% else %}bg-green-100 text-green-700 hover:bg-green-200{% endif %}">
+                                        {% if job.is_active %}Desactivar{% else %}Activar{% endif %}
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-4 py-8 text-center text-gray-400">
+                            Ainda não criou nenhuma vaga.
+                            <a href="{% url 'job_create' %}" class="text-blue-600 hover:underline ml-1">Criar agora →</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
