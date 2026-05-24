@@ -26,6 +26,8 @@ urlpatterns = [
 
     # Painel de administrador / recrutador
     path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('dashboard/kanban/', views.admin_dashboard, {'view_mode': 'kanban'}, name='dashboard_kanban'),
+    path('dashboard/analytics/', views.analytics_dashboard, name='analytics_dashboard'),
     path('dashboard/export/', views.export_applications_csv, name='export_applications_csv'),
 
     # Detalhe e edição de currículo

@@ -22,7 +22,7 @@ class ResumeAdmin(admin.ModelAdmin):
 
 @admin.register(Job)
 class JobAdmin(admin.ModelAdmin):
-    list_display = ('title', 'company', 'location', 'is_active', 'created_by', 'created_at')
+    list_display = ('title', 'company', 'location', 'is_active', 'min_score_required', 'created_by', 'created_at')
     list_filter = ('is_active',)
     search_fields = ('title', 'company', 'location')
     readonly_fields = ('created_at',)
