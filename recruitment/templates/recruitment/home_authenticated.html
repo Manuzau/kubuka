@@ -81,6 +81,25 @@
                             <p class="mt-2 text-sm text-gray-500">Explore as oportunidades de emprego e candidate-se com o seu currículo.</p>
                         </div>
                     </div>
+
+                    <div class="relative group bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-100">
+                        <div>
+                            <span class="rounded-lg inline-flex p-3 bg-teal-50 text-teal-700 ring-4 ring-white">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="mt-8">
+                            <h3 class="text-lg font-medium">
+                                <a href="{% url 'my_applications' %}" class="focus:outline-none">
+                                    <span class="absolute inset-0" aria-hidden="true"></span>
+                                    As Minhas Candidaturas
+                                </a>
+                            </h3>
+                            <p class="mt-2 text-sm text-gray-500">Acompanhe o estado das suas candidaturas e veja o feedback de correspondência.</p>
+                        </div>
+                    </div>
                 {% endif %}
 
                 {% if user.is_recruiter or user.is_staff or user.is_admin %}

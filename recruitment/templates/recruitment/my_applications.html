@@ -1,0 +1,64 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}As Minhas Candidaturas — KUBUKA{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-8">
+
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-gray-900">As Minhas Candidaturas</h2>
+        <a href="{% url 'job_list' %}" class="text-sm text-blue-600 hover:underline">Ver Vagas Disponíveis →</a>
+    </div>
+
+    {% if applications %}
+    <div class="space-y-4">
+        {% for app in applications %}
+        <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900">{{ app.job.title }}</h3>
+                    <p class="text-sm text-gray-500">{{ app.job.company }} · {{ app.job.location }}</p>
+                    <p class="text-xs text-gray-400 mt-1">Candidatura enviada em {{ app.applied_at|date:"d/m/Y" }}</p>
+                </div>
+
+                <div class="flex flex-col items-start sm:items-end gap-2">
+                    {% if app.status == 'pre_selected' %}
+                        <span class="bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full border border-green-300">Pré-seleccionado</span>
+                    {% elif app.status == 'rejected' %}
+                        <span class="bg-red-100 text-red-800 text-xs font-semibold px-3 py-1 rounded-full border border-red-300">Rejeitado</span>
+                    {% else %}
+                        <span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full border border-yellow-300">Em análise</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if app.match_feedback %}
+            <div class="mt-4 bg-blue-50 border border-blue-100 rounded-lg p-4">
+                <p class="text-xs font-semibold text-blue-700 uppercase tracking-wider mb-1">Feedback de Correspondência</p>
+                <p class="text-sm text-blue-900">{{ app.match_feedback }}</p>
+            </div>
+            {% elif app.similarity_score == 0.0 %}
+            <div class="mt-4 bg-yellow-50 border border-yellow-100 rounded-lg p-3 flex items-center gap-2">
+                <svg class="w-4 h-4 text-yellow-500 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                </svg>
+                <p class="text-sm text-yellow-700">A calcular correspondência com a vaga...</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="text-center py-16 bg-white border border-gray-200 rounded-lg shadow-sm">
+        <svg class="mx-auto h-12 w-12 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+        <h3 class="text-sm font-medium text-gray-900 mb-1">Ainda não se candidatou a nenhuma vaga</h3>
+        <p class="text-sm text-gray-500 mb-4">Explore as oportunidades disponíveis e candidate-se com o seu currículo.</p>
+        <a href="{% url 'job_list' %}" class="text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Ver Vagas</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

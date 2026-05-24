@@ -102,6 +102,23 @@ def profile_view(request):
 
 
 # ---------------------------------------------------------------------------
+# Candidaturas do candidato
+# ---------------------------------------------------------------------------
+
+@login_required
+def my_applications(request):
+    if not request.user.is_candidate:
+        return redirect('home')
+    applications = (
+        Application.objects
+        .filter(candidate=request.user)
+        .select_related('job')
+        .order_by('-applied_at')
+    )
+    return render(request, 'recruitment/my_applications.html', {'applications': applications})
+
+
+# ---------------------------------------------------------------------------
 # Dashboard — Admin / Recrutador
 # ---------------------------------------------------------------------------
 
