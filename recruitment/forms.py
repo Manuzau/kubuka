@@ -37,7 +37,12 @@ class ResumeUpdateForm(forms.ModelForm):
 class JobForm(forms.ModelForm):
     class Meta:
         model = Job
-        fields = ('title', 'company', 'description', 'requirements', 'location', 'salary_range', 'deadline', 'is_active')
+        fields = (
+            'title', 'company', 'description', 'requirements',
+            'location', 'salary_range', 'deadline',
+            'contact_email_primary', 'contact_email_secondary',
+            'allow_candidate_unavailability', 'is_active',
+        )
         widgets = {
             'title': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
             'company': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
@@ -46,4 +51,12 @@ class JobForm(forms.ModelForm):
             'location': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
             'salary_range': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
             'deadline': forms.DateInput(attrs={'class': 'w-full p-2 border rounded', 'type': 'date'}),
+            'contact_email_primary': forms.EmailInput(attrs={'class': 'w-full p-2 border rounded'}),
+            'contact_email_secondary': forms.EmailInput(attrs={'class': 'w-full p-2 border rounded'}),
         }
+
+    def clean_contact_email_primary(self):
+        value = self.cleaned_data.get('contact_email_primary')
+        if not value:
+            raise forms.ValidationError('O email de contacto principal é obrigatório.')
+        return value

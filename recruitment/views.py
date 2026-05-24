@@ -124,6 +124,46 @@ def my_applications(request):
 
 
 # ---------------------------------------------------------------------------
+# Candidatura — Retirar / Indisponibilidade
+# ---------------------------------------------------------------------------
+
+@login_required
+def withdraw_application(request, application_id):
+    if not request.user.is_candidate:
+        return redirect('home')
+    application = get_object_or_404(Application, pk=application_id, candidate=request.user)
+    if application.status != 'pending':
+        messages.error(request, 'Não é possível retirar uma candidatura que já está em processo avançado.')
+        return redirect('job_list')
+    application.status = 'withdrawn'
+    application.save(update_fields=['status', 'updated_at'])
+    messages.success(request, 'A sua candidatura foi retirada com sucesso.')
+    return redirect('job_list')
+
+
+@login_required
+def submit_unavailability(request, application_id):
+    if not request.user.is_candidate:
+        return redirect('home')
+    application = get_object_or_404(Application, pk=application_id, candidate=request.user)
+    if not application.candidate_availability_enabled:
+        messages.error(request, 'Esta opção não está disponível para esta candidatura.')
+        return redirect('my_applications')
+    if application.status != 'interview_scheduled':
+        messages.error(request, 'Só pode indicar indisponibilidade para entrevistas agendadas.')
+        return redirect('my_applications')
+    reason = request.POST.get('reason', '').strip()
+    if not reason:
+        messages.error(request, 'Por favor indique o motivo da indisponibilidade.')
+        return redirect('my_applications')
+    application.candidate_unavailability_reason = reason
+    application.availability_responded = True
+    application.save(update_fields=['candidate_unavailability_reason', 'availability_responded', 'updated_at'])
+    messages.success(request, 'A sua indisponibilidade foi registada. O recrutador será notificado.')
+    return redirect('my_applications')
+
+
+# ---------------------------------------------------------------------------
 # Notificações — Candidato
 # ---------------------------------------------------------------------------
 
@@ -254,10 +294,13 @@ class JobListView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        applied_ids = Application.objects.filter(
-            candidate=self.request.user
-        ).values_list('job_id', flat=True)
-        context['applied_job_ids'] = set(applied_ids)
+        if self.request.user.is_authenticated:
+            apps_by_job = {
+                app.job_id: app
+                for app in Application.objects.filter(candidate=self.request.user)
+            }
+            for job in context['jobs']:
+                job.user_application = apps_by_job.get(job.pk)
         return context
 
 
@@ -273,15 +316,21 @@ def apply_job(request, pk):
         messages.error(request, 'Precisa de submeter um currículo antes de se candidatar.')
         return redirect('upload_resume')
 
-    if Application.objects.filter(candidate=request.user, job=job).exists():
-        messages.info(request, 'Já se candidatou a esta vaga.')
+    existing = Application.objects.filter(candidate=request.user, job=job).first()
+    if existing:
+        if existing.status == 'withdrawn':
+            existing.status = 'pending'
+            existing.save(update_fields=['status', 'updated_at'])
+            send_application_for_scoring(existing)
+            messages.success(request, f'Re-candidatura submetida com sucesso para: {job.title}!')
+        else:
+            messages.info(request, 'Já se candidatou a esta vaga.')
     else:
         application = Application.objects.create(
             candidate=request.user,
             job=job,
             status='pending',
         )
-        # Calcular score de correspondência (non-blocking)
         send_application_for_scoring(application)
         messages.success(request, f'Candidatura submetida com sucesso para: {job.title}!')
 
@@ -373,6 +422,8 @@ def application_update_status_view(request, pk):
                 if interview_date:
                     application.interview_date = interview_date
                     update_fields.append('interview_date')
+            application.candidate_availability_enabled = application.job.allow_candidate_unavailability
+            update_fields.append('candidate_availability_enabled')
 
         recruiter_notes = request.POST.get('recruiter_notes')
         if recruiter_notes is not None:

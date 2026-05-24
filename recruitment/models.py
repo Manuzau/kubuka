@@ -43,6 +43,9 @@ class Job(models.Model):
     salary_range = models.CharField(max_length=100, blank=True, null=True, verbose_name="Faixa Salarial")
     is_active = models.BooleanField(default=True, verbose_name="Vaga Activa")
     deadline = models.DateField(blank=True, null=True, verbose_name="Prazo de Candidatura")
+    contact_email_primary = models.EmailField(blank=True, null=True, verbose_name="Email de contacto principal")
+    contact_email_secondary = models.EmailField(blank=True, null=True, verbose_name="Email de contacto secundário")
+    allow_candidate_unavailability = models.BooleanField(default=False, verbose_name="Permitir indicação de indisponibilidade")
     created_by = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='jobs_created', verbose_name="Criado por"
@@ -59,6 +62,7 @@ class Application(models.Model):
         ('pre_selected',         'Pré-seleccionado'),
         ('rejected',             'Rejeitado'),
         ('interview_scheduled',  'Entrevista Agendada'),
+        ('withdrawn',            'Candidatura Retirada'),
     ]
 
     candidate = models.ForeignKey(User, on_delete=models.CASCADE, related_name='applications')
@@ -68,6 +72,9 @@ class Application(models.Model):
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='pending')
     recruiter_notes = models.TextField(blank=True, null=True, verbose_name="Notas internas do recrutador")
     interview_date = models.DateTimeField(blank=True, null=True, verbose_name="Data da entrevista")
+    candidate_availability_enabled = models.BooleanField(default=False)
+    candidate_unavailability_reason = models.TextField(blank=True, null=True)
+    availability_responded = models.BooleanField(default=False)
     applied_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

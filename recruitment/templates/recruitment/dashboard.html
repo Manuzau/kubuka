@@ -144,6 +144,11 @@
                             {% else %}
                             <span class="text-xs text-gray-300">—</span>
                             {% endif %}
+                            {% if app.availability_responded %}
+                            <p class="text-xs text-orange-600 mt-1 font-medium" title="{{ app.candidate_unavailability_reason }}">
+                                ⚠ Indisponível: {{ app.candidate_unavailability_reason|truncatechars:50 }}
+                            </p>
+                            {% endif %}
                         </td>
                         <td class="px-4 py-3">
                             <div class="flex flex-wrap gap-1.5">

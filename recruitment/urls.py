@@ -41,6 +41,10 @@ urlpatterns = [
     path('notifications/', views.notifications_view, name='notifications'),
     path('notifications/<int:pk>/read/', views.mark_notification_read, name='mark_notification_read'),
 
+    # Candidatura — retirar / indisponibilidade
+    path('application/<int:application_id>/withdraw/', views.withdraw_application, name='withdraw_application'),
+    path('application/<int:application_id>/unavailability/', views.submit_unavailability, name='submit_unavailability'),
+
     # Vagas — recrutador
     path('recruiter/jobs/', views.JobRecruiterListView.as_view(), name='job_manage'),
     path('recruiter/jobs/new/', views.JobCreateView.as_view(), name='job_create'),
