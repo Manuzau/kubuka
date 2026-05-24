@@ -25,6 +25,7 @@
             <form method="post" class="space-y-5">
                 {% csrf_token %}
 
+                <!-- Informação básica -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Título da Vaga *</label>
                     {{ form.title }}
@@ -50,15 +51,32 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Prazo de Candidatura</label>
                         {{ form.deadline }}
-                        {% if form.deadline.errors %}<p class="text-red-600 text-xs mt-1">{{ form.deadline.errors.0 }}</p>{% endif %}
-                    </div>
-                    <div class="flex items-end pb-1">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            {{ form.is_active }}
-                            <span class="text-sm font-medium text-gray-700">Vaga activa (visível para candidatos)</span>
-                        </label>
                     </div>
                 </div>
+
+                <!-- Contacto -->
+                <div class="border-t border-gray-100 pt-5">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-gray-400 mb-3">Contacto</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Email de Contacto Principal *
+                            </label>
+                            {{ form.contact_email_primary }}
+                            {% if form.contact_email_primary.errors %}
+                                <p class="text-red-600 text-xs mt-1">{{ form.contact_email_primary.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Email de Contacto Secundário
+                            </label>
+                            {{ form.contact_email_secondary }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Descrição e Requisitos -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Descrição *</label>
                     {{ form.description }}
@@ -68,6 +86,19 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Requisitos *</label>
                     {{ form.requirements }}
                     {% if form.requirements.errors %}<p class="text-red-600 text-xs mt-1">{{ form.requirements.errors.0 }}</p>{% endif %}
+                </div>
+
+                <!-- Opções -->
+                <div class="border-t border-gray-100 pt-5 space-y-3">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-gray-400 mb-3">Opções</h3>
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        {{ form.is_active }}
+                        <span class="text-sm font-medium text-gray-700">Vaga activa (visível para candidatos)</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        {{ form.allow_candidate_unavailability }}
+                        <span class="text-sm font-medium text-gray-700">Permitir que candidatos indiquem indisponibilidade para entrevista</span>
+                    </label>
                 </div>
 
                 <div class="flex gap-3 pt-2">

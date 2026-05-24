@@ -70,6 +70,8 @@ class ApplicationStatusView(APIView):
                 if interview_date:
                     application.interview_date = interview_date
                     update_fields.append('interview_date')
+            application.candidate_availability_enabled = application.job.allow_candidate_unavailability
+            update_fields.append('candidate_availability_enabled')
 
         recruiter_notes = request.data.get('recruiter_notes')
         if recruiter_notes is not None:
