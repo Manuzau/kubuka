@@ -1,70 +1,100 @@
-import pdfplumber
-import pytesseract
-from pdf2image import convert_from_path
 import os
 import subprocess
-import sys
+import pdfplumber
 
-def find_tesseract():
-    """Find Tesseract executable in common locations"""
-    possible_paths = [
+# Tentativa de importar dependências opcionais de OCR
+try:
+    import pytesseract
+    from pdf2image import convert_from_path
+    OCR_AVAILABLE = True
+except ImportError:
+    OCR_AVAILABLE = False
+
+
+def _find_tesseract():
+    """Localiza o executável do Tesseract em caminhos comuns do Windows."""
+    candidatos = [
         r'C:\Program Files\Tesseract-OCR\tesseract.exe',
         r'C:\Program Files (x86)\Tesseract-OCR\tesseract.exe',
         r'C:\Users\manue\scoop\apps\tesseract\current\tesseract.exe',
-        r'C:\tesseract\tesseract.exe',
-        'tesseract.exe'  # In PATH
     ]
-    
-    for path in possible_paths:
-        if os.path.exists(path) or (path == 'tesseract.exe' and is_tesseract_in_path()):
-            return path
+    for caminho in candidatos:
+        if os.path.exists(caminho):
+            return caminho
+    # Verificar se está no PATH
+    try:
+        resultado = subprocess.run(
+            ['where', 'tesseract'], capture_output=True, text=True, timeout=5
+        )
+        if resultado.returncode == 0:
+            return resultado.stdout.strip().splitlines()[0]
+    except Exception:
+        pass
     return None
 
-def is_tesseract_in_path():
-    """Check if tesseract is in PATH"""
+
+def _poppler_disponivel():
+    """Verifica se o poppler está instalado (necessário para pdf2image)."""
     try:
-        result = subprocess.run(['where', 'tesseract'], 
-                              capture_output=True, text=True, timeout=5)
-        return result.returncode == 0
+        resultado = subprocess.run(
+            ['pdftoppm', '-v'], capture_output=True, text=True, timeout=5
+        )
+        return resultado.returncode == 0
     except Exception:
         return False
 
-def is_poppler_installed():
-    """Check if poppler is installed and available"""
-    try:
-        result = subprocess.run(['pdftoppm', '-v'], 
-                              capture_output=True, text=True, timeout=5)
-        return result.returncode == 0
-    except Exception:
-        return False
 
-def extract_text_from_pdf(pdf_path):
-    text = ""
-    
+# Configura o Tesseract uma vez no arranque do módulo
+if OCR_AVAILABLE:
+    caminho_tesseract = _find_tesseract()
+    if caminho_tesseract:
+        pytesseract.pytesseract.tesseract_cmd = caminho_tesseract
+
+
+def extract_text_from_pdf(pdf_path: str) -> str:
+    """
+    Extrai texto de um ficheiro PDF.
+
+    Estratégia:
+    1. Tenta pdfplumber (PDFs com texto incorporado).
+    2. Se o resultado for insuficiente (< 50 caracteres), usa OCR com
+       pytesseract via pdf2image — requer Tesseract e Poppler instalados.
+
+    Retorna uma string UTF-8 limpa.
+    """
+    texto = ""
+
+    # --- Fase 1: pdfplumber ---
     try:
         with pdfplumber.open(pdf_path) as pdf:
-            for page in pdf.pages:
-                t = page.extract_text()
-                if t:
-                    text += t + "\n"
-    except Exception as e:
-        print(f"[ERROR] Erro ao extrair com pdfplumber: {str(e)}")
+            for pagina in pdf.pages:
+                conteudo = pagina.extract_text()
+                if conteudo:
+                    texto += conteudo + "\n"
+    except Exception as erro:
+        print(f"[cv_processor] pdfplumber falhou: {erro}")
 
-    if len(text.strip()) < 50:
-        if not is_poppler_installed():
-            print(POPPLER_INSTRUCTIONS)
-            return text.strip() if text.strip() else ""
-        
-        if not tesseract_path:
-            print("⚠️  Tesseract não encontrado. Instale primeiro:")
-            print("   choco install tesseract -y")
-            return text.strip() if text.strip() else ""
-        
+    # --- Fase 2: OCR como fallback ---
+    if len(texto.strip()) < 50:
+        if not OCR_AVAILABLE:
+            print("[cv_processor] pytesseract/pdf2image não instalados. Instale com:")
+            print("  pip install pytesseract pdf2image")
+            return texto.strip()
+
+        if not _poppler_disponivel():
+            print("[cv_processor] Poppler não encontrado. Instale com: choco install poppler")
+            return texto.strip()
+
+        caminho_tesseract = _find_tesseract()
+        if not caminho_tesseract:
+            print("[cv_processor] Tesseract não encontrado. Instale com: choco install tesseract")
+            return texto.strip()
+
         try:
-            images = convert_from_path(pdf_path)
-            for image in images:
-                text += pytesseract.image_to_string(image, lang="por") + "\n"
-        except Exception as e:
-            print(f"[ERROR] Erro ao extrair com OCR: {str(e)}")
+            imagens = convert_from_path(pdf_path)
+            for imagem in imagens:
+                texto += pytesseract.image_to_string(imagem, lang="por") + "\n"
+        except Exception as erro:
+            print(f"[cv_processor] OCR falhou: {erro}")
 
-    return text.strip()
+    return texto.strip()

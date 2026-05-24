@@ -1,0 +1,115 @@
+{
+  "name": "KUBUKA — Análise de CV com Ollama",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "cv-analysis",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook — Receber CV",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:11434/api/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"llama3.2\",\n  \"stream\": false,\n  \"format\": \"json\",\n  \"prompt\": \"Analisa o seguinte currículo e responde APENAS com um JSON válido no formato:\\n{\\\"score\\\": <número de 0 a 100>, \\\"skills\\\": \\\"<lista de competências separadas por vírgula>\\\", \\\"feedback\\\": \\\"<análise em português de Angola, máximo 3 frases>\\\"}\\n\\nCurrículo:\\n{{ $json.body.cv_text }}\"\n}",
+        "options": {}
+      },
+      "id": "ollama-request",
+      "name": "Ollama — Analisar CV",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extrair e validar a resposta JSON do Ollama\nconst respostaOllama = $input.first().json;\nconst resumeId = $('Webhook — Receber CV').first().json.body.resume_id;\n\nlet analise;\ntry {\n  // O Ollama com format:json retorna o campo 'response'\n  const textoResposta = respostaOllama.response || respostaOllama.text || '{}';\n  analise = JSON.parse(textoResposta);\n} catch (e) {\n  // Fallback em caso de JSON mal formado\n  analise = {\n    score: 50,\n    skills: 'Não foi possível extrair as competências',\n    feedback: 'A análise automática falhou. Reveja o currículo manualmente.'\n  };\n}\n\n// Garantir tipos correctos\nconst score = Math.min(100, Math.max(0, parseFloat(analise.score || 50)));\nconst skills = String(analise.skills || '').trim();\nconst feedback = String(analise.feedback || '').trim();\n\nreturn [{ json: { resume_id: resumeId, score, skills, feedback } }];"
+      },
+      "id": "parse-response",
+      "name": "Processar resposta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "url": "=http://localhost:8000/internal/resume/{{ $json.resume_id }}/callback/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Callback-Secret",
+              "value": "={{ $env.CALLBACK_SECRET }}"
+            },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"score\": {{ $json.score }},\n  \"skills\": \"{{ $json.skills }}\",\n  \"feedback\": \"{{ $json.feedback }}\"\n}",
+        "options": {}
+      },
+      "id": "django-callback",
+      "name": "Django — Actualizar BD",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [960, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"estado\": \"processando\", \"resume_id\": {{ $('Webhook — Receber CV').first().json.body.resume_id }} }"
+      },
+      "id": "webhook-response",
+      "name": "Resposta ao Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [480, 480]
+    }
+  ],
+  "connections": {
+    "Webhook — Receber CV": {
+      "main": [
+        [
+          { "node": "Ollama — Analisar CV", "type": "main", "index": 0 },
+          { "node": "Resposta ao Webhook", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Ollama — Analisar CV": {
+      "main": [
+        [{ "node": "Processar resposta", "type": "main", "index": 0 }]
+      ]
+    },
+    "Processar resposta": {
+      "main": [
+        [{ "node": "Django — Actualizar BD", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "_instrucoes": {
+    "1_importar": "No n8n, vai a Workflows > Import from JSON e cola este ficheiro.",
+    "2_env_n8n": "Cria uma variável de ambiente n8n chamada CALLBACK_SECRET com o mesmo valor que está no .env do Django.",
+    "3_ativar": "Activa o workflow e testa com o botão 'Test Webhook'.",
+    "4_url_producao": "Em produção, substitui localhost:8000 pelo domínio real do Django."
+  }
+}

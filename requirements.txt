@@ -3,3 +3,12 @@ djangorestframework
 django-environ
 pillow
 PyPDF2
+pdfplumber
+requests
+
+# OCR (opcional — apenas necessário para PDFs digitalizados/scaneados)
+# Requer também Tesseract e Poppler instalados no sistema operativo:
+# choco install tesseract poppler   (Windows)
+# sudo apt install tesseract-ocr poppler-utils   (Linux/WSL)  # pode ser que precise disto Ter Atenção
+pytesseract
+pdf2image

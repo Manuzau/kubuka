@@ -40,8 +40,9 @@
                             <a href="{% url 'upload_resume' %}" class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-4 py-2 mr-2">Submeter Currículo</a>
                         {% endif %}
                     {% endif %}
-                    {% if user.is_admin or user.is_staff %}
-                        <a href="{% url 'admin_dashboard' %}" class="text-gray-800 hover:bg-gray-50 font-medium rounded-lg text-sm px-4 py-2 mr-2">Painel do Recrutador</a>
+                    {% if user.is_recruiter or user.is_admin or user.is_staff %}
+                        <a href="{% url 'admin_dashboard' %}" class="text-gray-800 hover:bg-gray-50 font-medium rounded-lg text-sm px-4 py-2 mr-2">Candidatos</a>
+                        <a href="{% url 'job_manage' %}" class="text-gray-800 hover:bg-gray-50 font-medium rounded-lg text-sm px-4 py-2 mr-2">Vagas</a>
                     {% endif %}
                     <form action="{% url 'logout' %}" method="post" class="inline">
                         {% csrf_token %}
