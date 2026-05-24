@@ -7,7 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
     <style>
-        input[type="text"], input[type="password"], input[type="email"], input[type="file"], textarea, select {
+        body { background-color: #F8FAFC; font-family: system-ui, -apple-system, sans-serif; }
+        input[type="text"], input[type="password"], input[type="email"], input[type="file"],
+        input[type="number"], textarea, select {
             background-color: #f9fafb;
             border: 1px solid #d1d5db;
             color: #111827;
@@ -17,48 +19,68 @@
             width: 100%;
             padding: 0.625rem;
         }
-        input:focus {
-            border-color: #3b82f6;
+        input:focus, textarea:focus, select:focus {
+            border-color: #1B6CA8;
             outline: none;
+            box-shadow: 0 0 0 2px rgba(27,108,168,0.2);
         }
     </style>
 </head>
-<body class="bg-gray-50">
-    <nav class="bg-white border-b border-gray-200 px-4 py-2.5">
+<body>
+    <nav style="background-color:#0F2A4A;" class="px-4 py-3 shadow-md">
         <div class="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl">
-            <a href="{% url 'home' %}" class="flex items-center">
-                <span class="self-center text-xl font-semibold whitespace-nowrap text-blue-600">KUBUKA</span>
+            <a href="{% url 'home' %}" class="flex items-center gap-2">
+                <span class="text-xl font-bold text-white tracking-wide">KU<span style="color:#3BBFAD;">BUKA</span></span>
             </a>
-            <div class="flex items-center lg:order-2">
+            <div class="flex items-center gap-2 flex-wrap">
                 {% if user.is_authenticated %}
-                    <a href="{% url 'profile' %}" class="text-gray-800 hover:text-blue-600 font-medium mr-4">Olá, {{ user.username }}</a>
+                    <a href="{% url 'profile' %}" class="flex items-center gap-2 text-white/80 hover:text-white text-sm font-medium px-2 py-1">
+                        <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold
+                            {% if user.is_staff or user.is_admin %}bg-indigo-400
+                            {% elif user.is_recruiter %}bg-teal-400
+                            {% else %}bg-blue-400{% endif %}
+                            text-white">
+                            {{ user.username|first|upper }}
+                        </div>
+                        {{ user.username }}
+                    </a>
+                    {% if user.is_staff or user.is_admin %}
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded-full" style="background:#E0E7FF;color:#3730A3;">Admin</span>
+                    {% elif user.is_recruiter %}
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded-full" style="background:#D1FAE5;color:#065F46;">Recrutador</span>
+                    {% elif user.is_candidate %}
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded-full" style="background:#DBEAFE;color:#1E40AF;">Candidato</span>
+                    {% endif %}
+
                     {% if user.is_candidate %}
-                        <a href="{% url 'my_applications' %}" class="text-gray-800 hover:bg-gray-50 font-medium rounded-lg text-sm px-4 py-2 mr-2">As Minhas Candidaturas</a>
+                        <a href="{% url 'my_applications' %}" class="text-white/75 hover:text-white text-sm font-medium px-3 py-1.5 rounded">Candidaturas</a>
                         {% if user.has_resume %}
-                            <a href="{% url 'resume_detail' user.resume.pk %}" class="text-gray-800 hover:bg-gray-50 font-medium rounded-lg text-sm px-4 py-2 mr-2">Ver Análise do CV</a>
-                            <a href="{% url 'upload_resume' %}" class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-4 py-2 mr-2">Actualizar Currículo</a>
+                            <a href="{% url 'resume_detail' user.resume.pk %}" class="text-white/75 hover:text-white text-sm font-medium px-3 py-1.5 rounded">Meu CV</a>
+                            <a href="{% url 'upload_resume' %}" class="text-sm font-medium px-3 py-1.5 rounded text-white" style="background:#1B6CA8;">Actualizar CV</a>
                         {% else %}
-                            <a href="{% url 'upload_resume' %}" class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-4 py-2 mr-2">Submeter Currículo</a>
+                            <a href="{% url 'upload_resume' %}" class="text-sm font-medium px-3 py-1.5 rounded text-white" style="background:#1B6CA8;">Submeter CV</a>
                         {% endif %}
                     {% endif %}
+
                     {% if user.is_recruiter or user.is_admin or user.is_staff %}
-                        <a href="{% url 'admin_dashboard' %}" class="text-gray-800 hover:bg-gray-50 font-medium rounded-lg text-sm px-4 py-2 mr-2">Candidatos</a>
-                        <a href="{% url 'job_manage' %}" class="text-gray-800 hover:bg-gray-50 font-medium rounded-lg text-sm px-4 py-2 mr-2">Vagas</a>
+                        <a href="{% url 'admin_dashboard' %}" class="text-white/75 hover:text-white text-sm font-medium px-3 py-1.5 rounded">Candidatos</a>
+                        <a href="{% url 'job_manage' %}" class="text-white/75 hover:text-white text-sm font-medium px-3 py-1.5 rounded">Vagas</a>
                     {% endif %}
+
                     <form action="{% url 'logout' %}" method="post" class="inline">
                         {% csrf_token %}
-                        <button type="submit" class="text-gray-800 hover:bg-gray-50 font-medium rounded-lg text-sm px-4 py-2">Sair</button>
+                        <button type="submit" class="text-white/70 hover:text-white text-sm font-medium px-3 py-1.5 rounded">Sair</button>
                     </form>
                 {% else %}
-                    <a href="{% url 'login' %}" class="text-gray-800 hover:bg-gray-50 font-medium rounded-lg text-sm px-4 py-2 mr-2">Login</a>
-                    <a href="{% url 'signup' %}" class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-4 py-2 mr-2">Candidato</a>
-                    <a href="{% url 'signup_recruiter' %}" class="text-blue-700 border border-blue-700 hover:bg-blue-50 font-medium rounded-lg text-sm px-4 py-2">Recrutador</a>
+                    <a href="{% url 'login' %}" class="text-sm font-medium px-4 py-1.5 rounded border border-white/40 text-white hover:bg-white/10">Login</a>
+                    <a href="{% url 'signup' %}" class="text-sm font-medium px-4 py-1.5 rounded text-white" style="background:#1B6CA8;">Candidato</a>
+                    <a href="{% url 'signup_recruiter' %}" class="text-sm font-medium px-4 py-1.5 rounded border text-white/90 hover:bg-white/10" style="border-color:#3BBFAD;color:#3BBFAD;">Recrutador</a>
                 {% endif %}
             </div>
         </div>
     </nav>
 
-    <main class="container mx-auto mt-8 px-4">
+    <main>
         {% block content %}{% endblock %}
     </main>
 

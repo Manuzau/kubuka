@@ -1,44 +1,39 @@
 {% extends 'recruitment/base.html' %}
 
-{% block title %}Currículo Submetido — KUBUKA{% endblock %}
+{% block title %}CV Submetido — KUBUKA{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto bg-white p-8 border border-gray-200 rounded-lg shadow text-center">
-    <div class="inline-flex items-center justify-center w-16 h-16 mb-6 bg-green-100 rounded-full">
-        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-        </svg>
-    </div>
-    <h2 class="text-2xl font-bold mb-2 text-gray-900">Currículo submetido com sucesso!</h2>
-    <p class="mb-6 text-gray-600">O seu ficheiro foi recebido e está a ser processado.</p>
+<div class="max-w-lg mx-auto px-4 py-16 text-center">
+    <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-10">
 
-    {% if user.has_resume %}
-        {% if user.resume.ai_processed %}
-            <div class="bg-blue-50 p-4 rounded-lg mb-6 text-left">
-                <p class="text-blue-800 font-semibold text-center mb-2">Pontuação IA: {{ user.resume.score }}%</p>
-                {% if user.resume.feedback %}
-                    <p class="text-blue-700 text-sm"><strong>Análise:</strong> {{ user.resume.feedback }}</p>
-                {% endif %}
-            </div>
-        {% else %}
-            <div class="bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-6">
-                <div class="flex items-center justify-center gap-2 text-yellow-700 font-semibold mb-1">
-                    <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                    </svg>
-                    Análise de IA em curso...
-                </div>
-                <p class="text-yellow-600 text-sm text-center">A Inteligência Artificial está a processar o seu currículo. Os resultados aparecerão na sua ficha em breve.</p>
-            </div>
-        {% endif %}
-    {% endif %}
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full mb-5" style="background:#DCFCE7;">
+            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+        </div>
 
-    <div class="flex justify-center gap-4">
-        <a href="{% url 'home' %}" class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5">Voltar ao Início</a>
-        {% if user.has_resume %}
-            <a href="{% url 'resume_detail' user.resume.pk %}" class="text-blue-700 border border-blue-700 hover:bg-blue-50 font-medium rounded-lg text-sm px-5 py-2.5">Ver Ficha do CV</a>
-        {% endif %}
+        <h2 class="text-2xl font-bold mb-2" style="color:#0F2A4A;">CV submetido com sucesso!</h2>
+        <p class="text-gray-500 text-sm mb-6">
+            O seu currículo foi recebido. A inteligência artificial está a analisar o seu perfil — o resultado ficará disponível em breve na sua área pessoal.
+        </p>
+
+        <!-- Info card assíncrona -->
+        <div class="rounded-xl p-4 mb-6 text-left flex items-start gap-3" style="background:#EFF6FF;border:1px solid #BFDBFE;">
+            <svg class="w-5 h-5 flex-shrink-0 mt-0.5" style="color:#1B6CA8;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div>
+                <p class="text-sm font-semibold" style="color:#1E40AF;">A análise pode demorar alguns minutos</p>
+                <p class="text-xs mt-0.5" style="color:#3B82F6;">O modelo de IA processa o seu currículo de forma assíncrona. Pode continuar a navegar normalmente.</p>
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            {% if user.has_resume %}
+            <a href="{% url 'resume_detail' user.resume.pk %}" class="px-5 py-2.5 rounded-lg text-sm font-semibold text-white" style="background:#1B6CA8;">Ver o meu CV</a>
+            {% endif %}
+            <a href="{% url 'job_list' %}" class="px-5 py-2.5 rounded-lg text-sm font-semibold border-2" style="border-color:#1B6CA8;color:#1B6CA8;">Ver vagas disponíveis</a>
+        </div>
     </div>
 </div>
 {% endblock %}

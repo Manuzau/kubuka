@@ -7,6 +7,7 @@ from django.views.generic import CreateView, ListView, TemplateView, DetailView,
 from django.urls import reverse_lazy
 from django.contrib import messages
 
+from django.db.models import Avg
 from .models import User, Resume, Job, Application
 from .forms import CandidateSignupForm, RecruiterSignupForm, ResumeUploadForm, ResumeUpdateForm, JobForm
 from .cv_processor import extract_text_from_pdf
@@ -161,6 +162,14 @@ def admin_dashboard(request):
     else:
         jobs = Job.objects.all()
 
+    base_qs = Application.objects.all()
+    if request.user.is_recruiter and not (request.user.is_staff or request.user.is_admin):
+        base_qs = base_qs.filter(job__created_by=request.user)
+
+    total_candidates = Resume.objects.count()
+    pre_selected_count = base_qs.filter(status='pre_selected').count()
+    avg_score = round(Resume.objects.aggregate(avg=Avg('score'))['avg'] or 0, 1)
+
     context = {
         'applications': applications,
         'jobs': jobs,
@@ -168,6 +177,9 @@ def admin_dashboard(request):
         'min_score': min_score,
         'status_filter': status_filter,
         'skills_filter': skills_filter,
+        'total_candidates': total_candidates,
+        'pre_selected_count': pre_selected_count,
+        'avg_score': avg_score,
     }
     return render(request, 'recruitment/dashboard.html', context)
 
