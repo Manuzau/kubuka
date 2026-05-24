@@ -1,40 +1,89 @@
 {% extends 'recruitment/base.html' %}
 
-{% block content %}
-<div class="max-w-4xl mx-auto bg-white p-8 border border-gray-200 rounded-lg shadow">
-    <div class="flex items-center justify-between mb-8">
-        <h2 class="text-3xl font-bold text-gray-900">O Meu Perfil</h2>
-        {% if user.is_admin or user.is_staff %}
-            <span class="bg-purple-100 text-purple-800 text-sm font-medium px-3 py-1 rounded-full">Administrador</span>
-        {% else %}
-            <span class="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">Candidato</span>
-        {% endif %}
-    </div>
+{% block title %}O Meu Perfil — KUBUKA{% endblock %}
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div>
-            <h3 class="text-lg font-semibold mb-4 text-gray-700">Dados Pessoais</h3>
-            <p class="text-gray-600"><strong>Utilizador:</strong> {{ user.username }}</p>
-            <p class="text-gray-600"><strong>Email:</strong> {{ user.email }}</p>
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+
+    <div class="bg-white p-8 border border-gray-200 rounded-lg shadow">
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="text-3xl font-bold text-gray-900">O Meu Perfil</h2>
+            {% if user.is_staff or user.is_admin %}
+                <span class="bg-purple-100 text-purple-800 text-sm font-medium px-3 py-1 rounded-full">Administrador</span>
+            {% elif user.is_recruiter %}
+                <span class="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">Recrutador</span>
+            {% elif user.is_candidate %}
+                <span class="bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full">Candidato</span>
+            {% endif %}
         </div>
 
-        <div>
-            <h3 class="text-lg font-semibold mb-4 text-gray-700">Estado do Currículo</h3>
-            {% if user.resume %}
-                <div class="p-4 rounded-lg {% if user.resume.score >= 80 %}bg-green-50{% elif user.resume.score >= 60 %}bg-yellow-50{% else %}bg-red-50{% endif %}">
-                    <p class="font-bold text-lg mb-2">Pontuação IA: {{ user.resume.score }}%</p>
-                    <p class="text-sm text-gray-700"><strong>Análise:</strong> {{ user.resume.feedback }}</p>
-                    <div class="mt-4">
-                        <a href="{% url 'upload_resume' %}" class="text-blue-600 hover:underline text-sm font-medium">Actualizar Currículo</a>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Dados pessoais -->
+            <div>
+                <h3 class="text-lg font-semibold mb-4 text-gray-700">Dados Pessoais</h3>
+                <p class="text-gray-600 mb-2"><strong>Utilizador:</strong> {{ user.username }}</p>
+                <p class="text-gray-600 mb-2"><strong>Email:</strong> {{ user.email }}</p>
+            </div>
+
+            <!-- Secção específica por role -->
+            {% if user.is_candidate %}
+            <div>
+                <h3 class="text-lg font-semibold mb-4 text-gray-700">Estado do Currículo</h3>
+                {% if user.has_resume %}
+                    {% if user.resume.ai_processed %}
+                        <div class="p-4 rounded-lg {% if user.resume.score >= 80 %}bg-green-50{% elif user.resume.score >= 60 %}bg-yellow-50{% else %}bg-red-50{% endif %}">
+                            <p class="font-bold text-lg mb-2">Pontuação IA: {{ user.resume.score }}%</p>
+                            {% if user.resume.feedback %}
+                                <p class="text-sm text-gray-700"><strong>Análise:</strong> {{ user.resume.feedback }}</p>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center gap-2">
+                            <svg class="w-5 h-5 text-yellow-500 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                            </svg>
+                            <p class="text-yellow-700 text-sm">Análise de IA em curso. Actualize a página em breve.</p>
+                        </div>
+                    {% endif %}
+                    <div class="mt-4 flex gap-3">
+                        <a href="{% url 'resume_detail' user.resume.pk %}" class="text-blue-600 hover:underline text-sm font-medium">Ver ficha completa</a>
+                        <a href="{% url 'upload_resume' %}" class="text-blue-600 hover:underline text-sm font-medium">Actualizar CV</a>
                     </div>
-                </div>
-            {% else %}
-                <div class="p-4 bg-gray-50 rounded-lg">
-                    <p class="text-gray-600 italic">Ainda não submeteu nenhum currículo.</p>
-                    <div class="mt-4">
-                        <a href="{% url 'upload_resume' %}" class="text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm">Submeter Currículo.</a>
+                {% else %}
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <p class="text-gray-600 italic mb-4">Ainda não submeteu nenhum currículo.</p>
+                        <a href="{% url 'upload_resume' %}" class="text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium">Submeter Currículo</a>
                     </div>
+                {% endif %}
+            </div>
+
+            {% elif user.is_recruiter or user.is_staff or user.is_admin %}
+            <div>
+                <h3 class="text-lg font-semibold mb-4 text-gray-700">Actividade de Recrutamento</h3>
+                <div class="space-y-3">
+                    <a href="{% url 'job_manage' %}" class="flex items-center justify-between p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                        <span class="text-sm font-medium text-blue-800">Gestão de Vagas</span>
+                        <svg class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                    <a href="{% url 'admin_dashboard' %}" class="flex items-center justify-between p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+                        <span class="text-sm font-medium text-purple-800">Painel de Candidatos</span>
+                        <svg class="w-4 h-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                    {% if user.is_staff or user.is_admin %}
+                    <a href="/admin/" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <span class="text-sm font-medium text-gray-800">Django Admin</span>
+                        <svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                    {% endif %}
                 </div>
+            </div>
             {% endif %}
         </div>
     </div>

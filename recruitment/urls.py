@@ -34,6 +34,7 @@ urlpatterns = [
     # Vagas — candidato
     path('jobs/', views.JobListView.as_view(), name='job_list'),
     path('jobs/<int:pk>/apply/', views.apply_job, name='apply_job'),
+    path('my-applications/', views.my_applications, name='my_applications'),
 
     # Vagas — recrutador
     path('recruiter/jobs/', views.JobRecruiterListView.as_view(), name='job_manage'),

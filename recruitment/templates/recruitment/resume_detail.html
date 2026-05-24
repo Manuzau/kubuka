@@ -26,7 +26,17 @@
 
                 <h3 class="font-bold text-gray-800 mb-2 uppercase text-xs tracking-wider">Pontuação IA</h3>
                 <div class="flex items-center mb-4">
-                    <span class="text-4xl font-black {% if resume.score >= 80 %}text-green-600{% elif resume.score >= 60 %}text-yellow-600{% else %}text-red-600{% endif %}">{{ resume.score }}%</span>
+                    {% if resume.ai_processed %}
+                        <span class="text-4xl font-black {% if resume.score >= 80 %}text-green-600{% elif resume.score >= 60 %}text-yellow-600{% else %}text-red-600{% endif %}">{{ resume.score }}%</span>
+                    {% else %}
+                        <span class="text-sm text-yellow-600 font-medium flex items-center gap-1">
+                            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                            </svg>
+                            A processar...
+                        </span>
+                    {% endif %}
                 </div>
 
                 <h3 class="font-bold text-gray-800 mb-2 uppercase text-xs tracking-wider">Ficheiro</h3>
@@ -84,9 +94,22 @@
 
             <div class="mb-8">
                 <h3 class="text-xl font-bold text-gray-800 mb-4">Análise por Inteligência Artificial</h3>
-                <div class="bg-blue-50 p-6 rounded-xl border border-blue-100">
-                    <p class="text-blue-900 leading-relaxed">{{ resume.feedback }}</p>
-                </div>
+                {% if resume.ai_processed %}
+                    <div class="bg-blue-50 p-6 rounded-xl border border-blue-100">
+                        <p class="text-blue-900 leading-relaxed">{{ resume.feedback|default:"Sem feedback disponível." }}</p>
+                    </div>
+                {% else %}
+                    <div class="bg-yellow-50 border border-yellow-200 p-6 rounded-xl flex items-start gap-3">
+                        <svg class="w-5 h-5 text-yellow-500 mt-0.5 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                        </svg>
+                        <div>
+                            <p class="text-yellow-800 font-semibold">Análise em curso</p>
+                            <p class="text-yellow-700 text-sm mt-1">A Inteligência Artificial está a processar o seu currículo. Actualize a página em breve para ver os resultados.</p>
+                        </div>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>

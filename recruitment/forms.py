@@ -10,16 +10,9 @@ class CandidateSignupForm(UserCreationForm):
 
 
 class RecruiterSignupForm(UserCreationForm):
-    company = forms.CharField(
-        max_length=200,
-        required=True,
-        label='Empresa',
-        widget=forms.TextInput(attrs={'placeholder': 'Nome da empresa'}),
-    )
-
     class Meta(UserCreationForm.Meta):
         model = User
-        fields = ('username', 'email', 'company')
+        fields = ('username', 'email')
 
 
 class ResumeUploadForm(forms.ModelForm):
