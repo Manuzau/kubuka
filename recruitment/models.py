@@ -46,6 +46,7 @@ class Job(models.Model):
     contact_email_primary = models.EmailField(blank=True, null=True, verbose_name="Email de contacto principal")
     contact_email_secondary = models.EmailField(blank=True, null=True, verbose_name="Email de contacto secundário")
     allow_candidate_unavailability = models.BooleanField(default=False, verbose_name="Permitir indicação de indisponibilidade")
+    min_score_required = models.FloatField(default=0.0, verbose_name="Score mínimo para triagem automática")
     created_by = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='jobs_created', verbose_name="Criado por"

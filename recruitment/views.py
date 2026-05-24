@@ -9,7 +9,8 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.http import HttpResponse
 
-from django.db.models import Avg, Count
+from django.db.models import Avg, Count, Q
+from django.db.models.functions import TruncWeek
 from .models import User, Resume, Job, Application
 from .forms import CandidateSignupForm, RecruiterSignupForm, ResumeUploadForm, ResumeUpdateForm, JobForm
 from .cv_processor import extract_text_from_pdf
@@ -188,12 +189,8 @@ def mark_notification_read(request, pk):
 # Dashboard — Admin / Recrutador
 # ---------------------------------------------------------------------------
 
-@login_required
-def admin_dashboard(request):
-    if not (request.user.is_staff or request.user.is_admin or request.user.is_recruiter):
-        return redirect('home')
-
-    # Filtros opcionais
+def _build_dashboard_context(request):
+    """Constrói o contexto partilhado para as vistas de dashboard (tabela e kanban)."""
     job_id = request.GET.get('job')
     min_score = request.GET.get('min_score', '')
     status_filter = request.GET.get('status', '')
@@ -203,8 +200,8 @@ def admin_dashboard(request):
         'candidate', 'candidate__resume', 'job'
     ).order_by('-similarity_score')
 
-    # Recrutadores só vêem candidaturas das suas vagas
-    if request.user.is_recruiter and not (request.user.is_staff or request.user.is_admin):
+    is_recruiter_only = request.user.is_recruiter and not (request.user.is_staff or request.user.is_admin)
+    if is_recruiter_only:
         applications = applications.filter(job__created_by=request.user)
 
     if job_id:
@@ -217,38 +214,115 @@ def admin_dashboard(request):
     if status_filter:
         applications = applications.filter(status=status_filter)
     if skills_filter:
-        applications = applications.filter(
-            candidate__resume__skills__icontains=skills_filter
-        )
+        applications = applications.filter(candidate__resume__skills__icontains=skills_filter)
 
-    # Vagas disponíveis para o filtro
-    if request.user.is_recruiter and not (request.user.is_staff or request.user.is_admin):
-        jobs = Job.objects.filter(created_by=request.user)
-    else:
-        jobs = Job.objects.all()
+    jobs = Job.objects.filter(created_by=request.user) if is_recruiter_only else Job.objects.all()
 
-    base_qs = Application.objects.all()
-    if request.user.is_recruiter and not (request.user.is_staff or request.user.is_admin):
-        base_qs = base_qs.filter(job__created_by=request.user)
+    base_qs = Application.objects.filter(job__created_by=request.user) if is_recruiter_only else Application.objects.all()
 
-    total = base_qs.count()
-    pre_selected = base_qs.filter(status='pre_selected').count()
-    interviews = base_qs.filter(status='interview_scheduled').count()
-    avg_score = round(base_qs.aggregate(avg=Avg('similarity_score'))['avg'] or 0, 1)
-
-    context = {
+    return {
         'applications': applications,
         'jobs': jobs,
         'current_job': job_id,
         'current_min_score': min_score,
         'current_status': status_filter,
         'current_skills': skills_filter,
-        'total': total,
-        'pre_selected': pre_selected,
-        'interviews': interviews,
-        'avg_score': avg_score,
+        'total': base_qs.count(),
+        'pre_selected': base_qs.filter(status='pre_selected').count(),
+        'interviews': base_qs.filter(status='interview_scheduled').count(),
+        'avg_score': round(base_qs.aggregate(avg=Avg('similarity_score'))['avg'] or 0, 1),
     }
+
+
+@login_required
+def admin_dashboard(request, view_mode=None):
+    if not (request.user.is_staff or request.user.is_admin or request.user.is_recruiter):
+        return redirect('home')
+
+    if view_mode is None:
+        view_mode = request.GET.get('view', 'table')
+
+    context = _build_dashboard_context(request)
+    context['view_mode'] = view_mode
+
+    if view_mode == 'kanban':
+        kanban = {'pending': [], 'pre_selected': [], 'interview_scheduled': [], 'rejected': []}
+        for app in context['applications']:
+            if app.status in kanban:
+                kanban[app.status].append(app)
+        context['kanban'] = kanban
+        return render(request, 'recruitment/dashboard_kanban.html', context)
+
     return render(request, 'recruitment/dashboard.html', context)
+
+
+@login_required
+def analytics_dashboard(request):
+    if not (request.user.is_staff or request.user.is_admin or request.user.is_recruiter):
+        return redirect('home')
+
+    is_recruiter_only = request.user.is_recruiter and not (request.user.is_staff or request.user.is_admin)
+    base_qs = Application.objects.filter(job__created_by=request.user) if is_recruiter_only else Application.objects.all()
+
+    # 1. Candidaturas por estado (donut)
+    status_counts = {
+        item['status']: item['count']
+        for item in base_qs.values('status').annotate(count=Count('id'))
+    }
+    status_labels = ['Pendente', 'Pré-seleccionado', 'Rejeitado', 'Entrevista', 'Retirado']
+    status_keys   = ['pending', 'pre_selected', 'rejected', 'interview_scheduled', 'withdrawn']
+    status_data   = [status_counts.get(k, 0) for k in status_keys]
+    status_colors = ['#FACC15', '#22C55E', '#EF4444', '#3B82F6', '#9CA3AF']
+
+    # 2. Top vagas por número de candidaturas (bar horizontal)
+    top_jobs = list(
+        base_qs.values('job__title')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:8]
+    )
+    job_labels = [item['job__title'] for item in top_jobs]
+    job_data   = [item['count'] for item in top_jobs]
+
+    # 3. Distribuição de scores (histogram — 10 buckets de 10 pts)
+    buckets = [0] * 10
+    for score in base_qs.exclude(similarity_score=0).values_list('similarity_score', flat=True):
+        idx = min(int(score // 10), 9)
+        buckets[idx] += 1
+    score_labels = [f"{i*10}–{i*10+9}%" for i in range(10)]
+
+    # 4. Candidaturas por semana (linha — últimas 8 semanas)
+    from django.utils import timezone
+    import datetime
+    eight_weeks_ago = timezone.now() - datetime.timedelta(weeks=8)
+    weekly_qs = (
+        base_qs.filter(applied_at__gte=eight_weeks_ago)
+        .annotate(week=TruncWeek('applied_at'))
+        .values('week')
+        .annotate(count=Count('id'))
+        .order_by('week')
+    )
+    weekly_labels = [item['week'].strftime('%d/%m') for item in weekly_qs]
+    weekly_data   = [item['count'] for item in weekly_qs]
+
+    total = base_qs.count()
+    avg_score = round(base_qs.aggregate(avg=Avg('similarity_score'))['avg'] or 0, 1)
+    conversion = round(status_counts.get('pre_selected', 0) / total * 100, 1) if total else 0
+
+    return render(request, 'recruitment/analytics.html', {
+        'total': total,
+        'avg_score': avg_score,
+        'conversion': conversion,
+        'interviews': status_counts.get('interview_scheduled', 0),
+        'status_labels': status_labels,
+        'status_data': status_data,
+        'status_colors': status_colors,
+        'job_labels': job_labels,
+        'job_data': job_data,
+        'score_labels': score_labels,
+        'score_buckets': buckets,
+        'weekly_labels': weekly_labels,
+        'weekly_data': weekly_data,
+    })
 
 
 # ---------------------------------------------------------------------------

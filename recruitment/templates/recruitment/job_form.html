@@ -99,6 +99,14 @@
                         {{ form.allow_candidate_unavailability }}
                         <span class="text-sm font-medium text-gray-700">Permitir que candidatos indiquem indisponibilidade para entrevista</span>
                     </label>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Score mínimo para triagem automática (0 = desactivado)
+                        </label>
+                        {{ form.min_score_required }}
+                        <p class="text-xs text-gray-400 mt-1">Candidaturas com score abaixo deste valor serão automaticamente rejeitadas após análise da IA.</p>
+                        {% if form.min_score_required.errors %}<p class="text-red-600 text-xs mt-1">{{ form.min_score_required.errors.0 }}</p>{% endif %}
+                    </div>
                 </div>
 
                 <div class="flex gap-3 pt-2">

@@ -101,10 +101,29 @@ def application_score_result(request, application_id: int):
 
     application.similarity_score = round(score, 1)
     application.match_feedback = data.get('match_feedback', '')
-    application.save(update_fields=['similarity_score', 'match_feedback'])
+    update_fields = ['similarity_score', 'match_feedback']
 
-    logger.info(f"[callback] Application {application_id} actualizada — score={application.similarity_score}")
-    return JsonResponse({'success': True, 'application_id': application_id, 'score': application.similarity_score})
+    job = application.job
+    auto_rejected = False
+    if job.min_score_required > 0 and application.similarity_score < job.min_score_required:
+        application.status = 'rejected'
+        application.match_feedback = (application.match_feedback or '') + (
+            f'\n\n[Triagem automática] Score {application.similarity_score}% abaixo do mínimo '
+            f'exigido ({job.min_score_required}%) para esta vaga.'
+        )
+        update_fields.extend(['status', 'updated_at'])
+        auto_rejected = True
+
+    application.save(update_fields=update_fields)
+
+    if auto_rejected:
+        notify_candidate(application)
+
+    logger.info(
+        f"[callback] Application {application_id} actualizada — score={application.similarity_score}"
+        + (' (auto-rejeitada)' if auto_rejected else '')
+    )
+    return JsonResponse({'success': True, 'application_id': application_id, 'score': application.similarity_score, 'auto_rejected': auto_rejected})
 
 
 @csrf_exempt

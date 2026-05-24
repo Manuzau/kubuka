@@ -41,7 +41,7 @@ class JobForm(forms.ModelForm):
             'title', 'company', 'description', 'requirements',
             'location', 'salary_range', 'deadline',
             'contact_email_primary', 'contact_email_secondary',
-            'allow_candidate_unavailability', 'is_active',
+            'allow_candidate_unavailability', 'min_score_required', 'is_active',
         )
         widgets = {
             'title': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
@@ -53,6 +53,9 @@ class JobForm(forms.ModelForm):
             'deadline': forms.DateInput(attrs={'class': 'w-full p-2 border rounded', 'type': 'date'}),
             'contact_email_primary': forms.EmailInput(attrs={'class': 'w-full p-2 border rounded'}),
             'contact_email_secondary': forms.EmailInput(attrs={'class': 'w-full p-2 border rounded'}),
+            'min_score_required': forms.NumberInput(attrs={
+                'class': 'w-full p-2 border rounded', 'min': 0, 'max': 100, 'step': 5,
+            }),
         }
 
     def clean_contact_email_primary(self):

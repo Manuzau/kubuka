@@ -75,6 +75,7 @@
 
                     {% if user.is_recruiter or user.is_admin or user.is_staff %}
                         <a href="{% url 'admin_dashboard' %}" class="text-white/75 hover:text-white text-sm font-medium px-3 py-1.5 rounded">Candidatos</a>
+                        <a href="{% url 'analytics_dashboard' %}" class="text-white/75 hover:text-white text-sm font-medium px-3 py-1.5 rounded">Analytics</a>
                         <a href="{% url 'job_manage' %}" class="text-white/75 hover:text-white text-sm font-medium px-3 py-1.5 rounded">Vagas</a>
                     {% endif %}
 

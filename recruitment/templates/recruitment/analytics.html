@@ -1,0 +1,199 @@
+{% extends 'recruitment/base.html' %}
+
+{% block title %}Analytics — KUBUKA{% endblock %}
+
+{% block content %}
+<div class="px-4 py-6 max-w-7xl mx-auto">
+
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="p-3 mb-2 text-sm rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700{% elif message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+        <div>
+            <h2 class="text-2xl font-bold" style="color:#0F2A4A;">Analytics</h2>
+            <p class="text-sm text-gray-500 mt-0.5">Visão geral do funil de recrutamento</p>
+        </div>
+        <div class="flex gap-3 flex-wrap">
+            <a href="{% url 'admin_dashboard' %}" class="text-sm font-medium px-4 py-2 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">Vista Tabela</a>
+            <a href="{% url 'dashboard_kanban' %}" class="text-sm font-medium px-4 py-2 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">Vista Kanban</a>
+            <a href="{% url 'job_manage' %}" class="text-sm font-medium px-4 py-2 rounded-lg text-white" style="background:#3BBFAD;">Gerir Vagas →</a>
+        </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Total Candidaturas</p>
+            <p class="text-2xl font-extrabold" style="color:#0F2A4A;">{{ total }}</p>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Score Médio</p>
+            <p class="text-2xl font-extrabold" style="color:#3BBFAD;">{{ avg_score }}%</p>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Taxa Pré-selecção</p>
+            <p class="text-2xl font-extrabold" style="color:#1B6CA8;">{{ conversion }}%</p>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Entrevistas</p>
+            <p class="text-2xl font-extrabold" style="color:#0F2A4A;">{{ interviews }}</p>
+        </div>
+    </div>
+
+    <!-- Charts row 1 -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+
+        <!-- Donut: candidaturas por estado -->
+        <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+            <h3 class="text-sm font-bold text-gray-700 mb-4">Candidaturas por Estado</h3>
+            <div class="relative" style="height:280px;">
+                <canvas id="chartStatus"></canvas>
+            </div>
+        </div>
+
+        <!-- Bar horizontal: top vagas -->
+        <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+            <h3 class="text-sm font-bold text-gray-700 mb-4">Vagas com Mais Candidatos</h3>
+            <div class="relative" style="height:280px;">
+                <canvas id="chartJobs"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Charts row 2 -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Histogram: distribuição de scores -->
+        <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+            <h3 class="text-sm font-bold text-gray-700 mb-4">Distribuição de Scores de Compatibilidade</h3>
+            <div class="relative" style="height:280px;">
+                <canvas id="chartScores"></canvas>
+            </div>
+        </div>
+
+        <!-- Line: candidaturas por semana -->
+        <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+            <h3 class="text-sm font-bold text-gray-700 mb-4">Candidaturas por Semana (últimas 8 semanas)</h3>
+            <div class="relative" style="height:280px;">
+                <canvas id="chartWeekly"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+Chart.defaults.font.family = "'Inter', 'Segoe UI', sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#6B7280';
+
+// 1. Donut — candidaturas por estado
+new Chart(document.getElementById('chartStatus'), {
+    type: 'doughnut',
+    data: {
+        labels: {{ status_labels|safe }},
+        datasets: [{
+            data: {{ status_data|safe }},
+            backgroundColor: {{ status_colors|safe }},
+            borderWidth: 2,
+            borderColor: '#fff',
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'bottom', labels: { padding: 16, boxWidth: 12 } },
+        },
+        cutout: '60%',
+    }
+});
+
+// 2. Bar horizontal — top vagas
+new Chart(document.getElementById('chartJobs'), {
+    type: 'bar',
+    data: {
+        labels: {{ job_labels|safe }},
+        datasets: [{
+            label: 'Candidaturas',
+            data: {{ job_data|safe }},
+            backgroundColor: '#1B6CA8CC',
+            borderRadius: 4,
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { ticks: { precision: 0 }, grid: { color: '#F3F4F6' } },
+            y: { grid: { display: false }, ticks: { maxRotation: 0 } }
+        }
+    }
+});
+
+// 3. Bar — histogram de scores
+new Chart(document.getElementById('chartScores'), {
+    type: 'bar',
+    data: {
+        labels: {{ score_labels|safe }},
+        datasets: [{
+            label: 'Candidatos',
+            data: {{ score_buckets|safe }},
+            backgroundColor: [
+                '#EF4444CC','#EF4444CC','#EF4444CC','#EF4444CC',
+                '#FACC15CC','#FACC15CC','#FACC15CC',
+                '#22C55ECC','#22C55ECC','#22C55ECC',
+            ],
+            borderRadius: 3,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { ticks: { precision: 0 }, grid: { color: '#F3F4F6' } },
+            x: { grid: { display: false } }
+        }
+    }
+});
+
+// 4. Line — candidaturas por semana
+new Chart(document.getElementById('chartWeekly'), {
+    type: 'line',
+    data: {
+        labels: {{ weekly_labels|safe }},
+        datasets: [{
+            label: 'Candidaturas',
+            data: {{ weekly_data|safe }},
+            borderColor: '#3BBFAD',
+            backgroundColor: '#3BBFAD22',
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#3BBFAD',
+            pointRadius: 4,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { ticks: { precision: 0 }, grid: { color: '#F3F4F6' } },
+            x: { grid: { display: false } }
+        }
+    }
+});
+</script>
+{% endblock %}
