@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import User, Resume, Job, Application
 from .serializers import UserSerializer, ResumeSerializer
+from .notifications import notify_candidate
 
 
 class IsAdminUser(permissions.BasePermission):
@@ -76,6 +77,7 @@ class ApplicationStatusView(APIView):
             update_fields.append('recruiter_notes')
 
         application.save(update_fields=update_fields)
+        notify_candidate(application)
         return Response({'success': True, 'application_id': application_id, 'status': application.status})
 
 

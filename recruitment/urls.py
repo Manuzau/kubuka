@@ -37,6 +37,10 @@ urlpatterns = [
     path('jobs/<int:pk>/apply/', views.apply_job, name='apply_job'),
     path('my-applications/', views.my_applications, name='my_applications'),
 
+    # Notificações — candidato
+    path('notifications/', views.notifications_view, name='notifications'),
+    path('notifications/<int:pk>/read/', views.mark_notification_read, name='mark_notification_read'),
+
     # Vagas — recrutador
     path('recruiter/jobs/', views.JobRecruiterListView.as_view(), name='job_manage'),
     path('recruiter/jobs/new/', views.JobCreateView.as_view(), name='job_create'),
