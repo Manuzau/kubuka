@@ -122,7 +122,8 @@ ALLOWED_HOSTS=localhost,127.0.0.1
 N8N_WEBHOOK_CV_URL=http://localhost:5678/webhook/cv-analysis
 N8N_WEBHOOK_SCORE_URL=http://localhost:5678/webhook/job-scoring
 N8N_CALLBACK_SECRET=kubuka-secret-token-2025
-DJANGO_BASE_URL=http://localhost:8000
+# Usar 127.0.0.1 em vez de localhost (importante no Windows — ver secção de requisitos de hardware)
+DJANGO_BASE_URL=http://127.0.0.1:8000
 
 EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 ```
@@ -232,6 +233,75 @@ Para confirmar que tudo está ligado, faz o upload de um CV na aplicação como 
 4. O Django é notificado e actualiza o perfil do candidato com o score e feedback
 
 > Se o n8n não estiver a correr, o upload funciona na mesma — apenas sem a análise automática de IA.
+
+---
+
+## Requisitos de Hardware para o Módulo de IA
+
+O desempenho do módulo de IA (Ollama + llama3.2) depende directamente do hardware disponível.
+
+### Configurações testadas
+
+| Hardware | Tempo de análise de CV | Viável? |
+|---|---|---|
+| GPU dedicada (NVIDIA ≥ 4 GB VRAM) | 5 – 15 segundos | ✅ Recomendado |
+| CPU moderna + 16 GB RAM | 45 – 90 segundos | ✅ Aceitável |
+| CPU + 8 GB RAM | 2 – 5 minutos | ⚠️ Lento mas funcional |
+| CPU + menos de 8 GB RAM | > 5 minutos ou timeout | ❌ Não recomendado |
+
+### Limitação conhecida — CPU com pouca RAM
+
+O modelo `llama3.2` (3B parâmetros) ocupa aproximadamente **2 GB de RAM** só para os pesos. Em máquinas com menos de 8 GB de RAM disponível, o sistema operativo recorre ao disco (swap/paginação), tornando a inferência extremamente lenta.
+
+**Sintomas:** o n8n regista `500 — timeout` após 2–10 minutos; o campo `ai_processed` do Resume permanece `False`.
+
+### Soluções para ambientes com hardware limitado
+
+**Opção A — Ajustar o timeout do workflow n8n**
+
+No ficheiro `n8n_workflow_kubuka.json`, no nó `Ollama — Analisar CV`, aumentar o campo `timeout` para `600000` (10 minutos):
+
+```json
+"options": { "timeout": 600000 }
+```
+
+**Opção B — Usar o modelo de 1B parâmetros (mais rápido)**
+
+```bash
+ollama pull llama3.2:1b
+```
+
+Depois, alterar `"model": "llama3.2"` para `"model": "llama3.2:1b"` nos dois workflows n8n.
+
+**Opção C — Simular o callback manualmente (para testes/demo)**
+
+O Django aceita o resultado da IA directamente via endpoint REST, sem necessitar do n8n+Ollama:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/resume/<ID>/ai-result/ \
+  -H "Content-Type: application/json; charset=utf-8" \
+  -H "X-Kubuka-Secret: kubuka-secret-token-2025" \
+  -d '{
+    "score": 75,
+    "skills": "Python, Django, SQL",
+    "summary": "Resumo do candidato.",
+    "experience": "Experiência profissional.",
+    "education": "Formação académica.",
+    "languages": "Português, Inglês",
+    "feedback": "Feedback sobre o CV."
+  }'
+```
+
+### Nota sobre Windows — usar 127.0.0.1 em vez de localhost
+
+No Windows, o Node.js (n8n) resolve `localhost` como `::1` (IPv6) por omissão, mas o Ollama e o Django ouvem em `127.0.0.1` (IPv4). Usar sempre o IP explícito:
+
+```env
+# .env
+DJANGO_BASE_URL=http://127.0.0.1:8000
+```
+
+E nos workflows n8n, a URL do Ollama deve ser `http://127.0.0.1:11434/api/generate` (não `http://localhost:11434/api/generate`).
 
 ---
 
