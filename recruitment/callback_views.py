@@ -38,8 +38,8 @@ def _resume_ai_result(request, resume_id: int):
         return JsonResponse({'error': 'Token inválido.'}, status=403)
 
     try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
+        data = json.loads(request.body.decode('utf-8'))
+    except (UnicodeDecodeError, json.JSONDecodeError, ValueError):
         return JsonResponse({'error': 'JSON inválido.'}, status=400)
 
     score = data.get('score')
@@ -81,8 +81,8 @@ def application_score_result(request, application_id: int):
         return JsonResponse({'error': 'Token inválido.'}, status=403)
 
     try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
+        data = json.loads(request.body.decode('utf-8'))
+    except (UnicodeDecodeError, json.JSONDecodeError, ValueError):
         return JsonResponse({'error': 'JSON inválido.'}, status=400)
 
     score = data.get('similarity_score')
@@ -136,8 +136,8 @@ def application_update_status(request, application_id: int):
         return JsonResponse({'error': 'Permissão negada.'}, status=403)
 
     try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
+        data = json.loads(request.body.decode('utf-8'))
+    except (UnicodeDecodeError, json.JSONDecodeError, ValueError):
         return JsonResponse({'error': 'JSON inválido.'}, status=400)
 
     from django.utils.dateparse import parse_datetime
