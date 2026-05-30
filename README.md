@@ -65,20 +65,77 @@ Sistema web que automatiza a triagem e pré-selecção de candidatos para empres
 - Python 3.10 ou superior
 - [Ollama](https://ollama.com) instalado e a correr localmente
 - [n8n](https://n8n.io) instalado (via npm ou npx)
+- Node.js 18+ (necessário para o n8n)
 - *(Opcional, para OCR)* Tesseract e Poppler instalados no sistema
 
 ---
 
-## Como Executar o Projecto
+## Arranque Rápido (uso diário)
 
-### 1. Clonar o repositório
+Depois de ter o projecto configurado pela primeira vez (ver secção seguinte), para arrancar o sistema basta:
+
+**Windows — duplo clique no ficheiro:**
+```
+run_project.bat
+```
+
+**Ou no PowerShell:**
+```powershell
+.\start.ps1
+```
+
+O script `start.ps1` faz tudo automaticamente:
+1. Verifica se o **Ollama** está a correr na porta 11434 — inicia-o se não estiver
+2. Verifica se o **n8n** está a correr na porta 5678 — abre-o numa nova janela se não estiver
+3. Aplica migrações Django pendentes
+4. Inicia o **Django** em `http://localhost:8000`
+
+> Se o Ollama ou o n8n não estiverem instalados, o Django arranca na mesma em modo degradado (sem análise de IA).
+
+---
+
+## Primeira Instalação (novo computador)
+
+### 1. Instalar ferramentas base
+
+**Python 3.10+**
+- Descarregar em https://www.python.org/downloads/
+- Marcar "Add Python to PATH" durante a instalação
+
+**Node.js 18+** (necessário para o n8n)
+- Descarregar em https://nodejs.org/ (versão LTS)
+
+**n8n**
+```bash
+npm install -g n8n
+```
+
+**Ollama**
+- Descarregar e instalar em https://ollama.com
+- Após instalar, descarregar o modelo de IA (cerca de 2 GB, só na primeira vez):
+```bash
+ollama pull llama3.2
+```
+
+*(Opcional — OCR para PDFs digitalizados)*
+```bash
+# Windows (requer Chocolatey)
+choco install tesseract poppler
+
+# Linux
+sudo apt install tesseract-ocr poppler-utils
+```
+
+---
+
+### 2. Clonar o repositório
 
 ```bash
 git clone https://github.com/Manuzau/kubuka.git
 cd kubuka
 ```
 
-### 2. Criar e activar o ambiente virtual
+### 3. Criar e activar o ambiente virtual
 
 ```bash
 python -m venv venv
@@ -90,19 +147,13 @@ venv\Scripts\activate
 source venv/bin/activate
 ```
 
-### 3. Instalar dependências Python
+### 4. Instalar dependências Python
 
 ```bash
 pip install -r requirements.txt
 ```
 
-> **Nota OCR (opcional):** Para extrair texto de PDFs digitalizados é necessário instalar:
-> - **Windows:** `choco install tesseract poppler`
-> - **Linux:** `sudo apt install tesseract-ocr poppler-utils`
-> 
-> Sem estas ferramentas o sistema continua a funcionar para PDFs com texto embebido.
-
-### 4. Configurar variáveis de ambiente
+### 5. Configurar variáveis de ambiente
 
 ```bash
 # Windows
@@ -112,23 +163,25 @@ copy .env.example .env
 cp .env.example .env
 ```
 
-Edita o ficheiro `.env` e define pelo menos a `SECRET_KEY`:
+Edita o ficheiro `.env`:
 
 ```env
-SECRET_KEY=coloca-aqui-uma-chave-longa-e-aleatória
+SECRET_KEY=coloca-aqui-uma-chave-longa-e-aleatoria
 DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
 
 N8N_WEBHOOK_CV_URL=http://localhost:5678/webhook/cv-analysis
 N8N_WEBHOOK_SCORE_URL=http://localhost:5678/webhook/job-scoring
 N8N_CALLBACK_SECRET=kubuka-secret-token-2025
-# Usar 127.0.0.1 em vez de localhost (importante no Windows — ver secção de requisitos de hardware)
+# Importante no Windows: usar 127.0.0.1 em vez de localhost
 DJANGO_BASE_URL=http://127.0.0.1:8000
 
 EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 ```
 
-### 5. Aplicar migrações e criar administrador
+> **Gerar SECRET_KEY:** executa `python -c "import secrets; print(secrets.token_urlsafe(50))"` e cola o resultado.
+
+### 6. Aplicar migrações e criar administrador
 
 ```bash
 python manage.py migrate
@@ -137,15 +190,34 @@ python manage.py createsuperuser
 
 O superutilizador criado terá acesso total ao sistema, incluindo o Django Admin em `/admin/`.
 
-### 6. Iniciar o servidor
+### 7. Configurar os workflows do n8n
+
+Inicia o n8n (`n8n start`), acede a `http://localhost:5678` e cria conta.
+
+Depois importa os dois workflows incluídos no repositório:
+- **Workflows → Import from File** → selecciona `n8n_workflow_kubuka.json`
+- **Workflows → Import from File** → selecciona `n8n_workflow_job_scoring.json`
+
+Activa ambos com o botão **Active** (canto superior direito de cada workflow).
+
+> Ver secção "Configurar o n8n e Ollama" mais abaixo para detalhes completos.
+
+### 8. Iniciar o sistema
 
 ```bash
-python manage.py runserver
+# Opção A — script automático (recomendado)
+.\start.ps1          # PowerShell
+run_project.bat      # duplo clique no Explorer
+
+# Opção B — manual (três terminais separados)
+ollama serve                  # terminal 1
+n8n start                     # terminal 2
+python manage.py runserver    # terminal 3
 ```
 
 Acede em: **http://localhost:8000**
 
-### 7. Correr os testes automatizados
+### 9. Correr os testes automatizados
 
 ```bash
 python manage.py test recruitment
