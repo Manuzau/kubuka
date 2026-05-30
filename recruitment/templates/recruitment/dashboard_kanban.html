@@ -1,51 +1,50 @@
 {% extends 'recruitment/base.html' %}
-
 {% block title %}Pipeline Kanban — KUBUKA{% endblock %}
-
 {% block content %}
-<div class="px-4 py-6" style="max-width:100%;">
+<div class="px-6 py-8" style="max-width:100%;">
 
     {% if messages %}
-    <div class="mb-4 max-w-7xl mx-auto">
+    <div class="mb-5 max-w-7xl mx-auto space-y-2">
         {% for message in messages %}
-        <div class="p-3 mb-2 text-sm rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700{% elif message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">{{ message }}</div>
+        <div class="{% if message.tags == 'error' %}msg-error{% elif message.tags == 'success' %}msg-success{% else %}msg-info{% endif %}">{{ message }}</div>
         {% endfor %}
     </div>
     {% endif %}
 
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4 max-w-7xl mx-auto">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-7 gap-4 max-w-7xl mx-auto animate-fadeInUp">
         <div>
-            <h2 class="text-2xl font-bold" style="color:#0F2A4A;">Pipeline de Candidatos</h2>
-            <p class="text-sm text-gray-500 mt-0.5">Arraste os cartões entre colunas para actualizar o estado</p>
+            <p class="text-xs font-bold uppercase tracking-widest mb-1.5" style="color:rgba(241,245,249,0.35);">Recrutador</p>
+            <h1 class="text-2xl font-extrabold text-white">Pipeline de Candidatos</h1>
+            <p class="text-sm mt-1" style="color:rgba(241,245,249,0.45);">Arraste os cartões entre colunas para actualizar o estado</p>
         </div>
         <div class="flex gap-3 flex-wrap">
-            <a href="{% url 'admin_dashboard' %}" class="text-sm font-medium px-4 py-2 rounded-lg text-white flex items-center gap-1.5" style="background:#1B6CA8;">
+            <a href="{% url 'admin_dashboard' %}" class="btn-ghost px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-1.5">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
                 Vista Tabela
             </a>
-            <a href="{% url 'analytics_dashboard' %}" class="text-sm font-medium px-4 py-2 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">Analytics</a>
-            <a href="{% url 'job_manage' %}" class="text-sm font-medium px-4 py-2 rounded-lg text-white" style="background:#3BBFAD;">Gerir Vagas →</a>
+            <a href="{% url 'analytics_dashboard' %}" class="btn-ghost px-4 py-2 rounded-xl text-sm font-semibold">Analytics</a>
+            <a href="{% url 'job_manage' %}" class="btn-primary px-4 py-2 rounded-xl text-sm font-semibold">Gerir Vagas →</a>
         </div>
     </div>
 
     <!-- Métricas -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6 max-w-7xl mx-auto">
-        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Total</p>
-            <p class="text-2xl font-extrabold" style="color:#0F2A4A;">{{ total }}</p>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-7 max-w-7xl mx-auto animate-fadeInUp delay-1">
+        <div class="glass-card p-4">
+            <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:rgba(241,245,249,0.35);">Total</p>
+            <p class="text-2xl font-extrabold text-white">{{ total }}</p>
         </div>
-        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Pré-seleccionados</p>
-            <p class="text-2xl font-extrabold" style="color:#3BBFAD;">{{ pre_selected }}</p>
+        <div class="glass-card p-4">
+            <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:rgba(241,245,249,0.35);">Pré-seleccionados</p>
+            <p class="text-2xl font-extrabold" style="color:#6EE7B7;">{{ pre_selected }}</p>
         </div>
-        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Entrevistas</p>
-            <p class="text-2xl font-extrabold" style="color:#1B6CA8;">{{ interviews }}</p>
+        <div class="glass-card p-4">
+            <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:rgba(241,245,249,0.35);">Entrevistas</p>
+            <p class="text-2xl font-extrabold" style="color:#67E8F9;">{{ interviews }}</p>
         </div>
-        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Score Médio</p>
-            <p class="text-2xl font-extrabold" style="color:#0F2A4A;">{{ avg_score }}%</p>
+        <div class="glass-card p-4">
+            <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:rgba(241,245,249,0.35);">Score Médio</p>
+            <p class="text-2xl font-extrabold" style="color:#A78BFA;">{{ avg_score }}%</p>
         </div>
     </div>
 
@@ -53,88 +52,96 @@
     <div id="toast" class="fixed bottom-6 right-6 z-50 hidden px-5 py-3 rounded-xl text-sm font-medium shadow-lg text-white transition-all" role="alert"></div>
 
     <!-- Kanban Board -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 items-start" style="min-height:60vh;">
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 items-start max-w-7xl mx-auto animate-fadeInUp delay-2" style="min-height:60vh;">
 
         <!-- Coluna: Pendente -->
-        <div class="kanban-col flex flex-col rounded-xl overflow-hidden border border-yellow-200"
+        <div class="kanban-col flex flex-col rounded-2xl overflow-hidden"
              data-status="pending"
+             style="border:1px solid rgba(252,211,77,0.2);"
              ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event, 'pending')">
-            <div class="px-4 py-3 flex items-center justify-between" style="background:#FEF9C3;">
+            <div class="px-4 py-3 flex items-center justify-between" style="background:rgba(252,211,77,0.08);">
                 <div class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-yellow-400 inline-block"></span>
-                    <span class="text-sm font-bold text-yellow-800">Pendente</span>
+                    <span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#FCD34D;box-shadow:0 0 6px rgba(252,211,77,0.5);"></span>
+                    <span class="text-sm font-bold" style="color:#FCD34D;">Pendente</span>
                 </div>
-                <span class="text-xs font-bold bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded-full col-count" data-col="pending">{{ kanban.pending|length }}</span>
+                <span class="text-xs font-bold px-2 py-0.5 rounded-full col-count" data-col="pending"
+                    style="background:rgba(252,211,77,0.15);color:#FCD34D;">{{ kanban.pending|length }}</span>
             </div>
-            <div class="kanban-cards flex-1 p-3 space-y-3 overflow-y-auto bg-yellow-50" style="min-height:200px;max-height:65vh;"
+            <div class="kanban-cards flex-1 p-3 space-y-3 overflow-y-auto" style="min-height:200px;max-height:65vh;background:rgba(252,211,77,0.03);"
                  id="col-pending">
                 {% for app in kanban.pending %}
                 {% include 'recruitment/partials/kanban_card.html' %}
                 {% empty %}
-                <p class="text-xs text-center text-yellow-400 py-6 col-empty">Sem candidatos</p>
+                <p class="text-xs text-center py-6 col-empty" style="color:rgba(252,211,77,0.4);">Sem candidatos</p>
                 {% endfor %}
             </div>
         </div>
 
         <!-- Coluna: Pré-seleccionado -->
-        <div class="kanban-col flex flex-col rounded-xl overflow-hidden border border-green-200"
+        <div class="kanban-col flex flex-col rounded-2xl overflow-hidden"
              data-status="pre_selected"
+             style="border:1px solid rgba(16,185,129,0.2);"
              ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event, 'pre_selected')">
-            <div class="px-4 py-3 flex items-center justify-between" style="background:#DCFCE7;">
+            <div class="px-4 py-3 flex items-center justify-between" style="background:rgba(16,185,129,0.08);">
                 <div class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-green-500 inline-block"></span>
-                    <span class="text-sm font-bold text-green-800">Pré-seleccionado</span>
+                    <span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#6EE7B7;box-shadow:0 0 6px rgba(16,185,129,0.5);"></span>
+                    <span class="text-sm font-bold" style="color:#6EE7B7;">Pré-seleccionado</span>
                 </div>
-                <span class="text-xs font-bold bg-green-200 text-green-800 px-2 py-0.5 rounded-full col-count" data-col="pre_selected">{{ kanban.pre_selected|length }}</span>
+                <span class="text-xs font-bold px-2 py-0.5 rounded-full col-count" data-col="pre_selected"
+                    style="background:rgba(16,185,129,0.15);color:#6EE7B7;">{{ kanban.pre_selected|length }}</span>
             </div>
-            <div class="kanban-cards flex-1 p-3 space-y-3 overflow-y-auto bg-green-50" style="min-height:200px;max-height:65vh;"
+            <div class="kanban-cards flex-1 p-3 space-y-3 overflow-y-auto" style="min-height:200px;max-height:65vh;background:rgba(16,185,129,0.03);"
                  id="col-pre_selected">
                 {% for app in kanban.pre_selected %}
                 {% include 'recruitment/partials/kanban_card.html' %}
                 {% empty %}
-                <p class="text-xs text-center text-green-400 py-6 col-empty">Sem candidatos</p>
+                <p class="text-xs text-center py-6 col-empty" style="color:rgba(16,185,129,0.4);">Sem candidatos</p>
                 {% endfor %}
             </div>
         </div>
 
         <!-- Coluna: Entrevista Agendada -->
-        <div class="kanban-col flex flex-col rounded-xl overflow-hidden border border-blue-200"
+        <div class="kanban-col flex flex-col rounded-2xl overflow-hidden"
              data-status="interview_scheduled"
+             style="border:1px solid rgba(6,182,212,0.2);"
              ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event, 'interview_scheduled')">
-            <div class="px-4 py-3 flex items-center justify-between" style="background:#DBEAFE;">
+            <div class="px-4 py-3 flex items-center justify-between" style="background:rgba(6,182,212,0.08);">
                 <div class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span>
-                    <span class="text-sm font-bold text-blue-800">Entrevista</span>
+                    <span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#67E8F9;box-shadow:0 0 6px rgba(6,182,212,0.5);"></span>
+                    <span class="text-sm font-bold" style="color:#67E8F9;">Entrevista</span>
                 </div>
-                <span class="text-xs font-bold bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full col-count" data-col="interview_scheduled">{{ kanban.interview_scheduled|length }}</span>
+                <span class="text-xs font-bold px-2 py-0.5 rounded-full col-count" data-col="interview_scheduled"
+                    style="background:rgba(6,182,212,0.15);color:#67E8F9;">{{ kanban.interview_scheduled|length }}</span>
             </div>
-            <div class="kanban-cards flex-1 p-3 space-y-3 overflow-y-auto bg-blue-50" style="min-height:200px;max-height:65vh;"
+            <div class="kanban-cards flex-1 p-3 space-y-3 overflow-y-auto" style="min-height:200px;max-height:65vh;background:rgba(6,182,212,0.03);"
                  id="col-interview_scheduled">
                 {% for app in kanban.interview_scheduled %}
                 {% include 'recruitment/partials/kanban_card.html' %}
                 {% empty %}
-                <p class="text-xs text-center text-blue-400 py-6 col-empty">Sem candidatos</p>
+                <p class="text-xs text-center py-6 col-empty" style="color:rgba(6,182,212,0.4);">Sem candidatos</p>
                 {% endfor %}
             </div>
         </div>
 
         <!-- Coluna: Rejeitado -->
-        <div class="kanban-col flex flex-col rounded-xl overflow-hidden border border-red-200"
+        <div class="kanban-col flex flex-col rounded-2xl overflow-hidden"
              data-status="rejected"
+             style="border:1px solid rgba(239,68,68,0.2);"
              ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event, 'rejected')">
-            <div class="px-4 py-3 flex items-center justify-between" style="background:#FEE2E2;">
+            <div class="px-4 py-3 flex items-center justify-between" style="background:rgba(239,68,68,0.08);">
                 <div class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-red-400 inline-block"></span>
-                    <span class="text-sm font-bold text-red-800">Rejeitado</span>
+                    <span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#FCA5A5;box-shadow:0 0 6px rgba(239,68,68,0.5);"></span>
+                    <span class="text-sm font-bold" style="color:#FCA5A5;">Rejeitado</span>
                 </div>
-                <span class="text-xs font-bold bg-red-200 text-red-800 px-2 py-0.5 rounded-full col-count" data-col="rejected">{{ kanban.rejected|length }}</span>
+                <span class="text-xs font-bold px-2 py-0.5 rounded-full col-count" data-col="rejected"
+                    style="background:rgba(239,68,68,0.15);color:#FCA5A5;">{{ kanban.rejected|length }}</span>
             </div>
-            <div class="kanban-cards flex-1 p-3 space-y-3 overflow-y-auto bg-red-50" style="min-height:200px;max-height:65vh;"
+            <div class="kanban-cards flex-1 p-3 space-y-3 overflow-y-auto" style="min-height:200px;max-height:65vh;background:rgba(239,68,68,0.03);"
                  id="col-rejected">
                 {% for app in kanban.rejected %}
                 {% include 'recruitment/partials/kanban_card.html' %}
                 {% empty %}
-                <p class="text-xs text-center text-red-400 py-6 col-empty">Sem candidatos</p>
+                <p class="text-xs text-center py-6 col-empty" style="color:rgba(239,68,68,0.4);">Sem candidatos</p>
                 {% endfor %}
             </div>
         </div>
@@ -156,7 +163,9 @@ function getCsrfToken() {
 function showToast(msg, type) {
     const t = document.getElementById('toast');
     t.textContent = msg;
-    t.style.background = type === 'success' ? '#16A34A' : '#DC2626';
+    t.style.background = type === 'success' ? 'rgba(16,185,129,0.9)' : 'rgba(239,68,68,0.9)';
+    t.style.backdropFilter = 'blur(10px)';
+    t.style.border = type === 'success' ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(239,68,68,0.3)';
     t.classList.remove('hidden');
     setTimeout(() => t.classList.add('hidden'), 3000);
 }
@@ -182,45 +191,42 @@ function onDragEnd(e) {
 function onDragOver(e) {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    e.currentTarget.querySelector('.kanban-cards').classList.add('ring-2', 'ring-inset', 'ring-blue-400');
+    e.currentTarget.querySelector('.kanban-cards').style.boxShadow = 'inset 0 0 0 2px rgba(124,58,237,0.5)';
 }
 
 function onDragLeave(e) {
     if (!e.currentTarget.contains(e.relatedTarget)) {
-        e.currentTarget.querySelector('.kanban-cards').classList.remove('ring-2', 'ring-inset', 'ring-blue-400');
+        e.currentTarget.querySelector('.kanban-cards').style.boxShadow = '';
     }
 }
 
 async function onDrop(e, newStatus) {
     e.preventDefault();
     const col = e.currentTarget;
-    col.querySelector('.kanban-cards').classList.remove('ring-2', 'ring-inset', 'ring-blue-400');
+    col.querySelector('.kanban-cards').style.boxShadow = '';
 
     if (!draggedCard) return;
     const appId = draggedCard.dataset.appId;
     const oldStatus = draggedCard.dataset.status;
     if (oldStatus === newStatus) return;
 
-    // Optimistic UI — move card immediately
     const targetCards = col.querySelector('.kanban-cards');
     const emptyMsg = targetCards.querySelector('.col-empty');
     if (emptyMsg) emptyMsg.remove();
     targetCards.appendChild(draggedCard);
     draggedCard.dataset.status = newStatus;
 
-    // Update source col empty state
     const srcCards = sourceCol.querySelector('.kanban-cards');
     if (!srcCards.querySelector('.kanban-card')) {
         const empty = document.createElement('p');
-        empty.className = 'text-xs text-center py-6 col-empty text-gray-400';
+        empty.className = 'text-xs text-center py-6 col-empty';
+        empty.style.color = 'rgba(241,245,249,0.3)';
         empty.textContent = 'Sem candidatos';
         srcCards.appendChild(empty);
     }
 
-    // Update counters
     updateCounters();
 
-    // Persist via API
     try {
         const resp = await fetch(`/api/application/${appId}/update-status/`, {
             method: 'POST',
@@ -236,16 +242,15 @@ async function onDrop(e, newStatus) {
         }
     } catch (err) {
         showToast('Erro ao actualizar: ' + err.message, 'error');
-        // Revert: move card back
         const srcCardsNow = sourceCol.querySelector('.kanban-cards');
         const revertEmpty = srcCardsNow.querySelector('.col-empty');
         if (revertEmpty) revertEmpty.remove();
         srcCardsNow.appendChild(draggedCard);
         draggedCard.dataset.status = oldStatus;
-        // Re-add empty to target if needed
         if (!targetCards.querySelector('.kanban-card')) {
             const empty2 = document.createElement('p');
-            empty2.className = 'text-xs text-center py-6 col-empty text-gray-400';
+            empty2.className = 'text-xs text-center py-6 col-empty';
+            empty2.style.color = 'rgba(241,245,249,0.3)';
             empty2.textContent = 'Sem candidatos';
             targetCards.appendChild(empty2);
         }

@@ -1,70 +1,66 @@
 {% extends 'recruitment/base.html' %}
-
 {% block title %}Notificações — KUBUKA{% endblock %}
-
 {% block content %}
-<div class="max-w-2xl mx-auto px-4 py-8">
+<div class="max-w-2xl mx-auto px-6 py-10">
 
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center justify-between mb-8 animate-fadeInUp">
         <div>
-            <h2 class="text-2xl font-bold" style="color:#0F2A4A;">Notificações</h2>
-            <p class="text-sm text-gray-500 mt-0.5">Actualizações sobre as suas candidaturas</p>
+            <p class="text-xs font-bold uppercase tracking-widest mb-1.5" style="color:rgba(241,245,249,0.35);">Candidato</p>
+            <h1 class="text-2xl font-extrabold text-white">Notificações</h1>
+            <p class="text-sm mt-1" style="color:rgba(241,245,249,0.45);">Actualizações sobre as suas candidaturas</p>
         </div>
-        <a href="{% url 'my_applications' %}" class="text-sm font-medium hover:underline" style="color:#1B6CA8;">Ver Candidaturas →</a>
+        <a href="{% url 'my_applications' %}" class="btn-ghost px-4 py-2 rounded-xl text-sm font-semibold">Ver Candidaturas →</a>
     </div>
 
     {% if notifications %}
     <div class="space-y-3">
         {% for notif in notifications %}
-        <div class="bg-white border rounded-xl p-4 shadow-sm flex items-start gap-4
-            {% if not notif.is_read %}border-blue-200{% else %}border-gray-200{% endif %}">
+        <div class="glass-card p-4 flex items-start gap-4 animate-fadeInUp
+            {% if not notif.is_read %}ring-1 ring-purple-500/20{% endif %}">
 
             <!-- Ícone por tipo -->
-            <div class="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center
-                {% if notif.application.status == 'pre_selected' %}bg-green-100
-                {% elif notif.application.status == 'interview_scheduled' %}bg-blue-100
-                {% elif notif.application.status == 'rejected' %}bg-red-100
-                {% else %}bg-gray-100{% endif %}">
+            <div class="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center"
+                style="background:{% if notif.application.status == 'pre_selected' %}rgba(16,185,129,0.15){% elif notif.application.status == 'interview_scheduled' %}rgba(6,182,212,0.15){% elif notif.application.status == 'rejected' %}rgba(239,68,68,0.15){% else %}rgba(255,255,255,0.07){% endif %};">
                 {% if notif.application.status == 'pre_selected' %}
-                <svg class="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="w-4 h-4" style="color:#6EE7B7;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                 </svg>
                 {% elif notif.application.status == 'interview_scheduled' %}
-                <svg class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="w-4 h-4" style="color:#67E8F9;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
                 {% elif notif.application.status == 'rejected' %}
-                <svg class="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="w-4 h-4" style="color:#FCA5A5;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
                 {% else %}
-                <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="w-4 h-4" style="color:rgba(241,245,249,0.35);" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                 </svg>
                 {% endif %}
             </div>
 
             <div class="flex-1 min-w-0">
-                <p class="text-sm text-gray-800 {% if not notif.is_read %}font-semibold{% endif %}">
+                <p class="text-sm {% if not notif.is_read %}font-semibold text-white{% else %}text-white/70{% endif %}">
                     {{ notif.message }}
                 </p>
-                <p class="text-xs text-gray-400 mt-1">{{ notif.created_at|date:"d/m/Y \à\s H:i" }}</p>
+                <p class="text-xs mt-1" style="color:rgba(241,245,249,0.35);">{{ notif.created_at|date:"d/m/Y \à\s H:i" }}</p>
             </div>
 
             {% if not notif.is_read %}
-            <span class="flex-shrink-0 w-2 h-2 rounded-full mt-2" style="background:#F97316;"></span>
+            <span class="flex-shrink-0 w-2 h-2 rounded-full mt-2" style="background:#F97316;box-shadow:0 0 6px rgba(249,115,22,0.6);"></span>
             {% endif %}
         </div>
         {% endfor %}
     </div>
 
     {% else %}
-    <div class="text-center py-16 bg-white border border-gray-200 rounded-xl shadow-sm">
-        <svg class="mx-auto h-12 w-12 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+    <div class="glass-card text-center py-20 animate-fadeInUp">
+        <svg class="mx-auto h-14 w-14 mb-4 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color:#A78BFA;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
         </svg>
-        <p class="text-sm font-medium text-gray-500">Não tem notificações por enquanto.</p>
-        <p class="text-xs text-gray-400 mt-1">Será notificado quando um recrutador actualizar o estado da sua candidatura.</p>
+        <p class="text-sm font-semibold text-white mb-1">Não tem notificações por enquanto</p>
+        <p class="text-xs" style="color:rgba(241,245,249,0.4);">Será notificado quando um recrutador actualizar o estado da sua candidatura.</p>
     </div>
     {% endif %}
 

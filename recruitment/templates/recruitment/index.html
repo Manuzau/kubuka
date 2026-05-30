@@ -3,71 +3,206 @@
 {% block title %}KUBUKA — Recrutamento Inteligente com IA{% endblock %}
 
 {% block content %}
+
 <!-- Hero -->
-<div style="background-color:#0F2A4A;" class="px-4 py-20 text-center">
-    <div class="max-w-3xl mx-auto">
-        <span class="inline-block text-xs font-semibold uppercase tracking-widest px-3 py-1 rounded-full mb-4" style="background:rgba(59,191,173,0.15);color:#3BBFAD;">Sistema de Pré-Selecção com IA</span>
-        <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-5 leading-tight">
-            Recrutamento Inteligente<br>com Inteligência Artificial
+<section class="relative overflow-hidden" style="min-height: 92vh; display: flex; align-items: center;">
+
+    <!-- Background animated blobs -->
+    <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none;">
+        <div style="position:absolute;top:-10%;left:-5%;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(124,58,237,0.2) 0%,transparent 70%);animation:float 8s ease-in-out infinite;"></div>
+        <div style="position:absolute;bottom:-15%;right:-5%;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,0.15) 0%,transparent 70%);animation:float 10s ease-in-out infinite 2s;"></div>
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:800px;height:800px;border-radius:50%;background:radial-gradient(circle,rgba(124,58,237,0.05) 0%,transparent 70%);"></div>
+
+        <!-- Grid pattern overlay -->
+        <div class="grid-pattern" style="position:absolute;inset:0;opacity:0.5;"></div>
+
+        <!-- Scan line effect -->
+        <div style="position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(124,58,237,0.4),rgba(6,182,212,0.4),transparent);animation:scan-line 6s linear infinite;opacity:0.6;"></div>
+    </div>
+
+    <div class="max-w-5xl mx-auto px-6 py-20 text-center relative z-10 w-full">
+
+        <!-- Eyebrow -->
+        <div class="animate-fadeInUp flex justify-center mb-6">
+            <span class="page-eyebrow">
+                <span class="neon-dot"></span>
+                Sistema de Pré-Selecção com IA · Angola
+            </span>
+        </div>
+
+        <!-- Headline -->
+        <h1 class="animate-fadeInUp delay-1 font-extrabold text-white leading-tight mb-6" style="font-size:clamp(2.5rem,6vw,4.5rem);letter-spacing:-0.02em;">
+            Recrutamento<br>
+            <span class="gradient-text">Inteligente</span> com IA
         </h1>
-        <p class="text-lg text-white/70 mb-8 max-w-xl mx-auto">
-            A plataforma que analisa currículos automaticamente, identifica os melhores talentos e simplifica o processo de pré-selecção para empresas angolanas.
+
+        <!-- Subheadline -->
+        <p class="animate-fadeInUp delay-2 text-lg mb-10 mx-auto" style="color:rgba(241,245,249,0.6);max-width:560px;line-height:1.75;">
+            A plataforma que analisa currículos automaticamente, identifica os melhores talentos e simplifica a pré-selecção para empresas angolanas.
         </p>
-        <div class="flex flex-col sm:flex-row justify-center gap-3">
-            <a href="{% url 'signup' %}" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-white text-sm" style="background:#1B6CA8;">
-                Começar agora
+
+        <!-- CTAs -->
+        <div class="animate-fadeInUp delay-3 flex flex-col sm:flex-row justify-center gap-3 mb-16">
+            <a href="{% url 'signup' %}" class="btn-primary px-8 py-3.5 rounded-xl font-bold text-base gap-2">
+                Começar gratuitamente
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 14 10"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/></svg>
             </a>
-            <a href="{% url 'login' %}" class="inline-flex items-center justify-center px-6 py-3 rounded-lg font-semibold text-white text-sm border border-white/30 hover:bg-white/10 transition-colors">
+            <a href="{% url 'login' %}" class="btn-ghost px-8 py-3.5 rounded-xl font-bold text-base">
                 Iniciar Sessão
             </a>
         </div>
+
+        <!-- Stats row -->
+        <div class="animate-fadeInUp delay-4 grid grid-cols-3 gap-6 max-w-xl mx-auto">
+            <div class="text-center">
+                <div class="text-3xl font-extrabold gradient-text mb-1">IA</div>
+                <div class="text-xs" style="color:rgba(241,245,249,0.45);">Análise automática</div>
+            </div>
+            <div class="text-center" style="border-left:1px solid rgba(255,255,255,0.07);border-right:1px solid rgba(255,255,255,0.07);">
+                <div class="text-3xl font-extrabold gradient-text mb-1">100%</div>
+                <div class="text-xs" style="color:rgba(241,245,249,0.45);">Match preciso</div>
+            </div>
+            <div class="text-center">
+                <div class="text-3xl font-extrabold gradient-text mb-1">Local</div>
+                <div class="text-xs" style="color:rgba(241,245,249,0.45);">Dados privados</div>
+            </div>
+        </div>
     </div>
+</section>
+
+<!-- Divider -->
+<div class="max-w-4xl mx-auto px-6">
+    <hr class="section-divider">
 </div>
 
-<!-- Features -->
-<div class="max-w-5xl mx-auto px-4 py-16">
-    <h2 class="text-center text-2xl font-bold mb-2" style="color:#0F2A4A;">Como funciona</h2>
-    <p class="text-center text-gray-500 text-sm mb-10">Três passos simples do upload ao recrutamento</p>
+<!-- How it works -->
+<section class="max-w-5xl mx-auto px-6 py-20">
+    <div class="text-center mb-14 observe-fade">
+        <span class="page-eyebrow mb-4 inline-flex">Como funciona</span>
+        <h2 class="text-3xl font-extrabold text-white mt-4 mb-3">Três passos. Zero complicações.</h2>
+        <p class="text-sm" style="color:rgba(241,245,249,0.5);">Do upload do CV à pré-selecção final, tudo automatizado.</p>
+    </div>
+
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- Card 1 -->
-        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
-            <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style="background:#EFF6FF;">
-                <svg class="w-6 h-6" style="color:#1B6CA8;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+
+        <!-- Step 1 -->
+        <div class="glass-card p-7 observe-fade relative">
+            <div class="absolute top-4 right-4 text-6xl font-black" style="color:rgba(124,58,237,0.08);line-height:1;">01</div>
+            <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-5" style="background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(124,58,237,0.1));border:1px solid rgba(124,58,237,0.25);">
+                <svg class="w-6 h-6" style="color:#A78BFA;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
                 </svg>
             </div>
-            <h3 class="font-bold text-gray-900 mb-2">Submeta o seu CV</h3>
-            <p class="text-sm text-gray-500">Carregue o seu currículo em PDF. O sistema extrai automaticamente todo o conteúdo relevante.</p>
+            <h3 class="font-bold text-white text-lg mb-2">Submeta o seu CV</h3>
+            <p class="text-sm leading-relaxed" style="color:rgba(241,245,249,0.5);">Carregue o seu currículo em PDF. O sistema extrai automaticamente todo o conteúdo via OCR e pdfplumber.</p>
+            <div class="mt-5 flex items-center gap-2">
+                <div class="neon-dot"></div>
+                <span class="text-xs" style="color:#A78BFA;">PDF · OCR · Extracção automática</span>
+            </div>
         </div>
-        <!-- Card 2 -->
-        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
-            <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style="background:#ECFDF5;">
-                <svg class="w-6 h-6" style="color:#3BBFAD;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+
+        <!-- Step 2 -->
+        <div class="glass-card p-7 observe-fade relative" style="border-color:rgba(6,182,212,0.2);">
+            <div class="absolute top-4 right-4 text-6xl font-black" style="color:rgba(6,182,212,0.08);line-height:1;">02</div>
+            <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-5" style="background:linear-gradient(135deg,rgba(6,182,212,0.25),rgba(6,182,212,0.08));border:1px solid rgba(6,182,212,0.25);">
+                <svg class="w-6 h-6" style="color:#67E8F9;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h16a2 2 0 012 2v10a2 2 0 01-2 2h-2"/>
                 </svg>
             </div>
-            <h3 class="font-bold text-gray-900 mb-2">Análise por IA</h3>
-            <p class="text-sm text-gray-500">O modelo <strong>llama3.2</strong> avalia as suas competências, experiência e formação e gera um perfil detalhado.</p>
+            <h3 class="font-bold text-white text-lg mb-2">Análise por IA</h3>
+            <p class="text-sm leading-relaxed" style="color:rgba(241,245,249,0.5);">O modelo <strong style="color:#67E8F9;">llama3.2</strong> via Ollama avalia competências, experiência e formação, gerando um score e feedback detalhado.</p>
+            <div class="mt-5 flex items-center gap-2">
+                <div class="neon-dot cyan"></div>
+                <span class="text-xs" style="color:#67E8F9;">Ollama · llama3.2 · n8n</span>
+            </div>
         </div>
-        <!-- Card 3 -->
-        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
-            <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style="background:#FFF7ED;">
-                <svg class="w-6 h-6" style="color:#F97316;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+
+        <!-- Step 3 -->
+        <div class="glass-card p-7 observe-fade relative">
+            <div class="absolute top-4 right-4 text-6xl font-black" style="color:rgba(16,185,129,0.08);line-height:1;">03</div>
+            <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-5" style="background:linear-gradient(135deg,rgba(16,185,129,0.25),rgba(16,185,129,0.08));border:1px solid rgba(16,185,129,0.25);">
+                <svg class="w-6 h-6" style="color:#34D399;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                 </svg>
             </div>
-            <h3 class="font-bold text-gray-900 mb-2">Encontre vagas</h3>
-            <p class="text-sm text-gray-500">Candidate-se a vagas com um clique. A IA calcula automaticamente a sua compatibilidade com cada vaga.</p>
+            <h3 class="font-bold text-white text-lg mb-2">Match com vagas</h3>
+            <p class="text-sm leading-relaxed" style="color:rgba(241,245,249,0.5);">Candidate-se e receba um score de compatibilidade com cada vaga. O recrutador vê os melhores candidatos automaticamente.</p>
+            <div class="mt-5 flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full flex-shrink-0" style="background:#34D399;box-shadow:0 0 8px #34D399;"></div>
+                <span class="text-xs" style="color:#34D399;">Score · Ranking · Pré-selecção</span>
+            </div>
         </div>
     </div>
+</section>
+
+<!-- Divider -->
+<div class="max-w-4xl mx-auto px-6">
+    <hr class="section-divider">
 </div>
 
-<!-- CTA bottom -->
-<div class="border-t border-gray-200 py-10 text-center px-4">
-    <p class="text-gray-500 text-sm mb-4">É recrutador? Crie uma conta e comece a receber candidaturas pré-avaliadas pela IA.</p>
-    <a href="{% url 'signup_recruiter' %}" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg font-semibold text-sm border-2" style="border-color:#3BBFAD;color:#0F6E56;">
-        Registar como Recrutador
-    </a>
-</div>
+<!-- Features grid -->
+<section class="max-w-5xl mx-auto px-6 py-20">
+    <div class="text-center mb-14 observe-fade">
+        <span class="page-eyebrow mb-4 inline-flex">Funcionalidades</span>
+        <h2 class="text-3xl font-extrabold text-white mt-4">Tecnologia de ponta. Resultados reais.</h2>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div class="glass-card p-6 flex gap-4 observe-fade">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.2);">
+                <svg class="w-5 h-5" style="color:#A78BFA;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            </div>
+            <div>
+                <h4 class="font-bold text-white mb-1">Dashboard Kanban</h4>
+                <p class="text-sm" style="color:rgba(241,245,249,0.5);">Gestão visual de candidaturas em colunas — pendente, pré-seleccionado, entrevista, rejeitado.</p>
+            </div>
+        </div>
+
+        <div class="glass-card p-6 flex gap-4 observe-fade delay-1">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.2);">
+                <svg class="w-5 h-5" style="color:#67E8F9;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            </div>
+            <div>
+                <h4 class="font-bold text-white mb-1">Analytics em tempo real</h4>
+                <p class="text-sm" style="color:rgba(241,245,249,0.5);">Gráficos de scores, distribuição de candidatos e taxas de pré-selecção por vaga.</p>
+            </div>
+        </div>
+
+        <div class="glass-card p-6 flex gap-4 observe-fade delay-2">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.2);">
+                <svg class="w-5 h-5" style="color:#34D399;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            </div>
+            <div>
+                <h4 class="font-bold text-white mb-1">Notificações por email</h4>
+                <p class="text-sm" style="color:rgba(241,245,249,0.5);">Candidatos são notificados automaticamente sobre alterações de estado da candidatura.</p>
+            </div>
+        </div>
+
+        <div class="glass-card p-6 flex gap-4 observe-fade delay-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.2);">
+                <svg class="w-5 h-5" style="color:#FCD34D;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            </div>
+            <div>
+                <h4 class="font-bold text-white mb-1">IA completamente local</h4>
+                <p class="text-sm" style="color:rgba(241,245,249,0.5);">Ollama corre localmente — os dados dos candidatos nunca saem da sua infraestrutura.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Final -->
+<section class="max-w-5xl mx-auto px-6 pb-20">
+    <div class="glass-card p-12 text-center relative overflow-hidden" style="border-color:rgba(124,58,237,0.2);">
+        <div style="position:absolute;top:-50%;left:-10%;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(124,58,237,0.15),transparent);pointer-events:none;"></div>
+        <div style="position:absolute;bottom:-50%;right:-10%;width:250px;height:250px;border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,0.12),transparent);pointer-events:none;"></div>
+        <span class="page-eyebrow mb-4 inline-flex">Para recrutadores</span>
+        <h2 class="text-2xl font-extrabold text-white mt-4 mb-3">Receba candidatos já avaliados pela IA</h2>
+        <p class="text-sm mb-8 mx-auto" style="color:rgba(241,245,249,0.55);max-width:440px;">Crie uma conta de recrutador, publique vagas e deixe a IA ordenar os candidatos por compatibilidade automaticamente.</p>
+        <a href="{% url 'signup_recruiter' %}" class="btn-accent px-8 py-3 rounded-xl font-bold text-sm inline-flex items-center gap-2">
+            Registar como Recrutador
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 14 10"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/></svg>
+        </a>
+    </div>
+</section>
+
 {% endblock %}

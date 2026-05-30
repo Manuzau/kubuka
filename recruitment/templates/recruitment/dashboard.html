@@ -3,62 +3,72 @@
 {% block title %}Painel de Candidatos — KUBUKA{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 py-8">
+<div class="max-w-7xl mx-auto px-6 py-10">
 
     {% if messages %}
-    <div class="mb-6">
+    <div class="mb-6 space-y-2">
         {% for message in messages %}
-        <div class="p-4 mb-3 text-sm rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700{% elif message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+        <div class="{% if message.tags == 'error' %}msg-error{% elif message.tags == 'success' %}msg-success{% else %}msg-info{% endif %} flex items-center gap-2">
             {{ message }}
         </div>
         {% endfor %}
     </div>
     {% endif %}
 
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4 animate-fadeInUp">
         <div>
-            <h2 class="text-2xl font-bold" style="color:#0F2A4A;">Painel de Candidatos</h2>
-            <p class="text-sm text-gray-500 mt-0.5">Gira candidaturas e tome decisões de pré-selecção</p>
+            <p class="text-xs font-semibold uppercase tracking-widest mb-1.5" style="color:rgba(241,245,249,0.35);">Recrutamento</p>
+            <h1 class="text-2xl font-extrabold text-white">Painel de Candidatos</h1>
+            <p class="text-sm mt-1" style="color:rgba(241,245,249,0.45);">Gira candidaturas e tome decisões de pré-selecção</p>
         </div>
-        <div class="flex gap-3 flex-wrap">
-            <a href="{% url 'dashboard_kanban' %}" class="text-sm font-medium px-4 py-2 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 flex items-center gap-1.5">
+        <div class="flex gap-2 flex-wrap">
+            <a href="{% url 'dashboard_kanban' %}" class="btn-ghost text-sm font-medium px-4 py-2 rounded-xl inline-flex items-center gap-1.5">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
-                Vista Kanban
+                Kanban
             </a>
-            <a href="{% url 'analytics_dashboard' %}" class="text-sm font-medium px-4 py-2 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 flex items-center gap-1.5">
+            <a href="{% url 'analytics_dashboard' %}" class="btn-ghost text-sm font-medium px-4 py-2 rounded-xl inline-flex items-center gap-1.5">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                 Analytics
             </a>
-            <a href="{% url 'export_applications_csv' %}" class="text-sm font-medium px-4 py-2 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">Exportar CSV</a>
-            <a href="{% url 'job_manage' %}" class="text-sm font-medium px-4 py-2 rounded-lg text-white" style="background:#3BBFAD;">Gerir Vagas →</a>
+            <a href="{% url 'export_applications_csv' %}" class="btn-ghost text-sm font-medium px-4 py-2 rounded-xl">Exportar CSV</a>
+            <a href="{% url 'job_manage' %}" class="btn-primary text-sm font-semibold px-4 py-2 rounded-xl">Gerir Vagas →</a>
         </div>
     </div>
 
-    <!-- Métricas -->
+    <!-- Stat cards -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-        <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Candidaturas</p>
-            <p class="text-3xl font-extrabold" style="color:#0F2A4A;">{{ total }}</p>
+        <div class="stat-card animate-fadeInUp delay-1">
+            <div class="orb" style="background:#7C3AED;"></div>
+            <p class="text-xs font-bold uppercase tracking-widest mb-3" style="color:rgba(241,245,249,0.4);">Total</p>
+            <p class="text-4xl font-black text-white" data-counter="{{ total }}">{{ total }}</p>
+            <p class="text-xs mt-1" style="color:rgba(241,245,249,0.35);">candidaturas</p>
         </div>
-        <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Pré-seleccionados</p>
-            <p class="text-3xl font-extrabold" style="color:#3BBFAD;">{{ pre_selected }}</p>
+        <div class="stat-card animate-fadeInUp delay-2" style="border-color:rgba(16,185,129,0.2);">
+            <div class="orb" style="background:#10B981;"></div>
+            <p class="text-xs font-bold uppercase tracking-widest mb-3" style="color:rgba(241,245,249,0.4);">Pré-sel.</p>
+            <p class="text-4xl font-black" style="color:#34D399;" data-counter="{{ pre_selected }}">{{ pre_selected }}</p>
+            <p class="text-xs mt-1" style="color:rgba(241,245,249,0.35);">aprovados</p>
         </div>
-        <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Entrevistas</p>
-            <p class="text-3xl font-extrabold" style="color:#1B6CA8;">{{ interviews }}</p>
+        <div class="stat-card animate-fadeInUp delay-3" style="border-color:rgba(6,182,212,0.2);">
+            <div class="orb" style="background:#06B6D4;"></div>
+            <p class="text-xs font-bold uppercase tracking-widest mb-3" style="color:rgba(241,245,249,0.4);">Entrevistas</p>
+            <p class="text-4xl font-black" style="color:#67E8F9;" data-counter="{{ interviews }}">{{ interviews }}</p>
+            <p class="text-xs mt-1" style="color:rgba(241,245,249,0.35);">agendadas</p>
         </div>
-        <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Score Médio</p>
-            <p class="text-3xl font-extrabold" style="color:#0F2A4A;">{{ avg_score }}%</p>
+        <div class="stat-card animate-fadeInUp delay-4" style="border-color:rgba(245,158,11,0.2);">
+            <div class="orb" style="background:#F59E0B;"></div>
+            <p class="text-xs font-bold uppercase tracking-widest mb-3" style="color:rgba(241,245,249,0.4);">Score Médio</p>
+            <p class="text-4xl font-black" style="color:#FCD34D;">{{ avg_score }}<span class="text-2xl">%</span></p>
+            <p class="text-xs mt-1" style="color:rgba(241,245,249,0.35);">compatibilidade</p>
         </div>
     </div>
 
-    <!-- Filtros -->
-    <form method="get" class="bg-white border border-gray-200 rounded-xl p-4 mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Filters -->
+    <form method="get" class="glass-card p-5 mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-fadeInUp delay-2">
         <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Vaga</label>
-            <select name="job" class="w-full p-2 border border-gray-300 rounded-lg text-sm">
+            <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.4);">Vaga</label>
+            <select name="job">
                 <option value="">Todas as vagas</option>
                 {% for job in jobs %}
                 <option value="{{ job.id }}" {% if current_job == job.id|stringformat:"s" %}selected{% endif %}>{{ job.title }}</option>
@@ -66,12 +76,12 @@
             </select>
         </div>
         <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Score mínimo (%)</label>
-            <input type="number" name="min_score" value="{{ current_min_score }}" min="0" max="100" placeholder="ex: 60" class="w-full p-2 border border-gray-300 rounded-lg text-sm">
+            <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.4);">Score mínimo (%)</label>
+            <input type="number" name="min_score" value="{{ current_min_score }}" min="0" max="100" placeholder="ex: 60">
         </div>
         <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Estado</label>
-            <select name="status" class="w-full p-2 border border-gray-300 rounded-lg text-sm">
+            <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.4);">Estado</label>
+            <select name="status">
                 <option value="">Todos</option>
                 <option value="pending" {% if current_status == 'pending' %}selected{% endif %}>Pendente</option>
                 <option value="pre_selected" {% if current_status == 'pre_selected' %}selected{% endif %}>Pré-seleccionado</option>
@@ -80,112 +90,111 @@
             </select>
         </div>
         <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Competência</label>
-            <input type="text" name="skills" value="{{ current_skills }}" placeholder="ex: Python" class="w-full p-2 border border-gray-300 rounded-lg text-sm">
+            <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.4);">Competência</label>
+            <input type="text" name="skills" value="{{ current_skills }}" placeholder="ex: Python">
         </div>
         <div class="sm:col-span-2 lg:col-span-4 flex gap-3">
-            <button type="submit" class="px-5 py-2 text-white text-sm font-medium rounded-lg" style="background:#1B6CA8;">Filtrar</button>
-            <a href="{% url 'admin_dashboard' %}" class="px-5 py-2 bg-gray-100 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-200">Limpar</a>
+            <button type="submit" class="btn-primary px-6 py-2 rounded-xl text-sm font-semibold">Filtrar</button>
+            <a href="{% url 'admin_dashboard' %}" class="btn-ghost px-6 py-2 rounded-xl text-sm font-semibold">Limpar</a>
         </div>
     </form>
 
-    <!-- Tabela -->
-    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+    <!-- Table -->
+    <div class="glass-card overflow-hidden animate-fadeInUp delay-3" style="border-radius:16px;">
         <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left">
+            <table class="data-table">
                 <thead>
-                    <tr style="background-color:#0F2A4A;">
-                        <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white/80">Candidato</th>
-                        <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white/80">Vaga</th>
-                        <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white/80">Score</th>
-                        <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white/80">Estado</th>
-                        <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white/80">Notas</th>
-                        <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white/80">Acções</th>
+                    <tr>
+                        <th>Candidato</th>
+                        <th>Vaga</th>
+                        <th>Score IA</th>
+                        <th>Estado</th>
+                        <th>Notas</th>
+                        <th>Acções</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100">
+                <tbody>
                     {% for app in applications %}
-                    <tr class="hover:bg-blue-50 transition-colors">
-                        <td class="px-4 py-3">
+                    <tr>
+                        <td>
                             <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style="background:#1B6CA8;">
+                                <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                                    style="background:linear-gradient(135deg,#7C3AED,#A78BFA);box-shadow:0 0 12px rgba(124,58,237,0.35);">
                                     {{ app.candidate.username|first|upper }}
                                 </div>
                                 <div>
                                     {% if app.candidate.resume %}
-                                    <a href="{% url 'resume_detail' app.candidate.resume.pk %}" class="font-semibold hover:underline" style="color:#0F2A4A;">{{ app.candidate.username }}</a>
+                                    <a href="{% url 'resume_detail' app.candidate.resume.pk %}" class="font-semibold text-white hover:text-purple-300 transition-colors">{{ app.candidate.username }}</a>
                                     {% else %}
-                                    <span class="font-semibold" style="color:#0F2A4A;">{{ app.candidate.username }}</span>
+                                    <span class="font-semibold text-white">{{ app.candidate.username }}</span>
                                     {% endif %}
-                                    <div class="text-xs text-gray-400">{{ app.candidate.email }}</div>
+                                    <div class="text-xs mt-0.5" style="color:rgba(241,245,249,0.4);">{{ app.candidate.email }}</div>
                                 </div>
                             </div>
                         </td>
-                        <td class="px-4 py-3 text-gray-600">{{ app.job.title }}</td>
-                        <td class="px-4 py-3">
-                            <div class="flex items-center gap-2">
-                                <div class="w-20 bg-gray-200 rounded-full h-2 flex-shrink-0">
-                                    <div class="h-2 rounded-full" style="width:{{ app.similarity_score }}%;background:{% if app.similarity_score >= 80 %}#16A34A{% elif app.similarity_score >= 60 %}#EAB308{% else %}#DC2626{% endif %};"></div>
+                        <td style="color:rgba(241,245,249,0.65);">{{ app.job.title }}</td>
+                        <td>
+                            <div class="flex items-center gap-2.5">
+                                <div class="progress-bar flex-shrink-0" style="width:70px;height:5px;">
+                                    <div class="progress-fill" style="width:{{ app.similarity_score }}%;background:{% if app.similarity_score >= 80 %}linear-gradient(90deg,#059669,#10B981){% elif app.similarity_score >= 60 %}linear-gradient(90deg,#D97706,#F59E0B){% else %}linear-gradient(90deg,#B91C1C,#EF4444){% endif %};"></div>
                                 </div>
-                                <span class="font-bold text-sm {% if app.similarity_score >= 80 %}text-green-700{% elif app.similarity_score >= 60 %}text-yellow-700{% else %}text-red-600{% endif %}">{{ app.similarity_score }}%</span>
+                                <span class="font-bold text-sm {% if app.similarity_score >= 80 %}text-emerald-400{% elif app.similarity_score >= 60 %}text-amber-400{% else %}text-red-400{% endif %}">
+                                    {{ app.similarity_score }}%
+                                </span>
                             </div>
                         </td>
-                        <td class="px-4 py-3">
+                        <td>
                             {% if app.status == 'pre_selected' %}
-                                <span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">Pré-seleccionado</span>
+                                <span class="badge badge-success">Pré-seleccionado</span>
                             {% elif app.status == 'interview_scheduled' %}
                                 <div>
-                                    <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">Entrevista</span>
+                                    <span class="badge badge-info">Entrevista</span>
                                     {% if app.interview_date %}
-                                    <div class="text-xs text-gray-500 mt-0.5">{{ app.interview_date|date:"d/m/Y H:i" }}</div>
+                                    <div class="text-xs mt-1" style="color:rgba(241,245,249,0.4);">{{ app.interview_date|date:"d/m/Y H:i" }}</div>
                                     {% endif %}
                                 </div>
                             {% elif app.status == 'rejected' %}
                                 {% if app.job.min_score_required > 0 and app.similarity_score > 0 and app.similarity_score < app.job.min_score_required %}
-                                    <span class="bg-orange-100 text-orange-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">Auto-rejeitado</span>
+                                    <span class="badge badge-orange">Auto-rejeitado</span>
                                 {% else %}
-                                    <span class="bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">Rejeitado</span>
+                                    <span class="badge badge-danger">Rejeitado</span>
                                 {% endif %}
                             {% else %}
-                                <span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">Pendente</span>
+                                <span class="badge badge-warning">Pendente</span>
                             {% endif %}
                         </td>
-                        <td class="px-4 py-3">
+                        <td>
                             {% if app.recruiter_notes %}
-                            <p class="text-xs text-gray-600 max-w-xs truncate" title="{{ app.recruiter_notes }}">{{ app.recruiter_notes|truncatechars:60 }}</p>
+                            <p class="text-xs max-w-xs truncate" style="color:rgba(241,245,249,0.55);" title="{{ app.recruiter_notes }}">{{ app.recruiter_notes|truncatechars:55 }}</p>
                             {% else %}
-                            <span class="text-xs text-gray-300">—</span>
+                            <span class="text-xs" style="color:rgba(241,245,249,0.2);">—</span>
                             {% endif %}
                             {% if app.availability_responded %}
-                            <p class="text-xs text-orange-600 mt-1 font-medium" title="{{ app.candidate_unavailability_reason }}">
-                                ⚠ Indisponível: {{ app.candidate_unavailability_reason|truncatechars:50 }}
+                            <p class="text-xs mt-1 font-medium" style="color:#FDBA74;" title="{{ app.candidate_unavailability_reason }}">
+                                ⚠ {{ app.candidate_unavailability_reason|truncatechars:45 }}
                             </p>
                             {% endif %}
                         </td>
-                        <td class="px-4 py-3">
+                        <td>
                             <div class="flex flex-wrap gap-1.5">
                                 {% if app.status != 'pre_selected' %}
                                 <form method="post" action="{% url 'application_update_status_view' app.pk %}">
                                     {% csrf_token %}
                                     <input type="hidden" name="status" value="pre_selected">
-                                    <button type="submit" class="px-2.5 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-lg hover:bg-green-200">Pré-sel.</button>
+                                    <button type="submit" class="btn-success px-2.5 py-1 rounded-lg text-xs font-semibold">✓ Pré-sel.</button>
                                 </form>
                                 {% endif %}
                                 <button type="button"
                                     onclick="openInterviewModal({{ app.pk }}, '{{ app.candidate.username|escapejs }}')"
-                                    class="px-2.5 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-lg hover:bg-blue-200">
-                                    Entrevista
-                                </button>
+                                    class="btn-primary px-2.5 py-1 rounded-lg text-xs font-semibold">Entrevista</button>
                                 <button type="button"
                                     onclick="openNotesModal({{ app.pk }}, '{{ app.recruiter_notes|default:''|escapejs }}', '{{ app.status }}')"
-                                    class="px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-200">
-                                    Notas
-                                </button>
+                                    class="btn-ghost px-2.5 py-1 rounded-lg text-xs font-semibold">Notas</button>
                                 {% if app.status != 'rejected' %}
                                 <form method="post" action="{% url 'application_update_status_view' app.pk %}">
                                     {% csrf_token %}
                                     <input type="hidden" name="status" value="rejected">
-                                    <button type="submit" class="px-2.5 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-lg hover:bg-red-200">Rejeitar</button>
+                                    <button type="submit" class="btn-danger px-2.5 py-1 rounded-lg text-xs font-semibold">Rejeitar</button>
                                 </form>
                                 {% endif %}
                             </div>
@@ -193,35 +202,38 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="px-4 py-12 text-center text-gray-400 text-sm">Nenhuma candidatura encontrada.</td>
+                        <td colspan="6" class="text-center py-16" style="color:rgba(241,245,249,0.25);">
+                            <svg class="w-12 h-12 mx-auto mb-3 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            Nenhuma candidatura encontrada.
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
 
-        <!-- Paginação -->
+        <!-- Pagination -->
         {% if page_obj.has_other_pages %}
-        <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-white">
-            <p class="text-xs text-gray-500">
-                A mostrar {{ page_obj.start_index }}–{{ page_obj.end_index }} de {{ page_obj.paginator.count }} candidaturas
+        <div class="flex items-center justify-between px-5 py-3.5" style="border-top:1px solid rgba(255,255,255,0.06);">
+            <p class="text-xs" style="color:rgba(241,245,249,0.35);">
+                {{ page_obj.start_index }}–{{ page_obj.end_index }} de {{ page_obj.paginator.count }} candidaturas
             </p>
             <div class="flex items-center gap-1">
                 {% if page_obj.has_previous %}
                 <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}"
-                   class="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">← Anterior</a>
+                   class="btn-ghost px-3 py-1.5 rounded-lg text-xs font-semibold">← Anterior</a>
                 {% endif %}
                 {% for num in page_obj.paginator.page_range %}
                     {% if page_obj.number == num %}
-                    <span class="px-3 py-1.5 text-xs font-bold rounded-lg text-white" style="background:#1B6CA8;">{{ num }}</span>
+                    <span class="btn-primary px-3 py-1.5 rounded-lg text-xs font-bold">{{ num }}</span>
                     {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
                     <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ num }}"
-                       class="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">{{ num }}</a>
+                       class="btn-ghost px-3 py-1.5 rounded-lg text-xs font-medium">{{ num }}</a>
                     {% endif %}
                 {% endfor %}
                 {% if page_obj.has_next %}
                 <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}"
-                   class="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">Seguinte →</a>
+                   class="btn-ghost px-3 py-1.5 rounded-lg text-xs font-semibold">Seguinte →</a>
                 {% endif %}
             </div>
         </div>
@@ -229,70 +241,74 @@
     </div>
 </div>
 
-<!-- Modal: Agendar Entrevista -->
-<div id="interviewModal" class="fixed inset-0 z-50 hidden items-center justify-center" style="background:rgba(0,0,0,0.4);">
-    <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm mx-4">
-        <h3 class="text-base font-bold mb-1" style="color:#0F2A4A;">Agendar Entrevista</h3>
-        <p class="text-sm text-gray-500 mb-4" id="interviewCandidateName"></p>
+<!-- Modal: Entrevista -->
+<div id="interviewModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay">
+    <div class="modal-box p-7 w-full max-w-sm mx-4">
+        <h3 class="text-base font-bold text-white mb-1">Agendar Entrevista</h3>
+        <p class="text-sm mb-5" style="color:rgba(241,245,249,0.45);" id="interviewCandidateName"></p>
         <form method="post" id="interviewForm">
             {% csrf_token %}
             <input type="hidden" name="status" value="interview_scheduled">
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Data e hora da entrevista</label>
-                <input type="datetime-local" name="interview_date" class="w-full p-2 border border-gray-300 rounded-lg text-sm" required>
+                <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.4);">Data e hora</label>
+                <input type="datetime-local" name="interview_date" required>
             </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Notas (opcional)</label>
-                <textarea name="recruiter_notes" rows="3" class="w-full p-2 border border-gray-300 rounded-lg text-sm" placeholder="Instruções para a entrevista..."></textarea>
+            <div class="mb-5">
+                <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.4);">Notas (opcional)</label>
+                <textarea name="recruiter_notes" rows="3" placeholder="Instruções para a entrevista..."></textarea>
             </div>
             <div class="flex gap-3">
-                <button type="submit" class="flex-1 py-2 rounded-lg text-sm font-medium text-white" style="background:#1B6CA8;">Confirmar</button>
-                <button type="button" onclick="closeInterviewModal()" class="flex-1 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">Cancelar</button>
+                <button type="submit" class="btn-primary flex-1 py-2.5 rounded-xl text-sm font-semibold">Confirmar</button>
+                <button type="button" onclick="closeInterviewModal()" class="btn-ghost flex-1 py-2.5 rounded-xl text-sm font-semibold">Cancelar</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Modal: Notas internas -->
-<div id="notesModal" class="fixed inset-0 z-50 hidden items-center justify-center" style="background:rgba(0,0,0,0.4);">
-    <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm mx-4">
-        <h3 class="text-base font-bold mb-4" style="color:#0F2A4A;">Notas Internas</h3>
+<!-- Modal: Notas -->
+<div id="notesModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay">
+    <div class="modal-box p-7 w-full max-w-sm mx-4">
+        <h3 class="text-base font-bold text-white mb-5">Notas Internas</h3>
         <form method="post" id="notesForm">
             {% csrf_token %}
             <input type="hidden" name="status" id="notesCurrentStatus">
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Notas do recrutador</label>
-                <textarea name="recruiter_notes" id="notesTextarea" rows="4" class="w-full p-2 border border-gray-300 rounded-lg text-sm" placeholder="Observações sobre este candidato..."></textarea>
+            <div class="mb-5">
+                <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.4);">Observações</label>
+                <textarea name="recruiter_notes" id="notesTextarea" rows="4" placeholder="Observações sobre este candidato..."></textarea>
             </div>
             <div class="flex gap-3">
-                <button type="submit" class="flex-1 py-2 rounded-lg text-sm font-medium text-white" style="background:#1B6CA8;">Guardar</button>
-                <button type="button" onclick="closeNotesModal()" class="flex-1 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">Cancelar</button>
+                <button type="submit" class="btn-primary flex-1 py-2.5 rounded-xl text-sm font-semibold">Guardar</button>
+                <button type="button" onclick="closeNotesModal()" class="btn-ghost flex-1 py-2.5 rounded-xl text-sm font-semibold">Cancelar</button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
-function openInterviewModal(appId, candidateName) {
-    document.getElementById('interviewCandidateName').textContent = candidateName;
+function openInterviewModal(appId, name) {
+    document.getElementById('interviewCandidateName').textContent = name;
     document.getElementById('interviewForm').action = '/application/' + appId + '/update-status/';
-    document.getElementById('interviewModal').classList.remove('hidden');
-    document.getElementById('interviewModal').classList.add('flex');
+    const m = document.getElementById('interviewModal');
+    m.classList.remove('hidden');
+    m.classList.add('flex');
 }
 function closeInterviewModal() {
-    document.getElementById('interviewModal').classList.add('hidden');
-    document.getElementById('interviewModal').classList.remove('flex');
+    const m = document.getElementById('interviewModal');
+    m.classList.add('hidden');
+    m.classList.remove('flex');
 }
-function openNotesModal(appId, currentNotes, currentStatus) {
+function openNotesModal(appId, notes, status) {
     document.getElementById('notesForm').action = '/application/' + appId + '/update-status/';
-    document.getElementById('notesTextarea').value = currentNotes;
-    document.getElementById('notesCurrentStatus').value = currentStatus || 'pending';
-    document.getElementById('notesModal').classList.remove('hidden');
-    document.getElementById('notesModal').classList.add('flex');
+    document.getElementById('notesTextarea').value = notes;
+    document.getElementById('notesCurrentStatus').value = status || 'pending';
+    const m = document.getElementById('notesModal');
+    m.classList.remove('hidden');
+    m.classList.add('flex');
 }
 function closeNotesModal() {
-    document.getElementById('notesModal').classList.add('hidden');
-    document.getElementById('notesModal').classList.remove('flex');
+    const m = document.getElementById('notesModal');
+    m.classList.add('hidden');
+    m.classList.remove('flex');
 }
 </script>
 {% endblock %}

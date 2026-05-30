@@ -1,55 +1,55 @@
 {% extends 'recruitment/base.html' %}
-
 {% block title %}{{ job.title }} — KUBUKA{% endblock %}
-
 {% block content %}
-<div class="max-w-3xl mx-auto px-4 py-8">
+<div class="max-w-3xl mx-auto px-6 py-10">
 
     {% if messages %}
-    <div class="mb-4">
+    <div class="mb-6 space-y-2">
         {% for message in messages %}
-        <div class="p-3 mb-2 text-sm rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700{% elif message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">{{ message }}</div>
+        <div class="{% if message.tags == 'error' %}msg-error{% elif message.tags == 'success' %}msg-success{% else %}msg-info{% endif %}">{{ message }}</div>
         {% endfor %}
     </div>
     {% endif %}
 
-    <a href="{% url 'job_list' %}" class="inline-flex items-center gap-1 text-sm font-medium mb-5 hover:underline" style="color:#1B6CA8;">
+    <a href="{% url 'job_list' %}" class="inline-flex items-center gap-1.5 text-sm font-semibold mb-6 hover:underline animate-fadeInUp" style="color:#A78BFA;">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
         Voltar às vagas
     </a>
 
-    <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-        <div style="height:3px;background:#1B6CA8;"></div>
+    <div class="glass-card overflow-hidden animate-fadeInUp delay-1">
+        <!-- Top gradient bar -->
+        <div class="h-0.5 w-full" style="background:linear-gradient(90deg,#7C3AED,#06B6D4);"></div>
+
         <div class="p-6 sm:p-8">
 
             <!-- Header -->
             <div class="flex items-start gap-4 mb-6">
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#1B6CA8;">
-                    <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,rgba(124,58,237,0.4),rgba(6,182,212,0.3));border:1px solid rgba(124,58,237,0.2);">
+                    <svg class="h-6 w-6" style="color:#A78BFA;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold" style="color:#0F2A4A;">{{ job.title }}</h1>
-                    <p class="text-gray-500 font-medium">{{ job.company }}</p>
+                    <h1 class="text-xl font-bold text-white">{{ job.title }}</h1>
+                    <p class="font-medium mt-0.5" style="color:rgba(241,245,249,0.5);">{{ job.company }}</p>
                 </div>
             </div>
 
             <!-- Tags -->
             <div class="flex flex-wrap gap-2 mb-6">
-                <span class="inline-flex items-center gap-1.5 text-xs text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full font-medium">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <span class="badge badge-purple">
+                    <svg class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
                     {{ job.location }}
                 </span>
                 {% if job.salary_range %}
-                <span class="inline-flex items-center gap-1.5 text-xs text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full font-medium">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span class="badge badge-success">
+                    <svg class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     {{ job.salary_range }}
                 </span>
                 {% endif %}
                 {% if job.deadline %}
-                <span class="inline-flex items-center gap-1.5 text-xs {% if job.deadline|date:'U'|add:'0' < now|date:'U'|add:'0' %}text-red-600 bg-red-50{% else %}text-gray-600 bg-gray-100{% endif %} px-3 py-1.5 rounded-full font-medium">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <span class="badge badge-warning">
+                    <svg class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     Prazo: {{ job.deadline|date:"d/m/Y" }}
                 </span>
                 {% endif %}
@@ -57,73 +57,73 @@
 
             <!-- Contacto -->
             {% if job.contact_email_primary %}
-            <div class="flex items-center gap-2 mb-6 p-3 rounded-lg bg-blue-50 border border-blue-100">
-                <svg class="w-4 h-4 flex-shrink-0" style="color:#1B6CA8;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                <span class="text-xs text-gray-600">Contacto:</span>
-                <a href="mailto:{{ job.contact_email_primary }}" class="text-xs font-medium hover:underline" style="color:#1B6CA8;">{{ job.contact_email_primary }}</a>
+            <div class="flex items-center gap-2 mb-6 p-3 rounded-xl" style="background:rgba(124,58,237,0.07);border:1px solid rgba(124,58,237,0.15);">
+                <svg class="w-4 h-4 flex-shrink-0" style="color:#A78BFA;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                <span class="text-xs" style="color:rgba(241,245,249,0.4);">Contacto:</span>
+                <a href="mailto:{{ job.contact_email_primary }}" class="text-xs font-semibold hover:underline" style="color:#A78BFA;">{{ job.contact_email_primary }}</a>
                 {% if job.contact_email_secondary %}
-                <span class="text-gray-300">·</span>
-                <a href="mailto:{{ job.contact_email_secondary }}" class="text-xs font-medium hover:underline" style="color:#1B6CA8;">{{ job.contact_email_secondary }}</a>
+                <span style="color:rgba(241,245,249,0.2);">·</span>
+                <a href="mailto:{{ job.contact_email_secondary }}" class="text-xs font-semibold hover:underline" style="color:#A78BFA;">{{ job.contact_email_secondary }}</a>
                 {% endif %}
             </div>
             {% endif %}
 
             <!-- Descrição -->
             <div class="mb-6">
-                <h2 class="text-sm font-bold uppercase tracking-wider text-gray-400 mb-3">Descrição</h2>
-                <div class="text-sm text-gray-700 whitespace-pre-line leading-relaxed">{{ job.description }}</div>
+                <h2 class="text-xs font-bold uppercase tracking-widest mb-3" style="color:rgba(241,245,249,0.35);">Descrição</h2>
+                <div class="text-sm leading-relaxed whitespace-pre-line" style="color:rgba(241,245,249,0.7);">{{ job.description }}</div>
             </div>
 
             <!-- Requisitos -->
             <div class="mb-8">
-                <h2 class="text-sm font-bold uppercase tracking-wider text-gray-400 mb-3">Requisitos</h2>
-                <div class="text-sm text-gray-700 whitespace-pre-line leading-relaxed">{{ job.requirements }}</div>
+                <h2 class="text-xs font-bold uppercase tracking-widest mb-3" style="color:rgba(241,245,249,0.35);">Requisitos</h2>
+                <div class="text-sm leading-relaxed whitespace-pre-line" style="color:rgba(241,245,249,0.7);">{{ job.requirements }}</div>
             </div>
 
             <!-- Acção de candidatura -->
             {% if user.is_candidate %}
-            <div class="border-t border-gray-100 pt-6">
+            <div class="pt-6" style="border-top:1px solid rgba(255,255,255,0.06);">
                 {% with app=user_application %}
                 {% if app %}
                     {% if app.status == 'pending' %}
-                    <div class="flex items-center gap-3 p-4 rounded-xl bg-green-50 border border-green-200 mb-3">
-                        <svg class="w-5 h-5 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        <p class="text-sm font-semibold text-green-700">Candidatura submetida a {{ app.applied_at|date:"d/m/Y" }}</p>
+                    <div class="flex items-center gap-3 p-4 rounded-xl mb-3" style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);">
+                        <svg class="w-5 h-5 flex-shrink-0" style="color:#6EE7B7;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <p class="text-sm font-semibold" style="color:#6EE7B7;">Candidatura submetida a {{ app.applied_at|date:"d/m/Y" }}</p>
                     </div>
                     <form method="post" action="{% url 'withdraw_application' app.pk %}" onsubmit="return confirm('Tem a certeza que quer retirar esta candidatura?')">
                         {% csrf_token %}
-                        <button type="submit" class="text-sm font-medium text-red-600 hover:underline">Retirar candidatura</button>
+                        <button type="submit" class="text-sm font-medium hover:underline" style="color:#FCA5A5;">Retirar candidatura</button>
                     </form>
                     {% elif app.status == 'withdrawn' %}
-                    <a href="{% url 'apply_job' job.pk %}" class="inline-block px-6 py-2.5 rounded-lg text-sm font-semibold text-white" style="background:#1B6CA8;">
+                    <a href="{% url 'apply_job' job.pk %}" class="btn-primary inline-block px-6 py-2.5 rounded-xl text-sm font-bold">
                         Candidatar-me novamente
                     </a>
                     {% elif app.status == 'pre_selected' %}
-                    <div class="p-4 rounded-xl bg-green-50 border border-green-200">
-                        <p class="text-sm font-semibold text-green-700">Parabéns! A sua candidatura foi pré-seleccionada.</p>
+                    <div class="p-4 rounded-xl" style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);">
+                        <p class="text-sm font-semibold" style="color:#6EE7B7;">Parabéns! A sua candidatura foi pré-seleccionada.</p>
                     </div>
                     {% elif app.status == 'interview_scheduled' %}
-                    <div class="p-4 rounded-xl bg-blue-50 border border-blue-200">
-                        <p class="text-sm font-semibold text-blue-700">Entrevista agendada{% if app.interview_date %} para {{ app.interview_date|date:"d/m/Y às H:i" }}{% endif %}.</p>
+                    <div class="p-4 rounded-xl" style="background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.2);">
+                        <p class="text-sm font-semibold" style="color:#67E8F9;">Entrevista agendada{% if app.interview_date %} para {{ app.interview_date|date:"d/m/Y às H:i" }}{% endif %}.</p>
                     </div>
                     {% elif app.status == 'rejected' %}
-                    <div class="p-4 rounded-xl bg-red-50 border border-red-200">
-                        <p class="text-sm font-semibold text-red-700">A sua candidatura não foi seleccionada nesta fase.</p>
+                    <div class="p-4 rounded-xl" style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);">
+                        <p class="text-sm font-semibold" style="color:#FCA5A5;">A sua candidatura não foi seleccionada nesta fase.</p>
                     </div>
                     {% else %}
-                    <div class="p-4 rounded-xl bg-gray-50 border border-gray-200">
-                        <p class="text-sm text-gray-600">Estado: {{ app.get_status_display }}</p>
+                    <div class="p-4 rounded-xl" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);">
+                        <p class="text-sm" style="color:rgba(241,245,249,0.6);">Estado: {{ app.get_status_display }}</p>
                     </div>
                     {% endif %}
                 {% else %}
                     {% if user.has_resume %}
-                    <a href="{% url 'apply_job' job.pk %}" class="inline-block px-6 py-2.5 rounded-lg text-sm font-semibold text-white hover:opacity-90 transition-opacity" style="background:#1B6CA8;">
+                    <a href="{% url 'apply_job' job.pk %}" class="btn-primary inline-block px-6 py-2.5 rounded-xl text-sm font-bold">
                         Candidatar-me a esta vaga
                     </a>
                     {% else %}
-                    <div class="p-4 rounded-xl bg-yellow-50 border border-yellow-200">
-                        <p class="text-sm text-yellow-700 font-medium mb-2">Precisa de submeter um currículo antes de se candidatar.</p>
-                        <a href="{% url 'upload_resume' %}" class="text-sm font-semibold hover:underline" style="color:#1B6CA8;">Submeter CV agora →</a>
+                    <div class="p-4 rounded-xl" style="background:rgba(252,211,77,0.07);border:1px solid rgba(252,211,77,0.15);">
+                        <p class="text-sm font-medium mb-2" style="color:#FCD34D;">Precisa de submeter um currículo antes de se candidatar.</p>
+                        <a href="{% url 'upload_resume' %}" class="text-sm font-bold hover:underline" style="color:#A78BFA;">Submeter CV agora →</a>
                     </div>
                     {% endif %}
                 {% endif %}

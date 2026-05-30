@@ -1,122 +1,131 @@
 {% extends 'recruitment/base.html' %}
-
 {% block title %}{% if object %}Editar Vaga{% else %}Nova Vaga{% endif %} — KUBUKA{% endblock %}
-
 {% block content %}
-<div class="max-w-2xl mx-auto px-4 py-8">
+<div class="max-w-2xl mx-auto px-6 py-10">
 
     {% if messages %}
-    <div class="mb-6">
+    <div class="mb-6 space-y-2">
         {% for message in messages %}
-        <div class="p-4 mb-3 text-sm rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700{% elif message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">
-            {{ message }}
-        </div>
+        <div class="{% if message.tags == 'error' %}msg-error{% elif message.tags == 'success' %}msg-success{% else %}msg-info{% endif %}">{{ message }}</div>
         {% endfor %}
     </div>
     {% endif %}
 
-    <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-        <div style="height:3px;background:#3BBFAD;"></div>
-        <div class="p-6">
-            <h2 class="text-xl font-bold mb-6" style="color:#0F2A4A;">
-                {% if object %}Editar Vaga{% else %}Criar Nova Vaga{% endif %}
-            </h2>
-
-            <form method="post" class="space-y-5">
-                {% csrf_token %}
-
-                <!-- Informação básica -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Título da Vaga *</label>
-                    {{ form.title }}
-                    {% if form.title.errors %}<p class="text-red-600 text-xs mt-1">{{ form.title.errors.0 }}</p>{% endif %}
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Empresa *</label>
-                    {{ form.company }}
-                    {% if form.company.errors %}<p class="text-red-600 text-xs mt-1">{{ form.company.errors.0 }}</p>{% endif %}
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Localização *</label>
-                        {{ form.location }}
-                        {% if form.location.errors %}<p class="text-red-600 text-xs mt-1">{{ form.location.errors.0 }}</p>{% endif %}
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Faixa Salarial</label>
-                        {{ form.salary_range }}
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Prazo de Candidatura</label>
-                        {{ form.deadline }}
-                    </div>
-                </div>
-
-                <!-- Contacto -->
-                <div class="border-t border-gray-100 pt-5">
-                    <h3 class="text-sm font-bold uppercase tracking-wider text-gray-400 mb-3">Contacto</h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Email de Contacto Principal *
-                            </label>
-                            {{ form.contact_email_primary }}
-                            {% if form.contact_email_primary.errors %}
-                                <p class="text-red-600 text-xs mt-1">{{ form.contact_email_primary.errors.0 }}</p>
-                            {% endif %}
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Email de Contacto Secundário
-                            </label>
-                            {{ form.contact_email_secondary }}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Descrição e Requisitos -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Descrição *</label>
-                    {{ form.description }}
-                    {% if form.description.errors %}<p class="text-red-600 text-xs mt-1">{{ form.description.errors.0 }}</p>{% endif %}
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Requisitos *</label>
-                    {{ form.requirements }}
-                    {% if form.requirements.errors %}<p class="text-red-600 text-xs mt-1">{{ form.requirements.errors.0 }}</p>{% endif %}
-                </div>
-
-                <!-- Opções -->
-                <div class="border-t border-gray-100 pt-5 space-y-3">
-                    <h3 class="text-sm font-bold uppercase tracking-wider text-gray-400 mb-3">Opções</h3>
-                    <label class="flex items-center gap-3 cursor-pointer">
-                        {{ form.is_active }}
-                        <span class="text-sm font-medium text-gray-700">Vaga activa (visível para candidatos)</span>
-                    </label>
-                    <label class="flex items-center gap-3 cursor-pointer">
-                        {{ form.allow_candidate_unavailability }}
-                        <span class="text-sm font-medium text-gray-700">Permitir que candidatos indiquem indisponibilidade para entrevista</span>
-                    </label>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Score mínimo para triagem automática (0 = desactivado)
-                        </label>
-                        {{ form.min_score_required }}
-                        <p class="text-xs text-gray-400 mt-1">Candidaturas com score abaixo deste valor serão automaticamente rejeitadas após análise da IA.</p>
-                        {% if form.min_score_required.errors %}<p class="text-red-600 text-xs mt-1">{{ form.min_score_required.errors.0 }}</p>{% endif %}
-                    </div>
-                </div>
-
-                <div class="flex gap-3 pt-2">
-                    <button type="submit" class="px-5 py-2.5 text-white text-sm font-semibold rounded-lg" style="background:#1B6CA8;">
-                        {% if object %}Guardar Alterações{% else %}Criar Vaga{% endif %}
-                    </button>
-                    <a href="{% url 'job_manage' %}" class="px-5 py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200">Cancelar</a>
-                </div>
-            </form>
+    <div class="flex items-center justify-between mb-8 animate-fadeInUp">
+        <div>
+            <p class="text-xs font-bold uppercase tracking-widest mb-1.5" style="color:rgba(241,245,249,0.35);">Recrutador</p>
+            <h1 class="text-2xl font-extrabold text-white">{% if object %}Editar Vaga{% else %}Criar Nova Vaga{% endif %}</h1>
         </div>
+        <a href="{% url 'job_manage' %}" class="btn-ghost px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            Voltar
+        </a>
+    </div>
+
+    <div class="glass-card p-7 animate-fadeInUp delay-1">
+        <form method="post" class="space-y-5">
+            {% csrf_token %}
+
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.5);">Título da Vaga *</label>
+                {{ form.title }}
+                {% if form.title.errors %}<p class="text-xs mt-1.5" style="color:#FCA5A5;">{{ form.title.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.5);">Empresa *</label>
+                {{ form.company }}
+                {% if form.company.errors %}<p class="text-xs mt-1.5" style="color:#FCA5A5;">{{ form.company.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.5);">Localização *</label>
+                    {{ form.location }}
+                    {% if form.location.errors %}<p class="text-xs mt-1.5" style="color:#FCA5A5;">{{ form.location.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.5);">Faixa Salarial</label>
+                    {{ form.salary_range }}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.5);">Prazo de Candidatura</label>
+                    {{ form.deadline }}
+                </div>
+            </div>
+
+            <!-- Contacto -->
+            <div style="border-top:1px solid rgba(255,255,255,0.06);" class="pt-5">
+                <p class="text-xs font-bold uppercase tracking-widest mb-4" style="color:rgba(241,245,249,0.3);">Contacto</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.5);">Email Principal *</label>
+                        {{ form.contact_email_primary }}
+                        {% if form.contact_email_primary.errors %}<p class="text-xs mt-1.5" style="color:#FCA5A5;">{{ form.contact_email_primary.errors.0 }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.5);">Email Secundário</label>
+                        {{ form.contact_email_secondary }}
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.5);">Descrição *</label>
+                {{ form.description }}
+                {% if form.description.errors %}<p class="text-xs mt-1.5" style="color:#FCA5A5;">{{ form.description.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.5);">Requisitos *</label>
+                {{ form.requirements }}
+                {% if form.requirements.errors %}<p class="text-xs mt-1.5" style="color:#FCA5A5;">{{ form.requirements.errors.0 }}</p>{% endif %}
+            </div>
+
+            <!-- Opções -->
+            <div style="border-top:1px solid rgba(255,255,255,0.06);" class="pt-5 space-y-4">
+                <p class="text-xs font-bold uppercase tracking-widest mb-3" style="color:rgba(241,245,249,0.3);">Opções</p>
+
+                <label class="flex items-center gap-3 cursor-pointer group">
+                    {{ form.is_active }}
+                    <span class="text-sm font-medium text-white group-hover:text-purple-300 transition-colors">Vaga activa (visível para candidatos)</span>
+                </label>
+
+                <label class="flex items-center gap-3 cursor-pointer group">
+                    {{ form.allow_candidate_unavailability }}
+                    <span class="text-sm font-medium text-white group-hover:text-purple-300 transition-colors">Permitir que candidatos indiquem indisponibilidade para entrevista</span>
+                </label>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.5);">Score mínimo para triagem automática (0 = desactivado)</label>
+                    {{ form.min_score_required }}
+                    <p class="text-xs mt-1.5" style="color:rgba(241,245,249,0.3);">Candidaturas com score abaixo deste valor serão automaticamente rejeitadas após análise da IA.</p>
+                    {% if form.min_score_required.errors %}<p class="text-xs mt-1" style="color:#FCA5A5;">{{ form.min_score_required.errors.0 }}</p>{% endif %}
+                </div>
+            </div>
+
+            <div class="flex gap-3 pt-2" style="border-top:1px solid rgba(255,255,255,0.06);">
+                <button type="submit" class="btn-primary px-6 py-2.5 rounded-xl text-sm font-bold">
+                    {% if object %}Guardar Alterações{% else %}Criar Vaga{% endif %}
+                </button>
+                <a href="{% url 'job_manage' %}" class="btn-ghost px-5 py-2.5 rounded-xl text-sm font-semibold">Cancelar</a>
+            </div>
+        </form>
     </div>
 </div>
+
+<style>
+/* Checkboxes com estilo dark */
+input[type="checkbox"] {
+    width: 18px !important; height: 18px !important;
+    border-radius: 5px !important;
+    background: rgba(255,255,255,0.08) !important;
+    border: 1.5px solid rgba(255,255,255,0.2) !important;
+    cursor: pointer;
+    accent-color: #7C3AED;
+}
+</style>
 {% endblock %}

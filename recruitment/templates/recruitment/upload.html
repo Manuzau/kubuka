@@ -1,54 +1,72 @@
 {% extends 'recruitment/base.html' %}
-
 {% block title %}Submeter Currículo — KUBUKA{% endblock %}
-
 {% block content %}
-<div class="max-w-xl mx-auto px-4 py-12">
-    <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-8">
-        <div class="mb-6">
-            <h2 class="text-2xl font-bold mb-1" style="color:#0F2A4A;">Submeter Currículo</h2>
-            <p class="text-sm text-gray-500">O modelo de IA vai analisar o seu perfil e gerar uma pontuação automática.</p>
-        </div>
+<div class="max-w-xl mx-auto px-6 py-12">
 
+    <div class="mb-8 animate-fadeInUp">
+        <p class="text-xs font-bold uppercase tracking-widest mb-2" style="color:rgba(241,245,249,0.35);">Candidato</p>
+        <h1 class="text-2xl font-extrabold text-white mb-1">Submeter Currículo</h1>
+        <p class="text-sm" style="color:rgba(241,245,249,0.45);">O modelo de IA vai analisar o seu perfil e gerar uma pontuação automática.</p>
+    </div>
+
+    <div class="glass-card p-8 animate-fadeInUp delay-1">
         <form method="post" enctype="multipart/form-data" id="upload-form">
             {% csrf_token %}
             <div class="mb-6">
-                <label class="block text-sm font-semibold text-gray-700 mb-3">Ficheiro PDF</label>
-                <div style="border:2px dashed #1B6CA8;border-radius:12px;background:#EFF6FF;padding:2.5rem 1rem;text-align:center;">
-                    <svg class="w-12 h-12 mx-auto mb-3" style="color:#1B6CA8;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                    </svg>
+                <label class="block text-xs font-bold uppercase tracking-wider mb-4" style="color:rgba(241,245,249,0.5);">Ficheiro PDF</label>
+                <div id="drop-zone" style="border:2px dashed rgba(124,58,237,0.4);border-radius:14px;background:rgba(124,58,237,0.06);padding:2.5rem 1.5rem;text-align:center;cursor:pointer;transition:all 0.3s ease;">
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(6,182,212,0.2));border:1px solid rgba(124,58,237,0.3);">
+                        <svg class="w-7 h-7" style="color:#A78BFA;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                    </div>
                     {{ form.file }}
-                    <p class="text-sm font-medium text-gray-700 mt-2">Clique para seleccionar o ficheiro</p>
-                    <p class="text-xs text-gray-400 mt-1">Apenas PDF · Máximo 5 MB · A IA analisa automaticamente</p>
+                    <p id="file-name" class="text-sm font-semibold text-white mt-2">Clique para seleccionar o ficheiro</p>
+                    <p class="text-xs mt-1" style="color:rgba(241,245,249,0.35);">Apenas PDF · Máximo 5 MB · A IA analisa automaticamente</p>
                 </div>
                 {% if form.file.errors %}
-                <p class="text-red-600 text-xs mt-2">{{ form.file.errors.0 }}</p>
+                <p class="text-xs mt-2" style="color:#FCA5A5;">{{ form.file.errors.0 }}</p>
                 {% endif %}
             </div>
 
-            <button type="submit" id="submit-btn" class="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg font-semibold text-white text-sm" style="background:#1B6CA8;">
+            <button type="submit" id="submit-btn" class="btn-primary w-full py-3.5 rounded-xl font-bold text-sm gap-2">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
                 </svg>
                 <span id="btn-text">Submeter para Análise</span>
-                <div id="loading-spinner" class="hidden">
-                    <svg class="w-4 h-4 text-white animate-spin" fill="none" viewBox="0 0 100 101">
-                        <path d="M100 50.59C100 78.2 77.61 100.59 50 100.59S0 78.2 0 50.59 22.39.59 50 .59s50 22.39 50 50z" fill="currentColor" opacity=".25"/>
-                        <path d="M93.97 39.04c2.43-.64 3.9-3.13 3.04-5.49A50 50 0 0050 .59v9.08a41 41 0 0135.52 20.39c1.18 2.09 3.06 3.71 5.48 3.07 1.13-.3 1.95-1.28 2.97-3.09z" fill="currentColor"/>
-                    </svg>
-                </div>
+                <svg id="loading-spinner" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                </svg>
             </button>
         </form>
     </div>
 </div>
 
+<style>
+#id_file { opacity:0; position:absolute; width:1px; height:1px; }
+#drop-zone:hover { border-color:rgba(124,58,237,0.7) !important; background:rgba(124,58,237,0.1) !important; }
+</style>
+
 <script>
-    document.getElementById('upload-form').addEventListener('submit', function() {
-        document.getElementById('btn-text').innerText = 'A processar...';
-        document.getElementById('loading-spinner').classList.remove('hidden');
-        document.getElementById('submit-btn').disabled = true;
-        document.getElementById('submit-btn').style.opacity = '0.7';
-    });
+const form = document.getElementById('upload-form');
+const fileInput = document.getElementById('id_file');
+const fileName = document.getElementById('file-name');
+const dropZone = document.getElementById('drop-zone');
+
+dropZone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', () => {
+    if (fileInput.files.length) {
+        fileName.textContent = fileInput.files[0].name;
+        dropZone.style.borderColor = 'rgba(16,185,129,0.6)';
+        dropZone.style.background = 'rgba(16,185,129,0.07)';
+    }
+});
+form.addEventListener('submit', () => {
+    document.getElementById('btn-text').textContent = 'A processar...';
+    document.getElementById('loading-spinner').classList.remove('hidden');
+    document.getElementById('submit-btn').disabled = true;
+    document.getElementById('submit-btn').style.opacity = '0.7';
+});
 </script>
 {% endblock %}

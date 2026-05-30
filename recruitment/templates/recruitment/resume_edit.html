@@ -1,38 +1,40 @@
 {% extends 'recruitment/base.html' %}
-
+{% block title %}Editar Currículo — KUBUKA{% endblock %}
 {% block content %}
-<div class="max-w-3xl mx-auto bg-white p-8 border border-gray-200 rounded-lg shadow">
-    <div class="flex items-center justify-between mb-8">
-        <h2 class="text-3xl font-bold text-gray-900">Editar o meu Currículo</h2>
-        <a href="{% url 'resume_detail' resume.pk %}" class="text-gray-600 hover:text-gray-900 flex items-center">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg>
+<div class="max-w-3xl mx-auto px-6 py-10">
+
+    <div class="flex items-center justify-between mb-8 animate-fadeInUp">
+        <div>
+            <p class="text-xs font-bold uppercase tracking-widest mb-1.5" style="color:rgba(241,245,249,0.35);">Currículo</p>
+            <h1 class="text-2xl font-extrabold text-white">Editar o meu Currículo</h1>
+        </div>
+        <a href="{% url 'resume_detail' resume.pk %}" class="btn-ghost px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
             Voltar
         </a>
     </div>
 
-    <form method="post" class="space-y-6">
-        {% csrf_token %}
-        
-        {% for field in form %}
-        <div>
-            <label for="{{ field.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900">{{ field.label }}</label>
-            {{ field }}
-            {% if field.help_text %}
-            <p class="mt-1 text-sm text-gray-500">{{ field.help_text }}</p>
-            {% endif %}
-            {% if field.errors %}
-            <div class="mt-1 text-red-600 text-sm">
-                {{ field.errors }}
+    <div class="glass-card p-8 animate-fadeInUp delay-1">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            {% for field in form %}
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.5);">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                <p class="text-xs mt-1.5" style="color:rgba(241,245,249,0.3);">{{ field.help_text }}</p>
+                {% endif %}
+                {% if field.errors %}
+                <p class="text-xs mt-1.5" style="color:#FCA5A5;">{{ field.errors.0 }}</p>
+                {% endif %}
             </div>
-            {% endif %}
-        </div>
-        {% endfor %}
+            {% endfor %}
 
-        <div class="flex justify-end pt-4">
-            <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
-                Guardar Alterações
-            </button>
-        </div>
-    </form>
+            <div class="flex justify-end gap-3 pt-2" style="border-top:1px solid rgba(255,255,255,0.06);">
+                <a href="{% url 'resume_detail' resume.pk %}" class="btn-ghost px-5 py-2.5 rounded-xl text-sm font-semibold">Cancelar</a>
+                <button type="submit" class="btn-primary px-6 py-2.5 rounded-xl text-sm font-bold">Guardar Alterações</button>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}

@@ -1,78 +1,80 @@
 {% extends 'recruitment/base.html' %}
-
 {% block title %}Gestão de Vagas — KUBUKA{% endblock %}
-
 {% block content %}
-<div class="max-w-6xl mx-auto px-4 py-8">
+<div class="max-w-6xl mx-auto px-6 py-10">
 
     {% if messages %}
-    <div class="mb-6">
+    <div class="mb-6 space-y-2">
         {% for message in messages %}
-        <div class="p-4 mb-3 text-sm rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700{% elif message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">
-            {{ message }}
-        </div>
+        <div class="{% if message.tags == 'error' %}msg-error{% elif message.tags == 'success' %}msg-success{% else %}msg-info{% endif %}">{{ message }}</div>
         {% endfor %}
     </div>
     {% endif %}
 
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4 animate-fadeInUp">
         <div>
-            <h2 class="text-2xl font-bold" style="color:#0F2A4A;">Gestão de Vagas</h2>
-            <p class="text-sm text-gray-500 mt-0.5">Cria, edita e controla a visibilidade das tuas vagas</p>
+            <p class="text-xs font-bold uppercase tracking-widest mb-1.5" style="color:rgba(241,245,249,0.35);">Recrutador</p>
+            <h1 class="text-2xl font-extrabold text-white">Gestão de Vagas</h1>
+            <p class="text-sm mt-1" style="color:rgba(241,245,249,0.45);">Cria, edita e controla a visibilidade das tuas vagas</p>
         </div>
         <div class="flex gap-3">
-            <a href="{% url 'admin_dashboard' %}" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Ver Candidatos</a>
-            <a href="{% url 'job_create' %}" class="px-4 py-2 text-sm font-medium text-white rounded-lg" style="background:#3BBFAD;">+ Nova Vaga</a>
+            <a href="{% url 'admin_dashboard' %}" class="btn-ghost px-4 py-2 rounded-xl text-sm font-semibold">Ver Candidatos</a>
+            <a href="{% url 'job_create' %}" class="btn-primary px-4 py-2 rounded-xl text-sm font-semibold">+ Nova Vaga</a>
         </div>
     </div>
 
-    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+    <div class="glass-card overflow-hidden animate-fadeInUp delay-1">
         <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left">
+            <table class="w-full text-sm text-left data-table">
                 <thead>
-                    <tr style="background-color:#0F2A4A;">
-                        <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white/80">Título</th>
-                        <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white/80">Empresa</th>
-                        <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white/80">Localização</th>
-                        <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white/80">Prazo</th>
-                        <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white/80">Candidaturas</th>
-                        <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white/80">Score Mín.</th>
-                        <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white/80">Estado</th>
-                        <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white/80">Acções</th>
+                    <tr>
+                        <th>Título</th>
+                        <th>Empresa</th>
+                        <th>Localização</th>
+                        <th>Prazo</th>
+                        <th>Candidaturas</th>
+                        <th>Score Mín.</th>
+                        <th>Estado</th>
+                        <th>Acções</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100">
+                <tbody>
                     {% for job in jobs %}
-                    <tr class="hover:bg-blue-50 transition-colors">
-                        <td class="px-4 py-3 font-semibold" style="color:#0F2A4A;">{{ job.title }}</td>
-                        <td class="px-4 py-3 text-gray-600">{{ job.company }}</td>
-                        <td class="px-4 py-3 text-gray-500">{{ job.location }}</td>
-                        <td class="px-4 py-3 text-gray-500 text-xs">
+                    <tr>
+                        <td class="font-semibold text-white">{{ job.title }}</td>
+                        <td style="color:rgba(241,245,249,0.6);">{{ job.company }}</td>
+                        <td style="color:rgba(241,245,249,0.5);">{{ job.location }}</td>
+                        <td class="text-xs" style="color:rgba(241,245,249,0.5);">
                             {% if job.deadline %}{{ job.deadline|date:"d/m/Y" }}{% else %}—{% endif %}
                         </td>
-                        <td class="px-4 py-3">
-                            <span class="font-semibold" style="color:#1B6CA8;">{{ job.application_count }}</span>
+                        <td>
+                            <span class="font-bold" style="color:#A78BFA;">{{ job.application_count }}</span>
                         </td>
-                        <td class="px-4 py-3">
+                        <td>
                             {% if job.min_score_required > 0 %}
-                                <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">≥ {{ job.min_score_required|floatformat:0 }}%</span>
+                                <span class="badge badge-warning">≥ {{ job.min_score_required|floatformat:0 }}%</span>
                             {% else %}
-                                <span class="text-xs text-gray-400">—</span>
+                                <span style="color:rgba(241,245,249,0.3);">—</span>
                             {% endif %}
                         </td>
-                        <td class="px-4 py-3">
+                        <td>
                             {% if job.is_active %}
-                                <span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">Activa</span>
+                                <span class="badge badge-success">Activa</span>
                             {% else %}
-                                <span class="bg-gray-100 text-gray-600 text-xs font-semibold px-2.5 py-0.5 rounded-full">Inactiva</span>
+                                <span class="badge" style="background:rgba(255,255,255,0.06);color:rgba(241,245,249,0.4);border:1px solid rgba(255,255,255,0.08);">Inactiva</span>
                             {% endif %}
                         </td>
-                        <td class="px-4 py-3">
+                        <td>
                             <div class="flex gap-2">
-                                <a href="{% url 'job_edit' job.pk %}" class="px-2.5 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-lg hover:bg-blue-200">Editar</a>
+                                <a href="{% url 'job_edit' job.pk %}" class="btn-ghost px-2.5 py-1 rounded-lg text-xs font-medium">Editar</a>
                                 <form method="post" action="{% url 'job_toggle_active' job.pk %}">
                                     {% csrf_token %}
-                                    <button type="submit" class="px-2.5 py-1 text-xs font-medium rounded-lg {% if job.is_active %}bg-yellow-100 text-yellow-700 hover:bg-yellow-200{% else %}bg-green-100 text-green-700 hover:bg-green-200{% endif %}">
+                                    <button type="submit" class="px-2.5 py-1 text-xs font-medium rounded-lg transition-colors
+                                        {% if job.is_active %}
+                                            hover:opacity-80" style="background:rgba(245,158,11,0.15);color:#FCD34D;border:1px solid rgba(245,158,11,0.25);"
+                                        {% else %}
+                                            hover:opacity-80" style="background:rgba(16,185,129,0.15);color:#6EE7B7;border:1px solid rgba(16,185,129,0.25);"
+                                        {% endif %}>
                                         {% if job.is_active %}Desactivar{% else %}Activar{% endif %}
                                     </button>
                                 </form>
@@ -81,9 +83,12 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8" class="px-4 py-12 text-center text-gray-400 text-sm">
-                            Ainda não criou nenhuma vaga.
-                            <a href="{% url 'job_create' %}" class="font-medium hover:underline ml-1" style="color:#1B6CA8;">Criar agora →</a>
+                        <td colspan="8" class="px-4 py-16 text-center">
+                            <svg class="mx-auto h-12 w-12 mb-4 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color:#A78BFA;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            <p class="text-sm font-medium text-white mb-1">Ainda não criou nenhuma vaga</p>
+                            <a href="{% url 'job_create' %}" class="text-sm font-semibold hover:underline" style="color:#A78BFA;">Criar agora →</a>
                         </td>
                     </tr>
                     {% endfor %}
