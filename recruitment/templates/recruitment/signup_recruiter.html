@@ -3,60 +3,98 @@
 {% block title %}Registo de Recrutador — KUBUKA{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto px-4 py-12">
-    <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-        <div style="background:#3BBFAD;height:3px;border-radius:2px 2px 0 0;"></div>
+<div class="relative min-h-screen flex items-center justify-center px-4 py-16 overflow-hidden">
 
-        <div class="p-8">
-            <div class="text-center mb-6">
-                <span class="text-2xl font-bold" style="color:#0F2A4A;">KU<span style="color:#3BBFAD;">BUKA</span></span>
-                <h2 class="text-lg font-bold text-gray-800 mt-2">Criar Conta de Recrutador</h2>
-                <p class="text-sm text-gray-400 mt-0.5">Publique vagas e receba candidaturas avaliadas por IA</p>
-            </div>
+    <!-- Background blobs -->
+    <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none;">
+        <div style="position:absolute;top:-20%;right:-10%;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,0.16),transparent 70%);animation:float 9s ease-in-out infinite;"></div>
+        <div style="position:absolute;bottom:-20%;left:-10%;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(124,58,237,0.12),transparent 70%);animation:float 11s ease-in-out infinite 3s;"></div>
+        <div class="grid-pattern" style="position:absolute;inset:0;opacity:0.4;"></div>
+    </div>
 
-            {% if messages %}
-            <div class="mb-4">
+    <div class="w-full max-w-md relative z-10 animate-fadeInUp">
+
+        <!-- Logo -->
+        <div class="text-center mb-8">
+            <a href="{% url 'home' %}" class="inline-flex items-center gap-2.5">
+                <div class="w-10 h-10 rounded-2xl flex items-center justify-center" style="background:linear-gradient(135deg,#0891B2,#06B6D4);box-shadow:0 0 30px rgba(6,182,212,0.5);">
+                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <span class="text-2xl font-extrabold tracking-tight">
+                    <span class="gradient-text">KU</span><span class="text-white">BUKA</span>
+                </span>
+            </a>
+        </div>
+
+        <!-- Card -->
+        <div style="position:relative;border-radius:16px;padding:1px;background:linear-gradient(135deg,rgba(6,182,212,0.5),rgba(124,58,237,0.5));">
+            <div style="background:#0D1020;border-radius:15px;" class="p-8">
+
+                <div class="mb-7">
+                    <span class="badge badge-info mb-3 inline-flex">Recrutador</span>
+                    <h1 class="text-xl font-extrabold text-white mb-1">Criar conta de recrutador</h1>
+                    <p class="text-sm" style="color:rgba(241,245,249,0.45);">Publique vagas e receba candidaturas pré-avaliadas por IA</p>
+                </div>
+
+                {% if form.non_field_errors %}
+                <div class="msg-error flex items-center gap-2 mb-5">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    {{ form.non_field_errors.0 }}
+                </div>
+                {% endif %}
+
+                {% if messages %}
                 {% for message in messages %}
-                <div class="flex items-center gap-2 p-3 rounded-lg {% if message.tags == 'error' %}bg-red-50 border border-red-200{% else %}bg-green-50 border border-green-200{% endif %}">
-                    <p class="text-sm {% if message.tags == 'error' %}text-red-700{% else %}text-green-700{% endif %}">{{ message }}</p>
-                </div>
+                <div class="{% if message.tags == 'error' %}msg-error{% elif message.tags == 'success' %}msg-success{% else %}msg-info{% endif %} mb-5">{{ message }}</div>
                 {% endfor %}
-            </div>
-            {% endif %}
+                {% endif %}
 
-            {% if form.non_field_errors %}
-            <div class="flex items-center gap-2 p-3 rounded-lg mb-4" style="background:#FEF2F2;border:1px solid #FECACA;">
-                <svg class="w-4 h-4 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <p class="text-sm text-red-700">{{ form.non_field_errors.0 }}</p>
-            </div>
-            {% endif %}
+                <form method="post" class="space-y-4">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.5);">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}
+                            <p class="text-xs mt-1.5" style="color:rgba(241,245,249,0.3);">{{ field.help_text|safe }}</p>
+                        {% endif %}
+                        {% if field.errors %}
+                            <p class="text-xs mt-1.5" style="color:#FCA5A5;">{{ field.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
 
-            <form method="post" class="space-y-4">
-                {% csrf_token %}
-                {% for field in form %}
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
-                    {{ field }}
-                    {% if field.help_text %}
-                        <p class="text-gray-400 text-xs mt-1">{{ field.help_text|safe }}</p>
-                    {% endif %}
-                    {% if field.errors %}
-                        <p class="text-red-600 text-xs mt-1">{{ field.errors.0 }}</p>
-                    {% endif %}
+                    <button type="submit" class="btn-accent w-full py-3 rounded-xl font-bold text-sm mt-2">
+                        Criar Conta de Recrutador
+                        <svg class="w-4 h-4 ml-2" fill="none" viewBox="0 0 14 10"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/></svg>
+                    </button>
+                </form>
+
+                <hr class="section-divider my-6">
+
+                <div class="text-center space-y-2">
+                    <p class="text-sm" style="color:rgba(241,245,249,0.4);">Já tem conta? <a href="{% url 'login' %}" class="font-semibold hover:underline" style="color:#A78BFA;">Iniciar Sessão</a></p>
+                    <p class="text-sm" style="color:rgba(241,245,249,0.35);">É candidato? <a href="{% url 'signup' %}" class="font-semibold hover:underline" style="color:#67E8F9;">Registe-se aqui</a></p>
                 </div>
-                {% endfor %}
-                <button type="submit" class="w-full py-2.5 rounded-lg text-sm font-semibold text-white mt-2" style="background:#3BBFAD;">
-                    Criar Conta de Recrutador
-                </button>
-            </form>
 
-            <div class="text-center mt-5 space-y-2">
-                <p class="text-sm text-gray-500">Já tem conta? <a href="{% url 'login' %}" class="font-medium hover:underline" style="color:#1B6CA8;">Iniciar Sessão</a></p>
-                <p class="text-sm text-gray-400">É candidato? <a href="{% url 'signup' %}" class="font-medium hover:underline" style="color:#1B6CA8;">Registe-se aqui</a></p>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+/* Garante visibilidade dos campos em qualquer browser */
+form input, form textarea, form select {
+    background: rgba(20, 24, 48, 0.8) !important;
+    color: #F1F5F9 !important;
+    border-color: rgba(255,255,255,0.1) !important;
+}
+form input::placeholder, form textarea::placeholder {
+    color: rgba(241,245,249,0.28) !important;
+}
+</style>
 {% endblock %}

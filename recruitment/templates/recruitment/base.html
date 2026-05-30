@@ -7,86 +7,481 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
     <style>
-        body { background-color: #F8FAFC; font-family: system-ui, -apple-system, sans-serif; }
-        input[type="text"], input[type="password"], input[type="email"], input[type="file"],
-        input[type="number"], textarea, select {
-            background-color: #f9fafb;
-            border: 1px solid #d1d5db;
-            color: #111827;
+        :root {
+            --primary: #7C3AED;
+            --primary-light: #A78BFA;
+            --accent: #06B6D4;
+            --accent-light: #67E8F9;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --bg-base: #080B14;
+            --bg-surface: rgba(255,255,255,0.04);
+            --bg-glass: rgba(255,255,255,0.06);
+            --border: rgba(255,255,255,0.08);
+            --text-primary: #F1F5F9;
+            --text-muted: rgba(241,245,249,0.5);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background-color: var(--bg-base);
+            background-image:
+                radial-gradient(ellipse 80% 50% at 10% -10%, rgba(124,58,237,0.18) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 90% 5%, rgba(6,182,212,0.12) 0%, transparent 55%),
+                radial-gradient(ellipse 50% 60% at 50% 110%, rgba(124,58,237,0.08) 0%, transparent 60%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #0D1020; }
+        ::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.5); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(124,58,237,0.8); }
+
+        /* Glassmorphism */
+        .glass {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+        }
+
+        .glass-card {
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 16px;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            background: rgba(255,255,255,0.07);
+            border-color: rgba(124,58,237,0.35);
+            transform: translateY(-3px);
+            box-shadow: 0 24px 48px rgba(0,0,0,0.4), 0 0 30px rgba(124,58,237,0.12);
+        }
+
+        /* Navbar */
+        .navbar {
+            background: rgba(8,11,20,0.85);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, #A78BFA 0%, #06B6D4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .gradient-text-warm {
+            background: linear-gradient(135deg, #F59E0B 0%, #EF4444 60%, #EC4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%);
+            color: white;
+            border: 1px solid rgba(167,139,250,0.15);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(167,139,250,0.2), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .btn-primary:hover::after { opacity: 1; }
+        .btn-primary:hover {
+            box-shadow: 0 0 30px rgba(124,58,237,0.5), 0 8px 24px rgba(0,0,0,0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, #0891B2 0%, #06B6D4 100%);
+            color: white;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-accent:hover {
+            box-shadow: 0 0 30px rgba(6,182,212,0.45), 0 8px 24px rgba(0,0,0,0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.12);
+            color: rgba(241,245,249,0.75);
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-ghost:hover {
+            background: rgba(255,255,255,0.07);
+            border-color: rgba(255,255,255,0.22);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #B91C1C, #EF4444);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .btn-danger:hover {
+            box-shadow: 0 0 25px rgba(239,68,68,0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #059669, #10B981);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .btn-success:hover {
+            box-shadow: 0 0 25px rgba(16,185,129,0.4);
+            transform: translateY(-1px);
+        }
+
+        /* Inputs */
+        input[type="text"], input[type="password"], input[type="email"],
+        input[type="file"], input[type="number"], input[type="datetime-local"],
+        textarea, select {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-primary);
             font-size: 0.875rem;
-            border-radius: 0.5rem;
+            border-radius: 10px;
             display: block;
             width: 100%;
-            padding: 0.625rem;
+            padding: 0.65rem 0.9rem;
+            transition: all 0.3s ease;
         }
+        input::placeholder, textarea::placeholder { color: rgba(241,245,249,0.28); }
         input:focus, textarea:focus, select:focus {
-            border-color: #1B6CA8;
+            border-color: rgba(124,58,237,0.65);
             outline: none;
-            box-shadow: 0 0 0 2px rgba(27,108,168,0.2);
+            box-shadow: 0 0 0 3px rgba(124,58,237,0.15), 0 0 25px rgba(124,58,237,0.08);
+            background: rgba(255,255,255,0.07);
+        }
+        select option { background: #141828; color: var(--text-primary); }
+
+        /* Garantia de visibilidade — fundo escuro sólido para qualquer input */
+        input[type="text"], input[type="password"], input[type="email"],
+        input[type="file"], input[type="number"], input[type="datetime-local"],
+        textarea, select {
+            color-scheme: dark;
+            background-color: rgba(20, 24, 48, 0.8) !important;
+        }
+
+        /* Fix browser autofill override */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active {
+            -webkit-text-fill-color: #F1F5F9 !important;
+            -webkit-box-shadow: 0 0 0px 1000px #141828 inset !important;
+            box-shadow: 0 0 0px 1000px #141828 inset !important;
+            caret-color: #F1F5F9;
+            transition: background-color 9999s ease-in-out 0s;
+        }
+
+        /* Badges */
+        .badge { display: inline-flex; align-items: center; font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 100px; }
+        .badge-success { background: rgba(16,185,129,0.15); color: #34D399; border: 1px solid rgba(16,185,129,0.25); }
+        .badge-warning { background: rgba(245,158,11,0.15); color: #FCD34D; border: 1px solid rgba(245,158,11,0.25); }
+        .badge-danger  { background: rgba(239,68,68,0.15);  color: #FCA5A5; border: 1px solid rgba(239,68,68,0.25); }
+        .badge-info    { background: rgba(6,182,212,0.15);   color: #67E8F9; border: 1px solid rgba(6,182,212,0.25); }
+        .badge-purple  { background: rgba(124,58,237,0.15);  color: #C4B5FD; border: 1px solid rgba(124,58,237,0.25); }
+        .badge-orange  { background: rgba(249,115,22,0.15);  color: #FDBA74; border: 1px solid rgba(249,115,22,0.25); }
+
+        /* Progress */
+        .progress-bar {
+            background: rgba(255,255,255,0.07);
+            border-radius: 100px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 100px;
+            background: linear-gradient(90deg, #7C3AED, #06B6D4);
+            transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 60%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        /* Messages */
+        .msg-success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #6EE7B7; border-radius: 10px; padding: 0.875rem 1rem; font-size: 0.875rem; }
+        .msg-error   { background: rgba(239,68,68,0.1);  border: 1px solid rgba(239,68,68,0.2);  color: #FCA5A5; border-radius: 10px; padding: 0.875rem 1rem; font-size: 0.875rem; }
+        .msg-info    { background: rgba(6,182,212,0.1);  border: 1px solid rgba(6,182,212,0.2);  color: #67E8F9; border-radius: 10px; padding: 0.875rem 1rem; font-size: 0.875rem; }
+        .msg-warning { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); color: #FCD34D; border-radius: 10px; padding: 0.875rem 1rem; font-size: 0.875rem; }
+
+        /* Table */
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table thead tr { background: rgba(124,58,237,0.12); }
+        .data-table thead th { color: rgba(241,245,249,0.6); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; padding: 0.875rem 1rem; font-weight: 700; }
+        .data-table tbody tr { border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 0.2s; }
+        .data-table tbody tr:hover { background: rgba(124,58,237,0.07); }
+        .data-table tbody td { padding: 0.875rem 1rem; color: var(--text-primary); font-size: 0.875rem; }
+
+        /* Nav link */
+        .nav-link {
+            color: rgba(241,245,249,0.6);
+            font-size: 0.875rem;
+            font-weight: 500;
+            padding: 0.4rem 0.75rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .nav-link:hover { color: white; background: rgba(255,255,255,0.08); }
+
+        /* Stat card */
+        .stat-card {
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.07);
+            transition: all 0.35s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(124,58,237,0.3);
+        }
+        .stat-card .orb {
+            position: absolute;
+            top: -20px; right: -20px;
+            width: 90px; height: 90px;
+            border-radius: 50%;
+            opacity: 0.15;
+            filter: blur(20px);
+        }
+
+        /* Section divider */
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(124,58,237,0.4), rgba(6,182,212,0.4), transparent);
+            border: none;
+            margin: 2rem 0;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50%       { transform: translateY(-10px); }
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(124,58,237,0.3); }
+            50%       { box-shadow: 0 0 35px rgba(124,58,237,0.65), 0 0 60px rgba(124,58,237,0.2); }
+        }
+        @keyframes gradient-shift {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes shimmer {
+            from { transform: translateX(-150%); }
+            to   { transform: translateX(350%); }
+        }
+        @keyframes rotate-glow {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+        @keyframes scan-line {
+            from { top: -5%; }
+            to   { top: 105%; }
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0; }
+        }
+
+        .animate-fadeInUp  { animation: fadeInUp 0.65s cubic-bezier(0.4,0,0.2,1) both; }
+        .animate-fadeIn    { animation: fadeIn 0.5s ease both; }
+        .animate-float     { animation: float 5s ease-in-out infinite; }
+        .animate-pulse-glow { animation: pulse-glow 2.5s ease-in-out infinite; }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.45s; }
+        .delay-5 { animation-delay: 0.6s; }
+
+        /* Gradient border */
+        .gradient-border-wrap {
+            position: relative;
+            border-radius: 16px;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(124,58,237,0.5), rgba(6,182,212,0.5));
+        }
+        .gradient-border-inner {
+            background: #0D1020;
+            border-radius: 15px;
+        }
+
+        /* Glow dots / grid pattern */
+        .grid-pattern {
+            background-image:
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+        }
+        .modal-box {
+            background: #0F1525;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 60px rgba(124,58,237,0.1);
+        }
+
+        /* Page label */
+        .page-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            padding: 0.3rem 0.85rem;
+            border-radius: 100px;
+            background: rgba(124,58,237,0.12);
+            color: #C4B5FD;
+            border: 1px solid rgba(124,58,237,0.2);
+        }
+
+        /* Neon dot */
+        .neon-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: #7C3AED;
+            box-shadow: 0 0 8px #7C3AED, 0 0 16px rgba(124,58,237,0.4);
+            animation: pulse-glow 2s ease-in-out infinite;
+            flex-shrink: 0;
+        }
+        .neon-dot.cyan {
+            background: #06B6D4;
+            box-shadow: 0 0 8px #06B6D4, 0 0 16px rgba(6,182,212,0.4);
         }
     </style>
 </head>
 <body>
-    <nav style="background-color:#0F2A4A;" class="px-4 py-3 shadow-md">
+    <!-- Navbar -->
+    <nav class="navbar px-4 py-3">
         <div class="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl">
-            <a href="{% url 'home' %}" class="flex items-center gap-2">
-                <span class="text-xl font-bold text-white tracking-wide">KU<span style="color:#3BBFAD;">BUKA</span></span>
+            <a href="{% url 'home' %}" class="flex items-center gap-2.5 group">
+                <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg, #7C3AED, #06B6D4); box-shadow: 0 0 20px rgba(124,58,237,0.4);">
+                    <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <span class="text-xl font-extrabold tracking-tight">
+                    <span class="gradient-text">KU</span><span class="text-white">BUKA</span>
+                </span>
             </a>
-            <div class="flex items-center gap-2 flex-wrap">
+
+            <div class="flex items-center gap-1 flex-wrap">
                 {% if user.is_authenticated %}
-                    <a href="{% url 'profile' %}" class="flex items-center gap-2 text-white/80 hover:text-white text-sm font-medium px-2 py-1">
-                        <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold
-                            {% if user.is_staff or user.is_admin %}bg-indigo-400
-                            {% elif user.is_recruiter %}bg-teal-400
-                            {% else %}bg-blue-400{% endif %}
-                            text-white">
+                    <a href="{% url 'profile' %}" class="nav-link gap-2">
+                        <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                            style="background: linear-gradient(135deg, {% if user.is_staff or user.is_admin %}#7C3AED, #A78BFA{% elif user.is_recruiter %}#0891B2, #06B6D4{% else %}#059669, #10B981{% endif %}); box-shadow: 0 0 12px rgba(124,58,237,0.35);">
                             {{ user.username|first|upper }}
                         </div>
-                        {{ user.username }}
+                        <span>{{ user.username }}</span>
                     </a>
+
                     {% if user.is_staff or user.is_admin %}
-                        <span class="text-xs font-semibold px-2 py-0.5 rounded-full" style="background:#E0E7FF;color:#3730A3;">Admin</span>
+                        <span class="badge badge-purple">Admin</span>
                     {% elif user.is_recruiter %}
-                        <span class="text-xs font-semibold px-2 py-0.5 rounded-full" style="background:#D1FAE5;color:#065F46;">Recrutador</span>
+                        <span class="badge badge-info">Recrutador</span>
                     {% elif user.is_candidate %}
-                        <span class="text-xs font-semibold px-2 py-0.5 rounded-full" style="background:#DBEAFE;color:#1E40AF;">Candidato</span>
+                        <span class="badge badge-success">Candidato</span>
                     {% endif %}
 
                     {% if user.is_candidate %}
-                        <!-- Bell icon with unread count -->
-                        <a href="{% url 'notifications' %}" class="relative text-white/75 hover:text-white p-1.5 rounded" title="Notificações">
+                        <a href="{% url 'notifications' %}" class="nav-link relative" title="Notificações">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                             </svg>
                             {% if unread_notifications_count %}
-                            <span class="absolute -top-0.5 -right-0.5 w-4 h-4 text-white text-xs font-bold flex items-center justify-center rounded-full" style="background:#F97316;font-size:10px;">
+                            <span class="absolute -top-0.5 -right-0.5 w-4 h-4 text-white flex items-center justify-center rounded-full animate-pulse-glow" style="background:linear-gradient(135deg,#EF4444,#F97316);font-size:9px;font-weight:800;">
                                 {{ unread_notifications_count }}
                             </span>
                             {% endif %}
                         </a>
-                        <a href="{% url 'my_applications' %}" class="text-white/75 hover:text-white text-sm font-medium px-3 py-1.5 rounded">Candidaturas</a>
+                        <a href="{% url 'my_applications' %}" class="nav-link">Candidaturas</a>
                         {% if user.has_resume %}
-                            <a href="{% url 'resume_detail' user.resume.pk %}" class="text-white/75 hover:text-white text-sm font-medium px-3 py-1.5 rounded">Meu CV</a>
-                            <a href="{% url 'upload_resume' %}" class="text-sm font-medium px-3 py-1.5 rounded text-white" style="background:#1B6CA8;">Actualizar CV</a>
+                            <a href="{% url 'resume_detail' user.resume.pk %}" class="nav-link">Meu CV</a>
+                            <a href="{% url 'upload_resume' %}" class="btn-primary text-sm font-semibold px-4 py-1.5 rounded-lg">Actualizar CV</a>
                         {% else %}
-                            <a href="{% url 'upload_resume' %}" class="text-sm font-medium px-3 py-1.5 rounded text-white" style="background:#1B6CA8;">Submeter CV</a>
+                            <a href="{% url 'upload_resume' %}" class="btn-primary text-sm font-semibold px-4 py-1.5 rounded-lg">Submeter CV</a>
                         {% endif %}
                     {% endif %}
 
                     {% if user.is_recruiter or user.is_admin or user.is_staff %}
-                        <a href="{% url 'admin_dashboard' %}" class="text-white/75 hover:text-white text-sm font-medium px-3 py-1.5 rounded">Candidatos</a>
-                        <a href="{% url 'analytics_dashboard' %}" class="text-white/75 hover:text-white text-sm font-medium px-3 py-1.5 rounded">Analytics</a>
-                        <a href="{% url 'job_manage' %}" class="text-white/75 hover:text-white text-sm font-medium px-3 py-1.5 rounded">Vagas</a>
+                        <a href="{% url 'admin_dashboard' %}" class="nav-link">Candidatos</a>
+                        <a href="{% url 'analytics_dashboard' %}" class="nav-link">Analytics</a>
+                        <a href="{% url 'job_manage' %}" class="nav-link">Vagas</a>
                     {% endif %}
 
                     <form action="{% url 'logout' %}" method="post" class="inline">
                         {% csrf_token %}
-                        <button type="submit" class="text-white/70 hover:text-white text-sm font-medium px-3 py-1.5 rounded">Sair</button>
+                        <button type="submit" class="nav-link cursor-pointer bg-transparent border-0">Sair</button>
                     </form>
                 {% else %}
-                    <a href="{% url 'login' %}" class="text-sm font-medium px-4 py-1.5 rounded border border-white/40 text-white hover:bg-white/10">Login</a>
-                    <a href="{% url 'signup' %}" class="text-sm font-medium px-4 py-1.5 rounded text-white" style="background:#1B6CA8;">Candidato</a>
-                    <a href="{% url 'signup_recruiter' %}" class="text-sm font-medium px-4 py-1.5 rounded border text-white/90 hover:bg-white/10" style="border-color:#3BBFAD;color:#3BBFAD;">Recrutador</a>
+                    <a href="{% url 'login' %}" class="btn-ghost text-sm font-medium px-4 py-1.5 rounded-lg">Login</a>
+                    <a href="{% url 'signup' %}" class="btn-primary text-sm font-semibold px-4 py-1.5 rounded-lg">Candidato</a>
+                    <a href="{% url 'signup_recruiter' %}" class="btn-accent text-sm font-semibold px-4 py-1.5 rounded-lg">Recrutador</a>
                 {% endif %}
             </div>
         </div>
@@ -97,5 +492,44 @@
     </main>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+
+    <script>
+        // Entrance animations on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(el => {
+                if (el.isIntersecting) {
+                    el.target.classList.add('animate-fadeInUp');
+                    observer.unobserve(el.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.observe-fade').forEach(el => observer.observe(el));
+
+        // Animated counter
+        function animateCounter(el, target) {
+            let start = 0;
+            const duration = 1500;
+            const step = (timestamp) => {
+                if (!start) start = timestamp;
+                const progress = Math.min((timestamp - start) / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                el.textContent = Math.floor(eased * target);
+                if (progress < 1) requestAnimationFrame(step);
+                else el.textContent = target;
+            };
+            requestAnimationFrame(step);
+        }
+
+        document.querySelectorAll('[data-counter]').forEach(el => {
+            const io = new IntersectionObserver(entries => {
+                if (entries[0].isIntersecting) {
+                    animateCounter(el, parseInt(el.dataset.counter));
+                    io.disconnect();
+                }
+            });
+            io.observe(el);
+        });
+    </script>
 </body>
 </html>
