@@ -1,12 +1,4 @@
 @echo off
-echo Instalando dependencias...
-C:/Users/manue/AppData/Local/Microsoft/WindowsApps/python3.13.exe -m pip install -r requirements.txt
-
-echo Aplicando migracoes...
-C:/Users/manue/AppData/Local/Microsoft/WindowsApps/python3.13.exe manage.py migrate
-
-echo Criando superusuario (se ainda nao existir)...
-C:/Users/manue/AppData/Local/Microsoft/WindowsApps/python3.13.exe manage.py createsuperuser --noinput --username admin --email admin@example.com || echo Superusuario ja existe ou erro (podes criar manualmente)
-
-echo Iniciando servidor...
-C:/Users/manue/AppData/Local/Microsoft/WindowsApps/python3.13.exe manage.py runserver
+cd /d "%~dp0"
+powershell -ExecutionPolicy Bypass -File "%~dp0start.ps1"
+pause
