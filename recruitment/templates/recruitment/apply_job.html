@@ -1,0 +1,164 @@
+{% extends 'recruitment/base.html' %}
+{% block title %}Candidatar-me — {{ job.title }} — KUBUKA{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto px-6 py-10">
+
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+        {% for message in messages %}
+        <div class="{% if message.tags == 'error' %}msg-error{% elif message.tags == 'success' %}msg-success{% else %}msg-info{% endif %}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <a href="{% url 'job_detail' job.pk %}" class="inline-flex items-center gap-1.5 text-sm font-semibold mb-6 hover:underline animate-fadeInUp" style="color:#A78BFA;">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        Voltar à vaga
+    </a>
+
+    <!-- Cabeçalho -->
+    <div class="mb-8 animate-fadeInUp">
+        <p class="text-xs font-bold uppercase tracking-widest mb-1.5" style="color:rgba(241,245,249,0.35);">
+            {% if is_reapply %}Re-candidatura{% else %}Nova Candidatura{% endif %}
+        </p>
+        <h1 class="text-2xl font-extrabold text-white mb-1">{{ job.title }}</h1>
+        <p class="text-sm" style="color:rgba(241,245,249,0.45);">{{ job.company }} · {{ job.location }}</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" id="apply-form">
+        {% csrf_token %}
+
+        <!-- CV do Perfil -->
+        <div class="glass-card p-6 mb-5 animate-fadeInUp delay-1">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.25);">
+                    <svg class="w-4 h-4" style="color:#6EE7B7;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-white">CV do Perfil</p>
+                    <p class="text-xs" style="color:rgba(241,245,249,0.45);">Será usado por defeito para calcular o score de correspondência.</p>
+                </div>
+            </div>
+            {% if profile_resume and profile_resume.file %}
+            <div class="flex items-center gap-2 p-3 rounded-xl" style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.15);">
+                <svg class="w-4 h-4 flex-shrink-0" style="color:#6EE7B7;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                <span class="text-xs font-medium text-white truncate">{{ profile_resume.file.name|cut:"resumes/" }}</span>
+                {% if profile_resume.ai_processed %}
+                <span class="ml-auto text-xs font-bold px-2 py-0.5 rounded-full" style="background:rgba(16,185,129,0.15);color:#6EE7B7;">Analisado pela IA</span>
+                {% endif %}
+            </div>
+            {% else %}
+            <p class="text-xs" style="color:rgba(241,245,249,0.4);">Nenhum CV no perfil encontrado.</p>
+            {% endif %}
+        </div>
+
+        <!-- CV Específico (opcional) -->
+        <div class="glass-card p-6 mb-6 animate-fadeInUp delay-2">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.25);">
+                    <svg class="w-4 h-4" style="color:#A78BFA;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-white">CV Específico <span class="text-xs font-normal" style="color:rgba(241,245,249,0.4);">— opcional</span></p>
+                    <p class="text-xs" style="color:rgba(241,245,249,0.45);">Se carregar um CV aqui, este será usado em vez do CV do perfil para calcular o score desta candidatura.</p>
+                </div>
+            </div>
+
+            <div id="drop-zone" style="border:2px dashed rgba(124,58,237,0.35);border-radius:12px;background:rgba(124,58,237,0.05);padding:1.75rem 1.25rem;text-align:center;cursor:pointer;transition:all 0.3s ease;">
+                <svg class="w-8 h-8 mx-auto mb-2" style="color:rgba(167,139,250,0.5);" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                {{ form.cv_file }}
+                <p id="file-name" class="text-sm font-medium mt-1" style="color:rgba(241,245,249,0.5);">Clique para seleccionar ou arraste o ficheiro</p>
+                <p class="text-xs mt-0.5" style="color:rgba(241,245,249,0.3);">Apenas PDF · Máximo 5 MB</p>
+            </div>
+            {% if form.cv_file.errors %}
+            <p class="text-xs mt-2" style="color:#FCA5A5;">{{ form.cv_file.errors.0 }}</p>
+            {% endif %}
+
+            <!-- Botão para limpar ficheiro seleccionado -->
+            <button type="button" id="clear-btn" class="hidden mt-2 text-xs hover:underline" style="color:rgba(241,245,249,0.4);">
+                ✕ Remover ficheiro — usar CV do perfil
+            </button>
+        </div>
+
+        <!-- Informação sobre o scoring -->
+        <div class="flex items-start gap-3 p-4 rounded-xl mb-6 animate-fadeInUp delay-2" style="background:rgba(6,182,212,0.06);border:1px solid rgba(6,182,212,0.15);">
+            <svg class="w-4 h-4 flex-shrink-0 mt-0.5" style="color:#67E8F9;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <p class="text-xs leading-relaxed" style="color:rgba(241,245,249,0.55);">
+                O score de correspondência será calculado automaticamente após submissão, comparando o seu perfil com os requisitos da vaga. Cada candidatura tem o seu score individual.
+            </p>
+        </div>
+
+        <div class="flex gap-3 animate-fadeInUp delay-3">
+            <a href="{% url 'job_detail' job.pk %}" class="btn-ghost flex-1 py-3 rounded-xl text-sm font-semibold text-center">
+                Cancelar
+            </a>
+            <button type="submit" id="submit-btn" class="btn-primary flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span id="btn-text">{% if is_reapply %}Re-candidatar-me{% else %}Submeter Candidatura{% endif %}</span>
+                <svg id="loading-spinner" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                </svg>
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+#id_cv_file { opacity:0; position:absolute; width:1px; height:1px; }
+#drop-zone:hover { border-color:rgba(124,58,237,0.65) !important; background:rgba(124,58,237,0.1) !important; }
+</style>
+
+<script>
+const fileInput = document.getElementById('id_cv_file');
+const fileName  = document.getElementById('file-name');
+const dropZone  = document.getElementById('drop-zone');
+const clearBtn  = document.getElementById('clear-btn');
+const form      = document.getElementById('apply-form');
+
+dropZone.addEventListener('click', () => fileInput.click());
+
+dropZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropZone.style.borderColor = 'rgba(124,58,237,0.7)';
+    dropZone.style.background  = 'rgba(124,58,237,0.1)';
+});
+dropZone.addEventListener('dragleave', () => {
+    dropZone.style.borderColor = 'rgba(124,58,237,0.35)';
+    dropZone.style.background  = 'rgba(124,58,237,0.05)';
+});
+dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        fileInput.dispatchEvent(new Event('change'));
+    }
+});
+
+fileInput.addEventListener('change', () => {
+    if (fileInput.files.length) {
+        fileName.textContent = fileInput.files[0].name;
+        fileName.style.color = '#fff';
+        dropZone.style.borderColor = 'rgba(16,185,129,0.55)';
+        dropZone.style.background  = 'rgba(16,185,129,0.06)';
+        clearBtn.classList.remove('hidden');
+    }
+});
+
+clearBtn.addEventListener('click', () => {
+    fileInput.value = '';
+    fileName.textContent = 'Clique para seleccionar ou arraste o ficheiro';
+    fileName.style.color = '';
+    dropZone.style.borderColor = 'rgba(124,58,237,0.35)';
+    dropZone.style.background  = 'rgba(124,58,237,0.05)';
+    clearBtn.classList.add('hidden');
+});
+
+form.addEventListener('submit', () => {
+    document.getElementById('btn-text').textContent = 'A enviar...';
+    document.getElementById('loading-spinner').classList.remove('hidden');
+    document.getElementById('submit-btn').disabled = true;
+    document.getElementById('submit-btn').style.opacity = '0.7';
+});
+</script>
+{% endblock %}

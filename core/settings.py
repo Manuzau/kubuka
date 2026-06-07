@@ -26,12 +26,12 @@ environ.Env.read_env(BASE_DIR / '.env')
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('SECRET_KEY', default='django-insecure-default-key-for-dev')
+SECRET_KEY = env('SECRET_KEY', default='django-insecure-CHANGE-ME-before-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env('DEBUG', default=True)
+DEBUG = env('DEBUG', default=False)
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
 
 
 # Application definition
@@ -44,12 +44,14 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "axes",
     "recruitment",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "axes.middleware.AxesMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -131,6 +133,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 AUTH_USER_MODEL = 'recruitment.User'
 
 AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',
     'recruitment.backends.EmailOrUsernameBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
@@ -157,3 +160,31 @@ N8N_WEBHOOK_CV_URL = env('N8N_WEBHOOK_CV_URL', default='')
 N8N_WEBHOOK_SCORE_URL = env('N8N_WEBHOOK_SCORE_URL', default='')
 N8N_CALLBACK_SECRET = env('N8N_CALLBACK_SECRET', default='')
 DJANGO_BASE_URL = env('DJANGO_BASE_URL', default='http://localhost:8000')
+
+# ---------------------------------------------------------------------------
+# Limites de upload
+# ---------------------------------------------------------------------------
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024   # 5 MB em memória
+DATA_UPLOAD_MAX_MEMORY_SIZE = 6 * 1024 * 1024   # 6 MB total por pedido
+
+# ---------------------------------------------------------------------------
+# Cabeçalhos de segurança HTTP
+# ---------------------------------------------------------------------------
+SECURE_CONTENT_TYPE_NOSNIFF = True    # X-Content-Type-Options: nosniff
+SECURE_BROWSER_XSS_FILTER = True      # X-XSS-Protection (browsers antigos)
+X_FRAME_OPTIONS = 'DENY'              # Proíbe iframes (clickjacking)
+
+# Em produção (HTTPS), activar também:
+# SECURE_SSL_REDIRECT = True
+# SESSION_COOKIE_SECURE = True
+# CSRF_COOKIE_SECURE = True
+# SECURE_HSTS_SECONDS = 31536000
+# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+
+# ---------------------------------------------------------------------------
+# django-axes — protecção contra força bruta no login
+# ---------------------------------------------------------------------------
+AXES_FAILURE_LIMIT = 5          # Bloquear após 5 tentativas falhadas
+AXES_COOLOFF_TIME = 1           # Cooldown de 1 hora
+AXES_RESET_ON_SUCCESS = True    # Reinicia contador após login bem-sucedido
+AXES_LOCKOUT_PARAMETERS = ['username', 'ip_address']

@@ -6,6 +6,8 @@ class User(AbstractUser):
     is_candidate = models.BooleanField(default=False)
     is_recruiter = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
+    # recruiter_approved=True para contas existentes; novos recrutadores precisam de aprovação do admin
+    recruiter_approved = models.BooleanField(default=True, verbose_name="Recrutador aprovado")
     company = models.CharField(max_length=200, blank=True, null=True, verbose_name="Empresa")
 
     def __str__(self):
@@ -72,6 +74,10 @@ class Application(models.Model):
     similarity_score = models.FloatField(default=0.0)
     match_feedback = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='pending')
+    awaiting_score = models.BooleanField(default=False)
+    # CV específico para esta candidatura (opcional — sobrepõe o CV do perfil no scoring)
+    cv_file = models.FileField(upload_to='applications/', blank=True, null=True, verbose_name="CV específico")
+    cv_parsed_text = models.TextField(blank=True, null=True, verbose_name="Texto extraído do CV específico")
     recruiter_notes = models.TextField(blank=True, null=True, verbose_name="Notas internas do recrutador")
     interview_date = models.DateTimeField(blank=True, null=True, verbose_name="Data da entrevista")
     candidate_availability_enabled = models.BooleanField(default=False)
@@ -86,6 +92,28 @@ class Application(models.Model):
 
     def __str__(self):
         return f"{self.candidate.username} → {self.job.title} ({self.get_status_display()})"
+
+
+class AuditLog(models.Model):
+    ACTION_CHOICES = [
+        ('export_csv',     'Exportação CSV'),
+        ('status_change',  'Alteração de Estado de Candidatura'),
+        ('job_toggle',     'Activação/Desactivação de Vaga'),
+        ('resume_delete',  'Remoção de Currículo'),
+    ]
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='audit_logs')
+    action = models.CharField(max_length=50, choices=ACTION_CHOICES)
+    detail = models.TextField(blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+        verbose_name = 'Registo de Auditoria'
+        verbose_name_plural = 'Registos de Auditoria'
+
+    def __str__(self):
+        return f"[{self.timestamp:%Y-%m-%d %H:%M}] {self.user} — {self.get_action_display()}"
 
 
 class Notification(models.Model):

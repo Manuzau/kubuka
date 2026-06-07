@@ -1,3 +1,4 @@
+import hmac
 import json
 import logging
 from django.http import JsonResponse
@@ -11,12 +12,16 @@ logger = logging.getLogger(__name__)
 
 
 def _verify_secret(request):
-    """Verifica o header X-Kubuka-Secret."""
+    """
+    Verifica o header X-Kubuka-Secret com comparação em tempo constante.
+    Falha-fechado: se o secret não estiver configurado, nega sempre o acesso.
+    """
     expected = getattr(settings, 'N8N_CALLBACK_SECRET', '') or getattr(settings, 'CALLBACK_SECRET', '')
-    received = request.headers.get('X-Kubuka-Secret', '') or request.headers.get('X-Callback-Secret', '')
-    if expected and received != expected:
+    if not expected:
+        logger.error("[security] N8N_CALLBACK_SECRET não configurado — callback bloqueado por segurança.")
         return False
-    return True
+    received = request.headers.get('X-Kubuka-Secret', '') or request.headers.get('X-Callback-Secret', '')
+    return hmac.compare_digest(expected, received)
 
 
 @csrf_exempt
@@ -99,9 +104,17 @@ def application_score_result(request, application_id: int):
     except Application.DoesNotExist:
         return JsonResponse({'error': f'Application {application_id} não encontrada.'}, status=404)
 
+    # Bloquear se o score não foi pedido através do fluxo normal de candidatura
+    if not application.awaiting_score:
+        logger.warning(
+            f"[security] Score rejeitado para Application {application_id} — scoring não foi pedido."
+        )
+        return JsonResponse({'error': 'Score não solicitado para esta candidatura.'}, status=409)
+
     application.similarity_score = round(score, 1)
     application.match_feedback = data.get('match_feedback', '')
-    update_fields = ['similarity_score', 'match_feedback']
+    application.awaiting_score = False  # Scoring concluído — não aceitar novos resultados
+    update_fields = ['similarity_score', 'match_feedback', 'awaiting_score']
 
     job = application.job
     auto_rejected = False
@@ -126,7 +139,6 @@ def application_score_result(request, application_id: int):
     return JsonResponse({'success': True, 'application_id': application_id, 'score': application.similarity_score, 'auto_rejected': auto_rejected})
 
 
-@csrf_exempt
 @require_POST
 def application_update_status(request, application_id: int):
     """POST /api/application/<id>/update-status/ — recrutador pré-selecciona ou rejeita."""
@@ -150,6 +162,11 @@ def application_update_status(request, application_id: int):
         application = Application.objects.get(pk=application_id)
     except Application.DoesNotExist:
         return JsonResponse({'error': f'Application {application_id} não encontrada.'}, status=404)
+
+    # Recrutador só pode alterar candidaturas das suas próprias vagas
+    is_admin = request.user.is_staff or request.user.is_admin
+    if not is_admin and application.job.created_by != request.user:
+        return JsonResponse({'error': 'Sem permissão para alterar esta candidatura.'}, status=403)
 
     update_fields = ['status', 'updated_at']
     application.status = new_status

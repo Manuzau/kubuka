@@ -82,7 +82,7 @@
                         <button type="submit" class="btn-danger w-full py-1.5 rounded-xl text-xs font-semibold">Cancelar candidatura</button>
                     </form>
                     {% elif app.status == 'withdrawn' %}
-                    <a href="{% url 'apply_job' job.pk %}" class="btn-primary w-full py-2 rounded-xl text-sm font-semibold text-center block">Candidatar-me novamente</a>
+                    <a href="{% url 'apply_job' job.pk %}" class="btn-primary w-full py-2 rounded-xl text-sm font-semibold text-center block">Candidatar-me novamente →</a>
                     {% else %}
                     <div class="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-sm font-semibold badge-success" style="border-radius:12px;">
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
@@ -90,7 +90,7 @@
                     </div>
                     {% endif %}
                 {% else %}
-                    <a href="{% url 'apply_job' job.pk %}" class="btn-primary w-full py-2 rounded-xl text-sm font-semibold text-center block">Candidatar-me</a>
+                    <a href="{% url 'apply_job' job.pk %}" class="btn-primary w-full py-2 rounded-xl text-sm font-semibold text-center block">Candidatar-me →</a>
                 {% endif %}
                 {% endwith %}
             </div>
