@@ -57,6 +57,7 @@ Sistema web que automatiza a triagem e pré-selecção de candidatos para empres
 | Automação / IA | n8n (self-hosted) + Ollama llama3.2 (local) |
 | Base de dados | SQLite |
 | Configuração | django-environ (.env) |
+| Segurança | django-axes (protecção força bruta) |
 
 ---
 
@@ -138,13 +139,13 @@ cd kubuka
 ### 3. Criar e activar o ambiente virtual
 
 ```bash
-python -m venv venv
+python -m venv .venv
 
 # Windows
-venv\Scripts\activate
+.venv\Scripts\activate
 
 # Linux / macOS
-source venv/bin/activate
+source .venv/bin/activate
 ```
 
 ### 4. Instalar dependências Python
@@ -221,6 +222,20 @@ Acede em: **http://localhost:8000**
 
 ```bash
 python manage.py test recruitment
+```
+
+---
+
+### Nota sobre protecção de força bruta (django-axes)
+
+O sistema bloqueia automaticamente um utilizador/IP após **5 tentativas de login falhadas** durante 1 hora. Se precisares de desbloquear uma conta durante o desenvolvimento:
+
+```bash
+# Desbloquear todos os acessos bloqueados
+python manage.py axes_reset
+
+# Desbloquear utilizador específico
+python manage.py axes_reset_user <username>
 ```
 
 ---
@@ -432,7 +447,13 @@ Após `createsuperuser`, pode criar contas de teste diretamente na aplicação:
 | `/signup/` | Criar conta de candidato |
 | `/admin/` | Django Admin (superutilizador) — pode promover utilizadores a recrutador |
 
-Para promover um utilizador a **Recrutador**, acede ao Django Admin → Users → selecciona o utilizador → activa o campo `is_recruiter`.
+Para criar uma conta de **Recrutador** existem duas formas:
+
+**A) Auto-registo** — acede a `/signup/recruiter/`. A conta é criada mas fica pendente de aprovação. O administrador deve depois ir ao Django Admin → Users → seleccionar o utilizador → activar `is_recruiter` **e** `recruiter_approved`.
+
+**B) Criação directa pelo admin** — Django Admin → Users → Add User → preencher dados → activar `is_recruiter` e `recruiter_approved`.
+
+> **Importante:** sem `recruiter_approved = True`, o recrutador não consegue aceder ao dashboard nem gerir vagas.
 
 ---
 
@@ -442,17 +463,19 @@ Para promover um utilizador a **Recrutador**, acede ao Django Admin → Users �
 kubuka/
 ├── core/                        # Configurações Django
 ├── recruitment/
-│   ├── models.py                # User, Resume, Job, Application, Notification
+│   ├── models.py                # User, Resume, Job, Application, AuditLog, Notification
 │   ├── views.py                 # Views HTML
 │   ├── api_views.py             # Endpoints REST (callbacks n8n, status)
 │   ├── callback_views.py        # Endpoints de callback do n8n
 │   ├── ai_service.py            # Envio de pedidos ao n8n
+│   ├── rate_limit.py            # Decorador de rate limiting (anti-DoS)
 │   ├── notifications.py         # Notificações in-app e email
 │   ├── cv_processor.py          # Extracção de texto de PDF
 │   ├── tests.py                 # 43 testes automatizados
 │   └── templates/               # Templates HTML
 ├── n8n_workflow_kubuka.json      # Workflow n8n — análise de CV
 ├── n8n_workflow_job_scoring.json # Workflow n8n — scoring de candidatura
+├── SECURITY_REPORT.md           # Relatório de correcções de segurança
 ├── .env.example                 # Variáveis de ambiente de exemplo
 └── requirements.txt
 ```
