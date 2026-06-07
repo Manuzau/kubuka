@@ -95,7 +95,8 @@
                         <button type="submit" class="text-sm font-medium hover:underline" style="color:#FCA5A5;">Retirar candidatura</button>
                     </form>
                     {% elif app.status == 'withdrawn' %}
-                    <a href="{% url 'apply_job' job.pk %}" class="btn-primary inline-block px-6 py-2.5 rounded-xl text-sm font-bold">
+                    <a href="{% url 'apply_job' job.pk %}" class="btn-primary inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                         Candidatar-me novamente
                     </a>
                     {% elif app.status == 'pre_selected' %}
@@ -117,7 +118,8 @@
                     {% endif %}
                 {% else %}
                     {% if user.has_resume %}
-                    <a href="{% url 'apply_job' job.pk %}" class="btn-primary inline-block px-6 py-2.5 rounded-xl text-sm font-bold">
+                    <a href="{% url 'apply_job' job.pk %}" class="btn-primary inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         Candidatar-me a esta vaga
                     </a>
                     {% else %}

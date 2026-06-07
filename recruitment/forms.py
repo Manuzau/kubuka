@@ -20,6 +20,18 @@ class ResumeUploadForm(forms.ModelForm):
         model = Resume
         fields = ('file',)
 
+    def clean_file(self):
+        file = self.cleaned_data.get('file')
+        if not file:
+            return file
+        if not file.name.lower().endswith('.pdf'):
+            raise forms.ValidationError('Apenas ficheiros PDF são aceites.')
+        if hasattr(file, 'content_type') and file.content_type not in ('application/pdf', 'application/x-pdf'):
+            raise forms.ValidationError('O tipo do ficheiro não é PDF válido.')
+        if file.size > 5 * 1024 * 1024:
+            raise forms.ValidationError('O ficheiro não pode exceder 5 MB.')
+        return file
+
 
 class ResumeUpdateForm(forms.ModelForm):
     class Meta:
@@ -44,6 +56,26 @@ class ProfileEditForm(forms.ModelForm):
             'email': forms.EmailInput(attrs={'class': 'w-full p-2 border rounded'}),
             'company': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
         }
+
+
+class ApplicationForm(forms.Form):
+    cv_file = forms.FileField(
+        required=False,
+        label="CV específico para esta vaga (opcional)",
+        help_text="Se não carregar nenhum ficheiro, será usado o CV do seu perfil.",
+    )
+
+    def clean_cv_file(self):
+        file = self.cleaned_data.get('cv_file')
+        if not file:
+            return file
+        if not file.name.lower().endswith('.pdf'):
+            raise forms.ValidationError('Apenas ficheiros PDF são aceites.')
+        if hasattr(file, 'content_type') and file.content_type not in ('application/pdf', 'application/x-pdf'):
+            raise forms.ValidationError('O tipo do ficheiro não é PDF válido.')
+        if file.size > 5 * 1024 * 1024:
+            raise forms.ValidationError('O ficheiro não pode exceder 5 MB.')
+        return file
 
 
 class JobForm(forms.ModelForm):

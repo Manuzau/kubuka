@@ -1,7 +1,5 @@
 import csv
 from django.http import HttpResponse
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -17,9 +15,10 @@ class IsAdminUser(permissions.BasePermission):
 
 class IsRecruiterOrAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
-        return bool(request.user and (
-            request.user.is_recruiter or request.user.is_staff or request.user.is_admin
-        ))
+        if not request.user:
+            return False
+        is_approved_recruiter = request.user.is_recruiter and getattr(request.user, 'recruiter_approved', False)
+        return bool(is_approved_recruiter or request.user.is_staff or request.user.is_admin)
 
 
 class ResumeViewSet(viewsets.ModelViewSet):
@@ -54,6 +53,11 @@ class ApplicationStatusView(APIView):
             application = Application.objects.get(pk=application_id)
         except Application.DoesNotExist:
             return Response({'error': f'Candidatura {application_id} não encontrada.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Recrutador só pode alterar candidaturas das suas próprias vagas
+        is_admin = request.user.is_staff or request.user.is_admin
+        if not is_admin and application.job.created_by != request.user:
+            return Response({'error': 'Sem permissão para alterar esta candidatura.'}, status=status.HTTP_403_FORBIDDEN)
 
         new_status = request.data.get('status')
         valid = [s[0] for s in Application.STATUS_CHOICES]
@@ -92,6 +96,11 @@ class RecruiterNotesView(APIView):
             application = Application.objects.get(pk=application_id)
         except Application.DoesNotExist:
             return Response({'error': f'Candidatura {application_id} não encontrada.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Recrutador só pode adicionar notas às candidaturas das suas próprias vagas
+        is_admin = request.user.is_staff or request.user.is_admin
+        if not is_admin and application.job.created_by != request.user:
+            return Response({'error': 'Sem permissão para aceder a esta candidatura.'}, status=status.HTTP_403_FORBIDDEN)
 
         notes = request.data.get('recruiter_notes', '')
         application.recruiter_notes = notes

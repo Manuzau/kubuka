@@ -12,14 +12,30 @@ from django.core.paginator import Paginator
 
 from django.db.models import Avg, Count, Q
 from django.db.models.functions import TruncWeek
-from .models import User, Resume, Job, Application
-from .forms import CandidateSignupForm, RecruiterSignupForm, ResumeUploadForm, ResumeUpdateForm, JobForm, ProfileEditForm
+from .models import User, Resume, Job, Application, AuditLog, Notification
+from .forms import CandidateSignupForm, RecruiterSignupForm, ResumeUploadForm, ResumeUpdateForm, JobForm, ProfileEditForm, ApplicationForm
 from .cv_processor import extract_text_from_pdf
 from .ai_service import send_cv_to_n8n, send_application_for_scoring
 from .notifications import notify_candidate
-from .models import Notification
+from .rate_limit import rate_limit
 
 logger = logging.getLogger(__name__)
+
+
+def _get_ip(request):
+    x_forwarded = request.META.get('HTTP_X_FORWARDED_FOR', '')
+    if x_forwarded:
+        return x_forwarded.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR', '')
+
+
+def _log_audit(request, action, detail=''):
+    AuditLog.objects.create(
+        user=request.user,
+        action=action,
+        detail=detail,
+        ip_address=_get_ip(request) or None,
+    )
 
 
 class HomeView(TemplateView):
@@ -53,15 +69,17 @@ class RecruiterSignupView(CreateView):
     def form_valid(self, form):
         user = form.save(commit=False)
         user.is_recruiter = True
+        user.recruiter_approved = False  # Admin deve aprovar antes do primeiro acesso
         user.save()
         messages.success(
             self.request,
-            'Conta de recrutador criada com sucesso. Pode agora iniciar sessão.'
+            'Conta de recrutador criada. Aguarde a aprovação do administrador antes de iniciar sessão.'
         )
         return super().form_valid(form)
 
 
 @login_required
+@rate_limit(rate='5/m', key='user')
 def upload_resume(request):
     if not request.user.is_candidate:
         return redirect('home')
@@ -245,7 +263,10 @@ def _build_dashboard_context(request):
 
 @login_required
 def admin_dashboard(request, view_mode=None):
-    if not (request.user.is_staff or request.user.is_admin or request.user.is_recruiter):
+    is_approved_recruiter = request.user.is_recruiter and request.user.recruiter_approved
+    if not (request.user.is_staff or request.user.is_admin or is_approved_recruiter):
+        if request.user.is_recruiter:
+            messages.error(request, 'A sua conta de recrutador ainda não foi aprovada pelo administrador.')
         return redirect('home')
 
     if view_mode is None:
@@ -273,7 +294,8 @@ def admin_dashboard(request, view_mode=None):
 
 @login_required
 def analytics_dashboard(request):
-    if not (request.user.is_staff or request.user.is_admin or request.user.is_recruiter):
+    is_approved_recruiter = request.user.is_recruiter and request.user.recruiter_approved
+    if not (request.user.is_staff or request.user.is_admin or is_approved_recruiter):
         return redirect('home')
 
     is_recruiter_only = request.user.is_recruiter and not (request.user.is_staff or request.user.is_admin)
@@ -423,24 +445,75 @@ def apply_job(request, pk):
         return redirect('upload_resume')
 
     existing = Application.objects.filter(candidate=request.user, job=job).first()
-    if existing:
-        if existing.status == 'withdrawn':
-            existing.status = 'pending'
-            existing.save(update_fields=['status', 'updated_at'])
-            send_application_for_scoring(existing)
-            messages.success(request, f'Re-candidatura submetida com sucesso para: {job.title}!')
-        else:
-            messages.info(request, 'Já se candidatou a esta vaga.')
-    else:
-        application = Application.objects.create(
-            candidate=request.user,
-            job=job,
-            status='pending',
-        )
-        send_application_for_scoring(application)
-        messages.success(request, f'Candidatura submetida com sucesso para: {job.title}!')
+    if existing and existing.status not in ('withdrawn',):
+        messages.info(request, 'Já se candidatou a esta vaga.')
+        return redirect('job_detail', pk=pk)
 
-    return redirect('job_list')
+    if request.method == 'POST':
+        form = ApplicationForm(request.POST, request.FILES)
+        if form.is_valid():
+            cv_file = form.cleaned_data.get('cv_file')
+
+            if existing:
+                # Re-candidatura após retirada
+                application = existing
+                application.status = 'pending'
+                application.similarity_score = 0.0
+                application.match_feedback = ''
+                application.awaiting_score = False
+                update_fields = ['status', 'similarity_score', 'match_feedback', 'awaiting_score', 'updated_at']
+            else:
+                application = Application(candidate=request.user, job=job, status='pending')
+                update_fields = None  # vai usar .save() completo
+
+            if cv_file:
+                # Guardar e extrair texto do CV específico
+                if application.cv_file:
+                    try:
+                        application.cv_file.delete(save=False)
+                    except Exception:
+                        pass
+                application.cv_file = cv_file
+                if update_fields:
+                    update_fields.extend(['cv_file', 'cv_parsed_text'])
+                try:
+                    if update_fields:
+                        application.save(update_fields=update_fields)
+                    else:
+                        application.save()
+                    texto = extract_text_from_pdf(application.cv_file.path)
+                    application.cv_parsed_text = texto or ''
+                    application.save(update_fields=['cv_parsed_text'])
+                except Exception as exc:
+                    logger.error(f"[apply_job] Erro ao extrair CV específico: {exc}")
+                    application.cv_parsed_text = ''
+                    application.save(update_fields=['cv_parsed_text'])
+            else:
+                application.cv_file = None
+                application.cv_parsed_text = ''
+                if update_fields:
+                    update_fields.extend(['cv_file', 'cv_parsed_text'])
+                if update_fields:
+                    application.save(update_fields=update_fields)
+                else:
+                    application.save()
+
+            send_application_for_scoring(application)
+
+            if existing:
+                messages.success(request, f'Re-candidatura submetida com sucesso para: {job.title}!')
+            else:
+                messages.success(request, f'Candidatura submetida com sucesso para: {job.title}!')
+            return redirect('job_list')
+    else:
+        form = ApplicationForm()
+
+    return render(request, 'recruitment/apply_job.html', {
+        'job': job,
+        'form': form,
+        'profile_resume': getattr(request.user, 'resume', None),
+        'is_reapply': existing is not None,
+    })
 
 
 # ---------------------------------------------------------------------------
@@ -453,8 +526,9 @@ class JobRecruiterListView(LoginRequiredMixin, ListView):
     context_object_name = 'jobs'
 
     def dispatch(self, request, *args, **kwargs):
-        if not (request.user.is_recruiter or request.user.is_staff or request.user.is_admin):
-            messages.error(request, 'Acesso restrito a recrutadores.')
+        is_approved = request.user.is_recruiter and request.user.recruiter_approved
+        if not (is_approved or request.user.is_staff or request.user.is_admin):
+            messages.error(request, 'Acesso restrito a recrutadores aprovados.')
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
 
@@ -472,8 +546,9 @@ class JobCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('job_manage')
 
     def dispatch(self, request, *args, **kwargs):
-        if not (request.user.is_recruiter or request.user.is_staff or request.user.is_admin):
-            messages.error(request, 'Acesso restrito a recrutadores.')
+        is_approved = request.user.is_recruiter and request.user.recruiter_approved
+        if not (is_approved or request.user.is_staff or request.user.is_admin):
+            messages.error(request, 'Acesso restrito a recrutadores aprovados.')
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
 
@@ -490,8 +565,9 @@ class JobUpdateView(LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy('job_manage')
 
     def dispatch(self, request, *args, **kwargs):
-        if not (request.user.is_recruiter or request.user.is_staff or request.user.is_admin):
-            messages.error(request, 'Acesso restrito a recrutadores.')
+        is_approved = request.user.is_recruiter and request.user.recruiter_approved
+        if not (is_approved or request.user.is_staff or request.user.is_admin):
+            messages.error(request, 'Acesso restrito a recrutadores aprovados.')
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
 
@@ -513,7 +589,13 @@ def application_update_status_view(request, pk):
         return redirect('home')
 
     from django.utils.dateparse import parse_datetime
+    is_admin = request.user.is_staff or request.user.is_admin
     application = get_object_or_404(Application, pk=pk)
+
+    # Recrutador só pode gerir candidaturas das suas próprias vagas
+    if not is_admin and application.job.created_by != request.user:
+        messages.error(request, 'Sem permissão para alterar esta candidatura.')
+        return redirect('admin_dashboard')
     new_status = request.POST.get('status')
     valid = [s[0] for s in Application.STATUS_CHOICES]
 
@@ -539,6 +621,8 @@ def application_update_status_view(request, pk):
         application.save(update_fields=update_fields)
         notify_candidate(application)
         label = application.get_status_display()
+        _log_audit(request, 'status_change',
+                   f'Candidatura pk={pk} ({application.candidate.username} → {application.job.title}) → {label}.')
         messages.success(request, f'Candidatura de {application.candidate.username} marcada como: {label}.')
     else:
         messages.error(request, 'Estado inválido.')
@@ -554,6 +638,9 @@ def export_applications_csv(request):
     applications = Application.objects.select_related('candidate', 'candidate__resume', 'job').order_by('-similarity_score')
     if request.user.is_recruiter and not (request.user.is_staff or request.user.is_admin):
         applications = applications.filter(job__created_by=request.user)
+
+    _log_audit(request, 'export_csv',
+               f'Exportação de {applications.count()} candidaturas.')
 
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     response['Content-Disposition'] = 'attachment; filename="candidaturas.csv"'
@@ -578,9 +665,11 @@ def export_applications_csv(request):
 def job_toggle_active(request, pk):
     if not (request.user.is_recruiter or request.user.is_staff or request.user.is_admin):
         return redirect('home')
-    job = get_object_or_404(Job, pk=pk)
+    is_admin = request.user.is_staff or request.user.is_admin
+    job = get_object_or_404(Job, pk=pk) if is_admin else get_object_or_404(Job, pk=pk, created_by=request.user)
     job.is_active = not job.is_active
     job.save(update_fields=['is_active'])
     estado = 'activada' if job.is_active else 'desactivada'
+    _log_audit(request, 'job_toggle', f'Vaga "{job.title}" (pk={job.pk}) {estado}.')
     messages.success(request, f'Vaga "{job.title}" {estado}.')
     return redirect('job_manage')

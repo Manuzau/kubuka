@@ -47,20 +47,37 @@ def send_application_for_scoring(application):
     )
 
     resume = getattr(application.candidate, 'resume', None)
+
+    # Usar CV específico da candidatura se disponível; caso contrário usa o CV do perfil
+    if application.cv_parsed_text:
+        candidate_skills = application.cv_parsed_text
+        candidate_summary = ''
+        candidate_experience = ''
+        cv_source = 'specific'
+    else:
+        candidate_skills = resume.skills if resume else ''
+        candidate_summary = resume.summary if resume else ''
+        candidate_experience = resume.experience if resume else ''
+        cv_source = 'profile'
+
     payload = {
         'application_id': application.pk,
-        'candidate_skills': resume.skills if resume else '',
-        'candidate_summary': resume.summary if resume else '',
-        'candidate_experience': resume.experience if resume else '',
+        'candidate_skills': candidate_skills,
+        'candidate_summary': candidate_summary,
+        'candidate_experience': candidate_experience,
         'job_title': application.job.title,
         'job_requirements': application.job.requirements,
         'callback_url': callback_url,
+        'cv_source': cv_source,
     }
     headers = {'X-Kubuka-Secret': getattr(settings, 'N8N_CALLBACK_SECRET', '')}
 
     try:
         response = requests.post(webhook_url, json=payload, headers=headers, timeout=30)
         response.raise_for_status()
+        # Marca a candidatura como aguardando resultado — só agora o callback é autorizado
+        application.awaiting_score = True
+        application.save(update_fields=['awaiting_score'])
         logger.info(f"[ai_service] Application {application.pk} enviada ao n8n — status {response.status_code}")
         return True
     except requests.RequestException as exc:
