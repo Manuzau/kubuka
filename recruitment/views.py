@@ -539,8 +539,10 @@ class JobRecruiterListView(LoginRequiredMixin, ListView):
     context_object_name = 'jobs'
 
     def dispatch(self, request, *args, **kwargs):
-        is_approved = request.user.is_recruiter and request.user.recruiter_approved
-        if not (is_approved or request.user.is_staff or request.user.is_admin):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+        is_approved = getattr(request.user, 'is_recruiter', False) and getattr(request.user, 'recruiter_approved', False)
+        if not (is_approved or request.user.is_staff or getattr(request.user, 'is_admin', False)):
             messages.error(request, 'Acesso restrito a recrutadores aprovados.')
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
@@ -559,8 +561,10 @@ class JobCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('job_manage')
 
     def dispatch(self, request, *args, **kwargs):
-        is_approved = request.user.is_recruiter and request.user.recruiter_approved
-        if not (is_approved or request.user.is_staff or request.user.is_admin):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+        is_approved = getattr(request.user, 'is_recruiter', False) and getattr(request.user, 'recruiter_approved', False)
+        if not (is_approved or request.user.is_staff or getattr(request.user, 'is_admin', False)):
             messages.error(request, 'Acesso restrito a recrutadores aprovados.')
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
@@ -578,8 +582,10 @@ class JobUpdateView(LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy('job_manage')
 
     def dispatch(self, request, *args, **kwargs):
-        is_approved = request.user.is_recruiter and request.user.recruiter_approved
-        if not (is_approved or request.user.is_staff or request.user.is_admin):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+        is_approved = getattr(request.user, 'is_recruiter', False) and getattr(request.user, 'recruiter_approved', False)
+        if not (is_approved or request.user.is_staff or getattr(request.user, 'is_admin', False)):
             messages.error(request, 'Acesso restrito a recrutadores aprovados.')
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
