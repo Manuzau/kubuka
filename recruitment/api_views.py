@@ -25,10 +25,6 @@ class ResumeViewSet(viewsets.GenericViewSet,
                     viewsets.mixins.RetrieveModelMixin,
                     viewsets.mixins.ListModelMixin,
                     viewsets.mixins.CreateModelMixin):
-    """
-    Endpoint somente leitura/criação — sem update nem delete pela API.
-    O texto bruto do CV (parsed_text) nunca é exposto neste serializer.
-    """
     serializer_class = ResumeSerializer
     permission_classes = [permissions.IsAuthenticated]
 
