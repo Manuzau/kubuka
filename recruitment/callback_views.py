@@ -12,10 +12,8 @@ logger = logging.getLogger(__name__)
 
 
 def _verify_secret(request):
-    """
-    Verifica o header X-Kubuka-Secret com comparação em tempo constante.
-    Falha-fechado: se o secret não estiver configurado, nega sempre o acesso.
-    """
+    # Comparação em tempo constante para evitar timing attacks.
+    # Se o secret não estiver configurado no .env, bloqueia sempre.
     expected = getattr(settings, 'N8N_CALLBACK_SECRET', '') or getattr(settings, 'CALLBACK_SECRET', '')
     if not expected:
         logger.error("[security] N8N_CALLBACK_SECRET não configurado — callback bloqueado por segurança.")

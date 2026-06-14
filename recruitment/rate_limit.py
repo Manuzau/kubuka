@@ -1,19 +1,10 @@
-"""
-Rate limiting simples baseado na cache do Django.
-Uso: @rate_limit(rate='5/m') numa view function.
-"""
 from functools import wraps
 from django.core.cache import cache
 from django.http import HttpResponse
 
 
 def rate_limit(rate='5/m', key='ip'):
-    """
-    Decorador de rate limiting por IP ou utilizador autenticado.
-
-    rate: 'N/s', 'N/m' ou 'N/h'
-    key:  'ip' (por endereço IP) ou 'user' (por utilizador autenticado)
-    """
+    # Limita pedidos por IP ou utilizador. rate: '5/m', '10/h', etc.
     def decorator(view_func):
         @wraps(view_func)
         def wrapped(request, *args, **kwargs):

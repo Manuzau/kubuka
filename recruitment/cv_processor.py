@@ -55,16 +55,7 @@ if OCR_AVAILABLE:
 
 
 def extract_text_from_pdf(pdf_path: str) -> str:
-    """
-    Extrai texto de um ficheiro PDF.
-
-    Estratégia:
-    1. Tenta pdfplumber (PDFs com texto incorporado).
-    2. Se o resultado for insuficiente (< 50 caracteres), usa OCR com
-       pytesseract via pdf2image — requer Tesseract e Poppler instalados.
-
-    Retorna uma string UTF-8 limpa.
-    """
+    # Tenta pdfplumber primeiro; se o texto extraído for muito curto usa OCR.
     texto = ""
 
     # --- Fase 1: pdfplumber ---
