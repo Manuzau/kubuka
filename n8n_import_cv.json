@@ -1,0 +1,178 @@
+{
+  "name": "KUBUKA — Análise de CV",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "cv-analysis",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wh-cv-01",
+      "name": "Webhook — Receber CV",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"estado\": \"processando\"}"
+      },
+      "id": "resp-cv-01",
+      "name": "Resposta Imediata",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        440,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $('Webhook — Receber CV').first().json.body;\nconst resumeId = body.resume_id;\nconst callbackUrl = body.callback_url;\nconst cvText = (body.cv_text || '').slice(0, 8000);\n\nconst fields = [\n  'score: número inteiro entre 0 e 100 representando a qualidade geral do CV',\n  'skills: lista de competências técnicas e soft skills como array de strings',\n  'summary: resumo profissional do candidato em 2-3 frases',\n  'experience: experiência profissional estruturada em texto',\n  'education: formação académica',\n  'languages: idiomas encontrados no CV',\n  'feedback: análise com pontos fortes e sugestões de melhoria'\n];\n\nconst prompt = 'Analisa o seguinte currículo. Responde APENAS com um JSON válido contendo exactamente estes campos:\\n' +\n  fields.join('\\n') +\n  '\\n\\nCurrículo:\\n' + cvText;\n\nconst requestBody = JSON.stringify({\n  model: 'llama3.2',\n  stream: false,\n  format: 'json',\n  prompt: prompt\n});\n\nreturn [{ json: { resume_id: resumeId, callback_url: callbackUrl, requestBody } }];"
+      },
+      "id": "build-cv-01",
+      "name": "Construir Prompt CV",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:11434/api/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "string",
+        "body": "={{ $json.requestBody }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "ollama-cv-01",
+      "name": "Ollama — Analisar CV",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ollamaResp = $input.first().json;\nconst metadata = $('Construir Prompt CV').first().json;\n\nlet analysis = {};\ntry {\n  const raw = ollamaResp.response || ollamaResp.text || '{}';\n  analysis = JSON.parse(raw);\n} catch(e) {\n  analysis = {};\n}\n\nconst score = Math.min(100, Math.max(0, parseFloat(analysis.score) || 50));\nconst skills = Array.isArray(analysis.skills)\n  ? analysis.skills.join(', ')\n  : String(analysis.skills || 'Não identificadas').trim();\nconst summary = String(analysis.summary || 'Resumo não disponível').trim();\nconst experience = String(analysis.experience || 'Não especificada').trim();\nconst education = String(analysis.education || 'Não especificada').trim();\nconst languages = String(analysis.languages || 'Não identificados').trim();\nconst feedback = String(analysis.feedback || 'Análise concluída.').trim();\n\nconst requestBody = JSON.stringify({\n  score, skills, summary, experience, education, languages, feedback\n});\n\nreturn [{\n  json: {\n    callback_url: metadata.callback_url,\n    resume_id: metadata.resume_id,\n    requestBody\n  }\n}];"
+      },
+      "id": "parse-cv-01",
+      "name": "Processar Resultado CV",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        920,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.callback_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Kubuka-Secret",
+              "value": "={{ $env.N8N_CALLBACK_SECRET }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "string",
+        "body": "={{ $json.requestBody }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "django-cv-01",
+      "name": "Django — Actualizar BD",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1160,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook — Receber CV": {
+      "main": [
+        [
+          {
+            "node": "Resposta Imediata",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Construir Prompt CV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir Prompt CV": {
+      "main": [
+        [
+          {
+            "node": "Ollama — Analisar CV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama — Analisar CV": {
+      "main": [
+        [
+          {
+            "node": "Processar Resultado CV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Processar Resultado CV": {
+      "main": [
+        [
+          {
+            "node": "Django — Actualizar BD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "id": "kubuka-cv-analysis-001"
+}
