@@ -64,5 +64,21 @@
     </div>
     {% endif %}
 
+    {% if page_obj.has_other_pages %}
+    <div class="flex items-center justify-center gap-2 mt-8">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}"
+           class="px-4 py-2 rounded-xl text-sm font-semibold glass hover:bg-white/10 transition-colors">← Anterior</a>
+        {% endif %}
+        <span class="text-xs px-3 py-2 rounded-xl glass" style="color:rgba(241,245,249,0.5);">
+            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+        </span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}"
+           class="px-4 py-2 rounded-xl text-sm font-semibold glass hover:bg-white/10 transition-colors">Seguinte →</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
 </div>
 {% endblock %}

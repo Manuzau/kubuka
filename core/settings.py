@@ -113,9 +113,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "pt-pt"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Africa/Luanda"
 
 USE_I18N = True
 
@@ -126,6 +126,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -188,3 +189,17 @@ AXES_FAILURE_LIMIT = 5          # Bloquear após 5 tentativas falhadas
 AXES_COOLOFF_TIME = 1           # Cooldown de 1 hora
 AXES_RESET_ON_SUCCESS = True    # Reinicia contador após login bem-sucedido
 AXES_LOCKOUT_PARAMETERS = ['username', 'ip_address']
+
+# ---------------------------------------------------------------------------
+# Django REST Framework — throttling global
+# ---------------------------------------------------------------------------
+REST_FRAMEWORK = {
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '20/hour',
+        'user': '200/hour',
+    },
+}

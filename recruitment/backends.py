@@ -11,6 +11,8 @@ class EmailOrUsernameBackend(ModelBackend):
             else:
                 user = UserModel.objects.get(username=username)
         except UserModel.DoesNotExist:
+            # Equalizar o tempo de resposta para não revelar se o utilizador existe
+            UserModel().set_password(password)
             return None
         if user.check_password(password) and self.user_can_authenticate(user):
             return user

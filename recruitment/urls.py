@@ -65,7 +65,6 @@ urlpatterns = [
     path('recruiter/jobs/new/', views.JobCreateView.as_view(), name='job_create'),
     path('recruiter/jobs/<int:pk>/edit/', views.JobUpdateView.as_view(), name='job_edit'),
     path('recruiter/jobs/<int:pk>/toggle/', views.job_toggle_active, name='job_toggle_active'),
-    path('recruiter/jobs/<int:pk>/toggle/', views.job_toggle_active, name='job_toggle'),
     path('application/<int:pk>/update-status/', views.application_update_status_view, name='application_update_status_view'),
 
     # Callbacks internos do n8n

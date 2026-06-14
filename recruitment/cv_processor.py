@@ -1,6 +1,9 @@
+import logging
 import os
 import subprocess
 import pdfplumber
+
+logger = logging.getLogger(__name__)
 
 # Tentativa de importar dependências opcionais de OCR
 try:
@@ -72,22 +75,21 @@ def extract_text_from_pdf(pdf_path: str) -> str:
                 if conteudo:
                     texto += conteudo + "\n"
     except Exception as erro:
-        print(f"[cv_processor] pdfplumber falhou: {erro}")
+        logger.error(f"[cv_processor] pdfplumber falhou: {erro}")
 
     # --- Fase 2: OCR como fallback ---
     if len(texto.strip()) < 50:
         if not OCR_AVAILABLE:
-            print("[cv_processor] pytesseract/pdf2image não instalados. Instale com:")
-            print("  pip install pytesseract pdf2image")
+            logger.warning("[cv_processor] pytesseract/pdf2image não instalados — OCR indisponível.")
             return texto.strip()
 
         if not _poppler_disponivel():
-            print("[cv_processor] Poppler não encontrado. Instale com: choco install poppler")
+            logger.warning("[cv_processor] Poppler não encontrado — OCR indisponível.")
             return texto.strip()
 
         caminho_tesseract = _find_tesseract()
         if not caminho_tesseract:
-            print("[cv_processor] Tesseract não encontrado. Instale com: choco install tesseract")
+            logger.warning("[cv_processor] Tesseract não encontrado — OCR indisponível.")
             return texto.strip()
 
         try:
@@ -95,6 +97,6 @@ def extract_text_from_pdf(pdf_path: str) -> str:
             for imagem in imagens:
                 texto += pytesseract.image_to_string(imagem, lang="por") + "\n"
         except Exception as erro:
-            print(f"[cv_processor] OCR falhou: {erro}")
+            logger.error(f"[cv_processor] OCR falhou: {erro}")
 
     return texto.strip()

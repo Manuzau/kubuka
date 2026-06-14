@@ -21,7 +21,14 @@ class IsRecruiterOrAdmin(permissions.BasePermission):
         return bool(is_approved_recruiter or request.user.is_staff or request.user.is_admin)
 
 
-class ResumeViewSet(viewsets.ModelViewSet):
+class ResumeViewSet(viewsets.GenericViewSet,
+                    viewsets.mixins.RetrieveModelMixin,
+                    viewsets.mixins.ListModelMixin,
+                    viewsets.mixins.CreateModelMixin):
+    """
+    Endpoint somente leitura/criação — sem update nem delete pela API.
+    O texto bruto do CV (parsed_text) nunca é exposto neste serializer.
+    """
     serializer_class = ResumeSerializer
     permission_classes = [permissions.IsAuthenticated]
 

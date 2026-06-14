@@ -3,7 +3,6 @@ djangorestframework
 django-environ
 django-axes
 pillow
-PyPDF2
 pdfplumber
 requests
 

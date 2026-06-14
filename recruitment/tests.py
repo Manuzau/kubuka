@@ -8,8 +8,8 @@ from django.core.files.base import ContentFile
 from .models import User, Resume, Job, Application, Notification
 from .notifications import notify_candidate
 
-# Disable secret verification for all callback tests
-_NO_SECRET = override_settings(N8N_CALLBACK_SECRET='', CALLBACK_SECRET='')
+_TEST_SECRET = 'test-secret-token-for-unit-tests'
+_NO_SECRET = override_settings(N8N_CALLBACK_SECRET=_TEST_SECRET, CALLBACK_SECRET=_TEST_SECRET)
 
 
 # ---------------------------------------------------------------------------
@@ -89,11 +89,18 @@ class AccessControlTests(TestCase):
     def setUp(self):
         self.client = Client()
         self.candidate = User.objects.create_user(username='cand', password='pass', is_candidate=True)
-        self.recruiter = User.objects.create_user(username='rec', password='pass', is_recruiter=True)
+        self.recruiter = User.objects.create_user(
+            username='rec', password='pass', is_recruiter=True, recruiter_approved=True
+        )
         self.admin = User.objects.create_user(username='adm', password='pass', is_staff=True)
 
     def _login(self, username):
-        self.client.login(username=username, password='pass')
+        user_map = {
+            'cand': self.candidate,
+            'rec': self.recruiter,
+            'adm': self.admin,
+        }
+        self.client.force_login(user_map[username])
 
     def test_dashboard_redirects_anonymous(self):
         resp = self.client.get(reverse('admin_dashboard'))
@@ -102,6 +109,14 @@ class AccessControlTests(TestCase):
 
     def test_candidate_cannot_access_dashboard(self):
         self._login('cand')
+        resp = self.client.get(reverse('admin_dashboard'))
+        self.assertRedirects(resp, reverse('home'))
+
+    def test_unapproved_recruiter_cannot_access_dashboard(self):
+        unapproved = User.objects.create_user(
+            username='rec_unap', password='pass', is_recruiter=True, recruiter_approved=False
+        )
+        self.client.force_login(unapproved)
         resp = self.client.get(reverse('admin_dashboard'))
         self.assertRedirects(resp, reverse('home'))
 
@@ -155,13 +170,13 @@ class JobViewTests(TestCase):
         )
 
     def test_job_list_visible(self):
-        self.client.login(username='cand', password='pass')
+        self.client.force_login(self.candidate)
         resp = self.client.get(reverse('job_list'))
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'Engenheiro')
 
     def test_job_detail_visible(self):
-        self.client.login(username='cand', password='pass')
+        self.client.force_login(self.candidate)
         resp = self.client.get(reverse('job_detail', kwargs={'pk': self.job.pk}))
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'Engenheiro')
@@ -170,18 +185,18 @@ class JobViewTests(TestCase):
     def test_job_detail_inactive_returns_404(self):
         self.job.is_active = False
         self.job.save()
-        self.client.login(username='cand', password='pass')
+        self.client.force_login(self.candidate)
         resp = self.client.get(reverse('job_detail', kwargs={'pk': self.job.pk}))
         self.assertEqual(resp.status_code, 404)
 
     def test_apply_without_resume_redirects(self):
-        self.client.login(username='cand', password='pass')
+        self.client.force_login(self.candidate)
         resp = self.client.post(reverse('apply_job', kwargs={'pk': self.job.pk}))
         self.assertRedirects(resp, reverse('upload_resume'))
 
     def test_apply_with_resume_creates_application(self):
         Resume.objects.create(candidate=self.candidate, file=ContentFile(b'%PDF', name='cv.pdf'), parsed_text='Python')
-        self.client.login(username='cand', password='pass')
+        self.client.force_login(self.candidate)
         with patch('recruitment.views.send_application_for_scoring'):
             resp = self.client.post(reverse('apply_job', kwargs={'pk': self.job.pk}))
         self.assertEqual(resp.status_code, 302)
@@ -189,7 +204,7 @@ class JobViewTests(TestCase):
 
     def test_apply_twice_does_not_duplicate(self):
         Resume.objects.create(candidate=self.candidate, file=ContentFile(b'%PDF', name='cv.pdf'), parsed_text='Python')
-        self.client.login(username='cand', password='pass')
+        self.client.force_login(self.candidate)
         with patch('recruitment.views.send_application_for_scoring'):
             self.client.post(reverse('apply_job', kwargs={'pk': self.job.pk}))
             self.client.post(reverse('apply_job', kwargs={'pk': self.job.pk}))
@@ -198,7 +213,7 @@ class JobViewTests(TestCase):
     def test_withdraw_then_reapply(self):
         Resume.objects.create(candidate=self.candidate, file=ContentFile(b'%PDF', name='cv.pdf'), parsed_text='Python')
         app = Application.objects.create(candidate=self.candidate, job=self.job, status='pending')
-        self.client.login(username='cand', password='pass')
+        self.client.force_login(self.candidate)
         self.client.post(reverse('withdraw_application', kwargs={'application_id': app.pk}))
         app.refresh_from_db()
         self.assertEqual(app.status, 'withdrawn')
@@ -262,7 +277,7 @@ class NotificationTests(TestCase):
     def test_notifications_view_shows_unread(self):
         Notification.objects.create(user=self.candidate, message='Teste', application=self.app)
         client = Client()
-        client.login(username='cand', password='pass')
+        client.force_login(self.candidate)
         resp = client.get(reverse('notifications'))
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'Teste')
@@ -271,7 +286,7 @@ class NotificationTests(TestCase):
         notif = Notification.objects.create(user=self.candidate, message='Teste', application=self.app)
         self.assertFalse(notif.is_read)
         client = Client()
-        client.login(username='cand', password='pass')
+        client.force_login(self.candidate)
         client.post(reverse('mark_notification_read', kwargs={'pk': notif.pk}))
         notif.refresh_from_db()
         self.assertTrue(notif.is_read)
@@ -291,7 +306,7 @@ class AutoTriageTests(TestCase):
             created_by=self.recruiter, contact_email_primary='hr@co.com',
             min_score_required=60.0,
         )
-        self.app = Application.objects.create(candidate=self.candidate, job=self.job)
+        self.app = Application.objects.create(candidate=self.candidate, job=self.job, awaiting_score=True)
 
     def _post_score(self, score):
         from .callback_views import application_score_result
@@ -300,6 +315,7 @@ class AutoTriageTests(TestCase):
             f'/api/application/{self.app.pk}/score-result/',
             data=json.dumps({'similarity_score': score}),
             content_type='application/json',
+            HTTP_X_KUBUKA_SECRET=_TEST_SECRET,
         )
         return application_score_result(request, self.app.pk)
 
@@ -342,13 +358,13 @@ class ProfileEditTests(TestCase):
         )
 
     def test_profile_get(self):
-        self.client.login(username='rec', password='pass')
+        self.client.force_login(self.recruiter)
         resp = self.client.get(reverse('profile'))
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'rec@test.com')
 
     def test_profile_edit_name_and_company(self):
-        self.client.login(username='rec', password='pass')
+        self.client.force_login(self.recruiter)
         resp = self.client.post(reverse('profile'), {
             'first_name': 'Manuel',
             'last_name': 'Zau',
@@ -364,7 +380,7 @@ class ProfileEditTests(TestCase):
 
     def test_profile_edit_candidate(self):
         candidate = User.objects.create_user(username='cand', password='pass', is_candidate=True, email='c@test.com')
-        self.client.login(username='cand', password='pass')
+        self.client.force_login(candidate)
         resp = self.client.post(reverse('profile'), {
             'first_name': 'Ana',
             'last_name': 'Silva',
@@ -386,12 +402,16 @@ class CallbackTests(TestCase):
         self.candidate = User.objects.create_user(username='cand', password='pass', is_candidate=True, email='c@test.com')
         self.recruiter = User.objects.create_user(username='rec', password='pass', is_recruiter=True)
         self.job = Job.objects.create(title='Dev', company='Co', description='d', requirements='r', location='L', created_by=self.recruiter)
-        self.app = Application.objects.create(candidate=self.candidate, job=self.job)
+        self.app = Application.objects.create(candidate=self.candidate, job=self.job, awaiting_score=True)
 
     def _post_score(self, score):
         from .callback_views import application_score_result
         factory = RequestFactory()
-        req = factory.post('/', data=json.dumps({'similarity_score': score}), content_type='application/json')
+        req = factory.post(
+            '/', data=json.dumps({'similarity_score': score}),
+            content_type='application/json',
+            HTTP_X_KUBUKA_SECRET=_TEST_SECRET,
+        )
         return application_score_result(req, self.app.pk)
 
     def test_score_saved(self):
@@ -402,14 +422,21 @@ class CallbackTests(TestCase):
     def test_invalid_json_returns_400(self):
         from .callback_views import application_score_result
         factory = RequestFactory()
-        req = factory.post('/', data='not json', content_type='application/json')
+        req = factory.post(
+            '/', data='not json', content_type='application/json',
+            HTTP_X_KUBUKA_SECRET=_TEST_SECRET,
+        )
         resp = application_score_result(req, self.app.pk)
         self.assertEqual(resp.status_code, 400)
 
     def test_missing_score_field_returns_400(self):
         from .callback_views import application_score_result
         factory = RequestFactory()
-        req = factory.post('/', data=json.dumps({'other': 'value'}), content_type='application/json')
+        req = factory.post(
+            '/', data=json.dumps({'other': 'value'}),
+            content_type='application/json',
+            HTTP_X_KUBUKA_SECRET=_TEST_SECRET,
+        )
         resp = application_score_result(req, self.app.pk)
         self.assertEqual(resp.status_code, 400)
 
