@@ -1,0 +1,178 @@
+{
+  "name": "KUBUKA — Scoring de Candidatura",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "job-scoring",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wh-score-01",
+      "name": "Webhook — Scoring de Candidatura",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"estado\": \"calculando_score\"}"
+      },
+      "id": "resp-score-01",
+      "name": "Resposta Imediata Score",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        440,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $('Webhook — Scoring de Candidatura').first().json.body;\nconst appId = body.application_id;\nconst callbackUrl = body.callback_url;\nconst skills = String(body.candidate_skills || '').slice(0, 2000);\nconst summary = String(body.candidate_summary || '').slice(0, 1000);\nconst experience = String(body.candidate_experience || '').slice(0, 2000);\nconst jobTitle = String(body.job_title || '');\nconst requirements = String(body.job_requirements || '').slice(0, 3000);\n\nconst fields = [\n  'similarity_score: número inteiro entre 0 e 100 representando a correspondência candidato-vaga',\n  'match_feedback: explicação detalhada da correspondência, pontos fortes do candidato para esta vaga e lacunas identificadas'\n];\n\nconst prompt = 'Compara o perfil do candidato com os requisitos da vaga. Responde APENAS com um JSON válido contendo exactamente estes campos:\\n' +\n  fields.join('\\n') +\n  '\\n\\nPerfil do candidato:\\nSkills: ' + skills +\n  '\\nResumo: ' + summary +\n  '\\nExperiência: ' + experience +\n  '\\n\\nVaga: ' + jobTitle +\n  '\\nRequisitos: ' + requirements;\n\nconst requestBody = JSON.stringify({\n  model: 'llama3.2',\n  stream: false,\n  format: 'json',\n  prompt: prompt\n});\n\nreturn [{ json: { application_id: appId, callback_url: callbackUrl, requestBody } }];"
+      },
+      "id": "build-score-01",
+      "name": "Construir Prompt Score",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:11434/api/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "string",
+        "body": "={{ $json.requestBody }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "ollama-score-01",
+      "name": "Ollama — Calcular Score",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ollamaResp = $input.first().json;\nconst metadata = $('Construir Prompt Score').first().json;\n\nlet result = {};\ntry {\n  const raw = ollamaResp.response || ollamaResp.text || '{}';\n  result = JSON.parse(raw);\n} catch(e) {\n  result = {};\n}\n\nconst similarityScore = Math.min(100, Math.max(0, parseFloat(result.similarity_score) || 0));\nconst matchFeedback = String(result.match_feedback || 'Análise de correspondência não disponível.').trim();\n\nconst requestBody = JSON.stringify({\n  similarity_score: similarityScore,\n  match_feedback: matchFeedback\n});\n\nreturn [{\n  json: {\n    application_id: metadata.application_id,\n    callback_url: metadata.callback_url,\n    requestBody\n  }\n}];"
+      },
+      "id": "parse-score-01",
+      "name": "Processar Score",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        920,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.callback_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Kubuka-Secret",
+              "value": "={{ $env.N8N_CALLBACK_SECRET }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "string",
+        "body": "={{ $json.requestBody }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "django-score-01",
+      "name": "Django — Actualizar Candidatura",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1160,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook — Scoring de Candidatura": {
+      "main": [
+        [
+          {
+            "node": "Resposta Imediata Score",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Construir Prompt Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir Prompt Score": {
+      "main": [
+        [
+          {
+            "node": "Ollama — Calcular Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama — Calcular Score": {
+      "main": [
+        [
+          {
+            "node": "Processar Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Processar Score": {
+      "main": [
+        [
+          {
+            "node": "Django — Actualizar Candidatura",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "id": "kubuka-job-scoring-001"
+}
