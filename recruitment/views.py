@@ -66,6 +66,18 @@ class RecruiterSignupView(CreateView):
     template_name = 'recruitment/signup_recruiter.html'
     success_url = reverse_lazy('login')
 
+    def dispatch(self, request, *args, **kwargs):
+        if request.method == 'POST':
+            from django.core.cache import cache
+            ip = _get_ip(request)
+            key = f'rl:recruiter_signup:ip:{ip}'
+            count = cache.get(key, 0)
+            if count >= 3:
+                messages.error(request, 'Demasiados pedidos. Aguarde alguns minutos antes de tentar novamente.')
+                return redirect('signup_recruiter')
+            cache.set(key, count + 1, timeout=300)
+        return super().dispatch(request, *args, **kwargs)
+
     def form_valid(self, form):
         user = form.save(commit=False)
         user.is_recruiter = True
@@ -180,7 +192,7 @@ def submit_unavailability(request, application_id):
     if application.status != 'interview_scheduled':
         messages.error(request, 'Só pode indicar indisponibilidade para entrevistas agendadas.')
         return redirect('my_applications')
-    reason = request.POST.get('reason', '').strip()
+    reason = request.POST.get('reason', '').strip()[:1000]
     if not reason:
         messages.error(request, 'Por favor indique o motivo da indisponibilidade.')
         return redirect('my_applications')
@@ -199,10 +211,11 @@ def submit_unavailability(request, application_id):
 def notifications_view(request):
     if not request.user.is_candidate:
         return redirect('home')
-    notifications = Notification.objects.filter(user=request.user).select_related('application__job')
-    # Mark all as read on visit
+    qs = Notification.objects.filter(user=request.user).select_related('application__job')
     Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
-    return render(request, 'recruitment/notifications.html', {'notifications': notifications})
+    paginator = Paginator(qs, 15)
+    page_obj = paginator.get_page(request.GET.get('page', 1))
+    return render(request, 'recruitment/notifications.html', {'notifications': page_obj, 'page_obj': page_obj})
 
 
 @login_required
@@ -639,8 +652,16 @@ def export_applications_csv(request):
     if request.user.is_recruiter and not (request.user.is_staff or request.user.is_admin):
         applications = applications.filter(job__created_by=request.user)
 
+    active_filters = []
+    if request.GET.get('job'):
+        active_filters.append(f'vaga={request.GET["job"]}')
+    if request.GET.get('status'):
+        active_filters.append(f'status={request.GET["status"]}')
+    if request.GET.get('min_score'):
+        active_filters.append(f'score>={request.GET["min_score"]}')
+    filter_detail = f' (filtros: {", ".join(active_filters)})' if active_filters else ''
     _log_audit(request, 'export_csv',
-               f'Exportação de {applications.count()} candidaturas.')
+               f'Exportação de {applications.count()} candidaturas{filter_detail}.')
 
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     response['Content-Disposition'] = 'attachment; filename="candidaturas.csv"'

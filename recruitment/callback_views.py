@@ -144,7 +144,7 @@ def application_update_status(request, application_id: int):
     """POST /api/application/<id>/update-status/ — recrutador pré-selecciona ou rejeita."""
     if not request.user.is_authenticated:
         return JsonResponse({'error': 'Autenticação necessária.'}, status=401)
-    if not (request.user.is_recruiter or request.user.is_staff or request.user.is_admin):
+    if not (request.user.is_recruiter or request.user.is_staff or getattr(request.user, 'is_admin', False)):
         return JsonResponse({'error': 'Permissão negada.'}, status=403)
 
     try:
