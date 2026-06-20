@@ -87,8 +87,16 @@ Write-Host ""
 Write-Host "--- Aplicacao Django ---" -ForegroundColor DarkGray
 Set-Location $ProjectDir
 
+# Usar sempre o Python do ambiente virtual do projecto
+$PythonExe = Join-Path $ProjectDir ".venv\Scripts\python.exe"
+if (-not (Test-Path $PythonExe)) {
+    Write-Host "[!] Ambiente virtual nao encontrado em .venv\" -ForegroundColor Red
+    Write-Host "    Cria-o com: python -m venv .venv && .venv\Scripts\activate && pip install -r requirements.txt" -ForegroundColor DarkYellow
+    exit 1
+}
+
 Write-Host "[ ] A verificar migracoes..." -ForegroundColor Yellow
-$migrateOutput = python manage.py migrate 2>&1
+$migrateOutput = & $PythonExe manage.py migrate 2>&1
 $migrateOutput | Where-Object { $_ -match "Applying|No migrations|OK" } | ForEach-Object {
     Write-Host "    $_" -ForegroundColor DarkGray
 }
@@ -106,4 +114,4 @@ Write-Host ""
 Write-Host "A iniciar... (Ctrl+C para parar)" -ForegroundColor Yellow
 Write-Host ""
 
-python manage.py runserver
+& $PythonExe manage.py runserver
