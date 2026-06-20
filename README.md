@@ -47,7 +47,7 @@ O KUBUKA é um sistema web que automatiza a triagem de candidatos em empresas an
 
 ## Arranque rápido
 
-Se já tens tudo instalado, para arrancar o sistema basta:
+Se já tens tudo instalado e configurado (ver secção seguinte), para arrancar o sistema basta:
 
 **Windows — duplo clique em:**
 ```
@@ -59,13 +59,18 @@ run_project.bat
 .\start.ps1
 ```
 
-O script trata de tudo: verifica se o PostgreSQL, o Ollama e o n8n estão a correr, aplica migrações pendentes e arranca o Django em `http://localhost:8000`.
+O script trata de tudo automaticamente:
+1. Verifica se o PostgreSQL está a correr na porta 5432
+2. Inicia o Ollama se não estiver a correr e verifica se o modelo `llama3.2` está disponível
+3. Abre o n8n numa nova janela se não estiver a correr
+4. Aplica migrações Django pendentes
+5. Arranca o Django em `http://localhost:8000`
 
 ---
 
-## Instalação de raiz
+## Instalação de raiz (novo computador)
 
-### 1. O que precisas de instalar
+### 1. Instalar as ferramentas necessárias
 
 **Python 3.10 ou superior**
 Descarrega em https://www.python.org/downloads/ — durante a instalação marca a opção "Add Python to PATH".
@@ -104,7 +109,7 @@ cd kubuka
 
 ---
 
-### 3. Ambiente virtual
+### 3. Criar o ambiente virtual Python
 
 ```bash
 python -m venv .venv
@@ -126,21 +131,51 @@ pip install -r requirements.txt
 
 ---
 
-### 5. Criar a base de dados PostgreSQL
+### 5. Configurar o PostgreSQL
 
-Executa estes comandos como utilizador `postgres` (ou via pgAdmin):
+#### 5a. Criar a base de dados e o utilizador
 
+Abre o **SQL Shell (psql)** que vem com o PostgreSQL (ou usa o pgAdmin) e executa:
+
+```sql
+CREATE DATABASE kubuka_db;
+CREATE USER kubuka_user WITH PASSWORD 'kubuka_pass';
+GRANT ALL PRIVILEGES ON DATABASE kubuka_db TO kubuka_user;
+ALTER USER kubuka_user CREATEDB;
+```
+
+> O `CREATEDB` é necessário para o Django poder criar a base de dados temporária quando correres os testes (`python manage.py test`).
+
+Se preferires via linha de comandos (com o `postgres` no PATH):
 ```bash
 createdb kubuka_db
 createuser kubuka_user
-psql -c "ALTER USER kubuka_user WITH PASSWORD 'kubuka_pass';"
-psql -c "GRANT ALL PRIVILEGES ON DATABASE kubuka_db TO kubuka_user;"
-psql -c "ALTER USER kubuka_user CREATEDB;"
+psql -U postgres -c "ALTER USER kubuka_user WITH PASSWORD 'kubuka_pass';"
+psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE kubuka_db TO kubuka_user;"
+psql -U postgres -c "ALTER USER kubuka_user CREATEDB;"
 ```
 
-> O último comando (`CREATEDB`) é necessário para o Django poder criar a base de dados de testes quando correres `python manage.py test`.
+#### 5b. Configurar o PostgreSQL para arrancar automaticamente com o Windows
 
-> Se não quiseres usar PostgreSQL em desenvolvimento, podes substituir temporariamente o bloco `DATABASES` em `core/settings.py` por SQLite — mas o PostgreSQL é o motor recomendado.
+Por omissão, o PostgreSQL fica como arranque manual após a instalação. Para que arranque sozinho sempre que ligares o computador (e o `start.ps1` o encontre sem erros):
+
+**Opção A — via linha de comandos (recomendado, requer PowerShell como Administrador):**
+```powershell
+Set-Service -Name "postgresql-x64-18" -StartupType Automatic
+Start-Service -Name "postgresql-x64-18"
+```
+
+> Se a tua versão do PostgreSQL for diferente, ajusta o número. Para ver o nome exacto do serviço: `Get-Service | Where-Object { $_.DisplayName -like "*postgresql*" }`
+
+**Opção B — via interface gráfica:**
+1. Abre o **Gestor de Serviços do Windows**: prime `Win + R` → escreve `services.msc` → Enter
+2. Procura o serviço `postgresql-x64-18` (ou similar)
+3. Clica com o botão direito → **Propriedades**
+4. Em **Tipo de arranque**, selecciona **Automático**
+5. Clica em **Iniciar** se o serviço não estiver já a correr
+6. Clica em **OK**
+
+Após esta configuração, o PostgreSQL arranca antes do `start.ps1` e nunca precisas de o iniciar manualmente.
 
 ---
 
@@ -175,12 +210,12 @@ DJANGO_BASE_URL=http://127.0.0.1:8000
 EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 ```
 
-Para gerar a SECRET_KEY:
+Para gerar a `SECRET_KEY`:
 ```bash
 python -c "import secrets; print(secrets.token_urlsafe(50))"
 ```
 
-> **Nota para Windows:** usa sempre `127.0.0.1` em vez de `localhost` no `DJANGO_BASE_URL`. O Node.js resolve `localhost` como IPv6 (`::1`) mas o Django ouve em IPv4.
+> **Nota para Windows:** usa sempre `127.0.0.1` em vez de `localhost` no `DJANGO_BASE_URL`. O Node.js resolve `localhost` como IPv6 (`::1`) mas o Django ouve em IPv4 — se ficares com `localhost` o n8n não consegue chamar o Django.
 
 ---
 
@@ -204,14 +239,14 @@ Depois vai a **Workflows → Import from File** e importa os dois ficheiros que 
 | `n8n_workflow_kubuka.json` | Recebe o texto do CV, envia ao Ollama e devolve a análise ao Django |
 | `n8n_workflow_job_scoring.json` | Compara o perfil do candidato com os requisitos da vaga e calcula o score |
 
-Activa cada workflow com o botão **Active** (canto superior direito).
+Activa cada workflow com o botão **Active** (canto superior direito de cada workflow).
 
 ---
 
 ### 9. Arrancar o sistema
 
 ```bash
-# Recomendado — script automático
+# Recomendado — script automático (trata de tudo)
 .\start.ps1
 
 # Ou manualmente, em três terminais separados
@@ -234,7 +269,7 @@ python manage.py test recruitment
 
 ## Modelo Ollama — recomendação do tutor
 
-Por defeito o sistema usa o `llama3.2` (modelo local, ~2 GB de RAM). O tutor recomendou também suporte a modelos cloud para quando o hardware disponível for limitado.
+Por defeito o sistema usa o `llama3.2` (modelo local, cerca de 2 GB de RAM). O tutor recomendou também suporte a modelos cloud para quando o hardware disponível for limitado.
 
 Para usar o `nemotron-3-nano:30b-cloud` (modelo cloud, sem necessidade de GPU):
 
@@ -251,24 +286,41 @@ Para voltar ao modelo local: `OLLAMA_MODEL=llama3.2`.
 
 ## Problemas frequentes
 
+### PostgreSQL não está a correr quando abro o start.ps1
+
+O `start.ps1` verifica o PostgreSQL na porta 5432 e avisa se não estiver disponível. Para resolver de uma vez por todas, configura o serviço para arrancar automaticamente com o Windows (ver **secção 5b** acima).
+
+Para verificar o estado do serviço:
+```powershell
+Get-Service | Where-Object { $_.DisplayName -like "*postgresql*" }
+```
+
+Para iniciar manualmente quando necessário:
+```powershell
+# PowerShell como Administrador
+Start-Service -Name "postgresql-x64-18"
+```
+
+---
+
 ### Ollama muito lento
 
 O `llama3.2` precisa de cerca de 2 GB de RAM livre. Em máquinas com menos de 8 GB disponíveis, a análise pode demorar vários minutos e o n8n pode dar timeout.
 
 **Opções:**
 
-Usar o modelo mais pequeno (1B parâmetros):
+Usar o modelo mais pequeno (1B parâmetros, mais rápido):
 ```bash
 ollama pull llama3.2:1b
 ```
-Depois mudar o modelo no n8n para `llama3.2:1b`.
+Depois, nos workflows n8n, alterar o campo do modelo para `llama3.2:1b`.
 
 Aumentar o timeout no workflow n8n (`n8n_workflow_kubuka.json`, nó Ollama):
 ```json
 "options": { "timeout": 600000 }
 ```
 
-Simular a resposta da IA directamente via API (para testes sem Ollama):
+Simular a resposta da IA directamente via API (útil para testes e demonstrações sem precisar do Ollama):
 ```bash
 curl -X POST http://127.0.0.1:8000/api/resume/1/ai-result/ \
   -H "Content-Type: application/json" \
@@ -276,17 +328,25 @@ curl -X POST http://127.0.0.1:8000/api/resume/1/ai-result/ \
   -d "{\"score\": 78, \"skills\": \"Python, Django\", \"summary\": \"Candidato com experiência em backend.\", \"experience\": \"2 anos de desenvolvimento web.\", \"education\": \"Licenciatura em Informática.\", \"languages\": \"Português, Inglês\", \"feedback\": \"Bom perfil técnico.\"}"
 ```
 
+---
+
 ### Conta bloqueada após tentativas de login falhadas
 
 ```bash
 python manage.py axes_reset
+
 # ou para um utilizador específico:
 python manage.py axes_reset_user <username>
 ```
 
+---
+
 ### `localhost` vs `127.0.0.1` no Windows
 
-O n8n (Node.js) resolve `localhost` como `::1` (IPv6) no Windows, mas o Django e o Ollama ouvem em `127.0.0.1` (IPv4). Por isso, nos workflows n8n usa sempre `http://127.0.0.1:11434/api/generate` para o Ollama e `http://127.0.0.1:8000` para o Django.
+O n8n (Node.js) resolve `localhost` como `::1` (IPv6) no Windows, mas o Django e o Ollama ouvem em `127.0.0.1` (IPv4). Por isso:
+- No `.env` usa `DJANGO_BASE_URL=http://127.0.0.1:8000`
+- Nos workflows n8n usa `http://127.0.0.1:11434/api/generate` para o Ollama
+- Nos workflows n8n usa `http://127.0.0.1:8000` para os callbacks do Django
 
 ---
 
@@ -298,7 +358,7 @@ Depois de criar o superutilizador, podes criar contas directamente na aplicaçã
 |---|---|
 | `/signup/` | Criar conta de candidato |
 | `/signup/recruiter/` | Registar conta de recrutador (fica pendente de aprovação) |
-| `/admin/` | Django Admin |
+| `/admin/` | Django Admin — gestão completa do sistema |
 
 Para aprovar um recrutador: **Django Admin → Users → seleccionar o utilizador → activar `is_recruiter` e `recruiter_approved`**.
 
