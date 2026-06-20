@@ -12,7 +12,10 @@
       "name": "Webhook — Scoring de Candidatura",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [200, 300]
+      "position": [
+        200,
+        300
+      ]
     },
     {
       "parameters": {
@@ -23,17 +26,23 @@
       "name": "Resposta Imediata Score",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [440, 500]
+      "position": [
+        440,
+        500
+      ]
     },
     {
       "parameters": {
-        "jsCode": "const body = $('Webhook — Scoring de Candidatura').first().json.body;\nconst appId = body.application_id;\nconst callbackUrl = body.callback_url;\nconst skills = String(body.candidate_skills || '').slice(0, 2000);\nconst summary = String(body.candidate_summary || '').slice(0, 1000);\nconst experience = String(body.candidate_experience || '').slice(0, 2000);\nconst jobTitle = String(body.job_title || '');\nconst requirements = String(body.job_requirements || '').slice(0, 3000);\n\nconst fields = [\n  'similarity_score: número inteiro entre 0 e 100 representando a correspondência candidato-vaga',\n  'match_feedback: explicação detalhada da correspondência, pontos fortes do candidato para esta vaga e lacunas identificadas'\n];\n\nconst prompt = 'Compara o perfil do candidato com os requisitos da vaga. Responde APENAS com um JSON válido contendo exactamente estes campos:\\n' +\n  fields.join('\\n') +\n  '\\n\\nPerfil do candidato:\\nSkills: ' + skills +\n  '\\nResumo: ' + summary +\n  '\\nExperiência: ' + experience +\n  '\\n\\nVaga: ' + jobTitle +\n  '\\nRequisitos: ' + requirements;\n\nconst requestBody = JSON.stringify({\n  model: $env.OLLAMA_MODEL || 'llama3.2',\n  stream: false,\n  format: 'json',\n  prompt: prompt\n});\n\nreturn [{ json: { application_id: appId, callback_url: callbackUrl, requestBody } }];"
+        "jsCode": "const body = $('Webhook — Scoring de Candidatura').first().json.body;\nconst appId = body.application_id;\nconst callbackUrl = body.callback_url;\nconst skills = String(body.candidate_skills || '').slice(0, 2000);\nconst summary = String(body.candidate_summary || '').slice(0, 1000);\nconst experience = String(body.candidate_experience || '').slice(0, 2000);\nconst jobTitle = String(body.job_title || '');\nconst requirements = String(body.job_requirements || '').slice(0, 3000);\n\nconst fields = [\n  'similarity_score: número inteiro entre 0 e 100 representando a correspondência candidato-vaga',\n  'match_feedback: explicação detalhada da correspondência, pontos fortes do candidato para esta vaga e lacunas identificadas'\n];\n\nconst prompt = 'Compara o perfil do candidato com os requisitos da vaga. Responde APENAS com um JSON válido contendo exactamente estes campos:\\n' +\n  fields.join('\\n') +\n  '\\n\\nPerfil do candidato:\\nSkills: ' + skills +\n  '\\nResumo: ' + summary +\n  '\\nExperiência: ' + experience +\n  '\\n\\nVaga: ' + jobTitle +\n  '\\nRequisitos: ' + requirements;\n\nconst requestBody = JSON.stringify({\n  model: $env.OLLAMA_MODEL || 'llama3.2:1b',\n  stream: false,\n  format: 'json',\n  prompt: prompt\n});\n\nreturn [{ json: { application_id: appId, callback_url: callbackUrl, requestBody } }];"
       },
       "id": "build-score-01",
       "name": "Construir Prompt Score",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [440, 300]
+      "position": [
+        440,
+        300
+      ]
     },
     {
       "parameters": {
@@ -42,7 +51,10 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Content-Type", "value": "application/json" }
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
@@ -56,7 +68,10 @@
       "name": "Ollama — Calcular Score",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [680, 300]
+      "position": [
+        680,
+        300
+      ]
     },
     {
       "parameters": {
@@ -66,7 +81,10 @@
       "name": "Processar Score",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [920, 300]
+      "position": [
+        920,
+        300
+      ]
     },
     {
       "parameters": {
@@ -75,8 +93,14 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "X-Kubuka-Secret", "value": "={{ $env.N8N_CALLBACK_SECRET }}" },
-            { "name": "Content-Type", "value": "application/json" }
+            {
+              "name": "X-Kubuka-Secret",
+              "value": "={{ $env.N8N_CALLBACK_SECRET }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
@@ -90,31 +114,60 @@
       "name": "Django — Actualizar Candidatura",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [1160, 300]
+      "position": [
+        1160,
+        300
+      ]
     }
   ],
   "connections": {
     "Webhook — Scoring de Candidatura": {
       "main": [
         [
-          { "node": "Resposta Imediata Score", "type": "main", "index": 0 },
-          { "node": "Construir Prompt Score", "type": "main", "index": 0 }
+          {
+            "node": "Resposta Imediata Score",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Construir Prompt Score",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
     "Construir Prompt Score": {
       "main": [
-        [{ "node": "Ollama — Calcular Score", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Ollama — Calcular Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Ollama — Calcular Score": {
       "main": [
-        [{ "node": "Processar Score", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Processar Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Processar Score": {
       "main": [
-        [{ "node": "Django — Actualizar Candidatura", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Django — Actualizar Candidatura",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },
