@@ -314,6 +314,18 @@ def analytics_dashboard(request):
     is_recruiter_only = request.user.is_recruiter and not (request.user.is_staff or request.user.is_admin)
     base_qs = Application.objects.filter(job__created_by=request.user) if is_recruiter_only else Application.objects.all()
 
+    # Filtros
+    job_id = request.GET.get('job_id', '')
+    candidate_search = request.GET.get('candidate', '').strip()
+    if job_id:
+        base_qs = base_qs.filter(job_id=job_id)
+    if candidate_search:
+        base_qs = base_qs.filter(
+            Q(candidate__username__icontains=candidate_search) |
+            Q(candidate__email__icontains=candidate_search)
+        )
+    jobs_for_filter = Job.objects.filter(created_by=request.user) if is_recruiter_only else Job.objects.all()
+
     # 1. Candidaturas por estado (donut)
     status_counts = {
         item['status']: item['count']
@@ -372,6 +384,9 @@ def analytics_dashboard(request):
         'score_buckets': buckets,
         'weekly_labels': weekly_labels,
         'weekly_data': weekly_data,
+        'jobs_for_filter': jobs_for_filter,
+        'current_job_id': job_id,
+        'current_candidate': candidate_search,
     })
 
 
@@ -383,6 +398,13 @@ class ResumeUpdateView(LoginRequiredMixin, UpdateView):
     model = Resume
     form_class = ResumeUpdateForm
     template_name = 'recruitment/resume_edit.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        resume = get_object_or_404(Resume, pk=kwargs['pk'], candidate=request.user)
+        if not resume.ai_processed:
+            messages.error(request, 'Aguarda o processamento da IA antes de editar o currículo.')
+            return redirect('resume_detail', pk=resume.pk)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         return Resume.objects.filter(candidate=self.request.user)
@@ -474,7 +496,9 @@ def apply_job(request, pk):
                 application.similarity_score = 0.0
                 application.match_feedback = ''
                 application.awaiting_score = False
-                update_fields = ['status', 'similarity_score', 'match_feedback', 'awaiting_score', 'updated_at']
+                application.availability_responded = False
+                application.candidate_unavailability_reason = ''
+                update_fields = ['status', 'similarity_score', 'match_feedback', 'awaiting_score', 'availability_responded', 'candidate_unavailability_reason', 'updated_at']
             else:
                 application = Application(candidate=request.user, job=job, status='pending')
                 update_fields = None  # vai usar .save() completo
@@ -569,6 +593,12 @@ class JobCreateView(LoginRequiredMixin, CreateView):
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from django.utils import timezone
+        context['today'] = timezone.now().date().isoformat()
+        return context
+
     def form_valid(self, form):
         form.instance.created_by = self.request.user
         messages.success(self.request, 'Vaga criada com sucesso.')
@@ -594,6 +624,12 @@ class JobUpdateView(LoginRequiredMixin, UpdateView):
         if self.request.user.is_staff or self.request.user.is_admin:
             return Job.objects.all()
         return Job.objects.filter(created_by=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from django.utils import timezone
+        context['today'] = timezone.now().date().isoformat()
+        return context
 
     def form_valid(self, form):
         messages.success(self.request, 'Vaga actualizada com sucesso.')

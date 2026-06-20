@@ -7,6 +7,7 @@ from .callback_views import (
     resume_ai_result,
     application_score_result,
     application_update_status,
+    kanban_update_status,
 )
 
 _PWD_RESET_TEMPLATES = {
@@ -72,6 +73,9 @@ urlpatterns = [
     path('api/resume/<int:resume_id>/ai-result/', resume_ai_result, name='resume_ai_result'),
     path('api/application/<int:application_id>/score-result/', application_score_result, name='application_score_result'),
     path('api/application/<int:application_id>/update-status/', application_update_status, name='application_update_status'),
+
+    # Kanban — endpoint JSON para drag-and-drop
+    path('api/kanban/application/<int:application_id>/status/', kanban_update_status, name='kanban_update_status'),
 
     # API REST — acções do recrutador
     path('api/application/<int:application_id>/status/', api_views.ApplicationStatusView.as_view(), name='application_status_api'),

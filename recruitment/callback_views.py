@@ -138,6 +138,35 @@ def application_score_result(request, application_id: int):
 
 
 @require_POST
+def kanban_update_status(request, application_id: int):
+    """Endpoint JSON para drag-and-drop do Kanban."""
+    from django.http import JsonResponse
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Não autenticado'}, status=401)
+    if not (request.user.is_recruiter or request.user.is_staff or getattr(request.user, 'is_admin', False)):
+        return JsonResponse({'error': 'Sem permissão'}, status=403)
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({'error': 'JSON inválido'}, status=400)
+    new_status = data.get('status')
+    valid = [s[0] for s in Application.STATUS_CHOICES]
+    if new_status not in valid:
+        return JsonResponse({'error': 'Status inválido'}, status=400)
+    try:
+        application = Application.objects.get(pk=application_id)
+    except Application.DoesNotExist:
+        return JsonResponse({'error': 'Candidatura não encontrada'}, status=404)
+    is_admin = request.user.is_staff or getattr(request.user, 'is_admin', False)
+    if not is_admin and application.job.created_by != request.user:
+        return JsonResponse({'error': 'Sem permissão para esta candidatura'}, status=403)
+    application.status = new_status
+    application.save(update_fields=['status', 'updated_at'])
+    notify_candidate(application)
+    return JsonResponse({'success': True, 'status': new_status})
+
+
+@require_POST
 def application_update_status(request, application_id: int):
     """POST /api/application/<id>/update-status/ — recrutador pré-selecciona ou rejeita."""
     if not request.user.is_authenticated:

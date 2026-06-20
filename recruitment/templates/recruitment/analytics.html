@@ -25,6 +25,27 @@
         </div>
     </div>
 
+    <!-- Filtros -->
+    <form method="get" class="glass-card p-4 mb-7 grid grid-cols-1 sm:grid-cols-3 gap-4 animate-fadeInUp">
+        <div>
+            <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.4);">Filtrar por Vaga</label>
+            <select name="job_id">
+                <option value="">Todas as vagas</option>
+                {% for job in jobs_for_filter %}
+                <option value="{{ job.id }}" {% if current_job_id == job.id|stringformat:"s" %}selected{% endif %}>{{ job.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.4);">Filtrar por Candidato</label>
+            <input type="text" name="candidate" value="{{ current_candidate }}" placeholder="Nome ou email...">
+        </div>
+        <div class="flex items-end gap-3">
+            <button type="submit" class="btn-primary px-5 py-2 rounded-xl text-sm font-semibold">Filtrar</button>
+            <a href="{% url 'analytics_dashboard' %}" class="btn-ghost px-4 py-2 rounded-xl text-sm font-semibold">Limpar</a>
+        </div>
+    </form>
+
     <!-- KPIs -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-7 animate-fadeInUp delay-1">
         <div class="glass-card p-5">

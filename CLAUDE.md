@@ -14,7 +14,7 @@ Trabalho de Fim de Curso (TFC) — Licenciatura em Informática.
 - Extracção de CV: pdfplumber + pytesseract (OCR) + pdf2image
 - Automação: n8n (self-hosted, porta 5678)
 - IA: Ollama com modelo llama3.2 (local, porta 11434)
-- Base de dados: SQLite (desenvolvimento)
+- Base de dados: PostgreSQL (desenvolvimento e produção)
 - Configuração: django-environ (.env)
 
 ---

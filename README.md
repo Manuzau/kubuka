@@ -55,7 +55,7 @@ Sistema web que automatiza a triagem e pré-selecção de candidatos para empres
 | Frontend | Django Templates + Tailwind CSS (CDN) + Flowbite |
 | Extracção de CV | pdfplumber + pytesseract (OCR) + pdf2image |
 | Automação / IA | n8n (self-hosted) + Ollama llama3.2 (local) |
-| Base de dados | SQLite |
+| Base de dados | PostgreSQL |
 | Configuração | django-environ (.env) |
 | Segurança | django-axes (protecção força bruta) |
 
@@ -64,6 +64,7 @@ Sistema web que automatiza a triagem e pré-selecção de candidatos para empres
 ## Pré-requisitos
 
 - Python 3.10 ou superior
+- PostgreSQL 14 ou superior
 - [Ollama](https://ollama.com) instalado e a correr localmente
 - [n8n](https://n8n.io) instalado (via npm ou npx)
 - Node.js 18+ (necessário para o n8n)
@@ -154,7 +155,19 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 5. Configurar variáveis de ambiente
+### 5. Criar a base de dados PostgreSQL
+
+```bash
+# Criar a base de dados e o utilizador (executar como utilizador postgres)
+createdb kubuka_db
+createuser kubuka_user
+psql -c "ALTER USER kubuka_user WITH PASSWORD 'kubuka_pass';"
+psql -c "GRANT ALL PRIVILEGES ON DATABASE kubuka_db TO kubuka_user;"
+```
+
+> Para desenvolvimento rápido sem PostgreSQL, pode-se reverter temporariamente para SQLite substituindo o bloco DATABASES em `core/settings.py` — mas PostgreSQL é o motor recomendado e exigido pelo tutor.
+
+### 7. Configurar variáveis de ambiente
 
 ```bash
 # Windows
@@ -182,7 +195,7 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 
 > **Gerar SECRET_KEY:** executa `python -c "import secrets; print(secrets.token_urlsafe(50))"` e cola o resultado.
 
-### 6. Aplicar migrações e criar administrador
+### 8. Aplicar migrações e criar administrador
 
 ```bash
 python manage.py migrate
@@ -191,7 +204,7 @@ python manage.py createsuperuser
 
 O superutilizador criado terá acesso total ao sistema, incluindo o Django Admin em `/admin/`.
 
-### 7. Configurar os workflows do n8n
+### 9. Configurar os workflows do n8n
 
 Inicia o n8n (`n8n start`), acede a `http://localhost:5678` e cria conta.
 
@@ -203,7 +216,7 @@ Activa ambos com o botão **Active** (canto superior direito de cada workflow).
 
 > Ver secção "Configurar o n8n e Ollama" mais abaixo para detalhes completos.
 
-### 8. Iniciar o sistema
+### 10. Iniciar o sistema
 
 ```bash
 # Opção A — script automático (recomendado)
@@ -218,7 +231,7 @@ python manage.py runserver    # terminal 3
 
 Acede em: **http://localhost:8000**
 
-### 9. Correr os testes automatizados
+### 11. Correr os testes automatizados
 
 ```bash
 python manage.py test recruitment
@@ -378,6 +391,10 @@ curl -X POST http://127.0.0.1:8000/api/resume/<ID>/ai-result/ \
     "feedback": "Feedback sobre o CV."
   }'
 ```
+
+**Usar modelo cloud Ollama:** acede a https://ollama.com/settings, activa os créditos cloud, e nos workflows n8n define a variável de ambiente `OLLAMA_MODEL=nemotron-3-nano:30b-cloud`. Não é necessária mais nenhuma configuração — a URL da API Ollama mantém-se a mesma (`http://localhost:11434/api/generate`).
+
+---
 
 ### Nota sobre Windows — usar 127.0.0.1 em vez de localhost
 

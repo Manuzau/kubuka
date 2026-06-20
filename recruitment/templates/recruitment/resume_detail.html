@@ -39,7 +39,7 @@
 
                 <!-- Score -->
                 <div class="mt-5 pt-5" style="border-top:1px solid rgba(255,255,255,0.07);">
-                    <p class="text-xs font-bold uppercase tracking-widest mb-3" style="color:rgba(241,245,249,0.35);">Pontuação IA</p>
+                    <p class="text-xs font-bold uppercase tracking-widest mb-3" style="color:rgba(241,245,249,0.35);">Qualidade do CV</p>
                     {% if resume.ai_processed %}
                         <p class="text-5xl font-black mb-2 {% if resume.score >= 80 %}text-emerald-400{% elif resume.score >= 60 %}text-amber-400{% else %}text-red-400{% endif %}">
                             {{ resume.score }}<span class="text-2xl">%</span>
@@ -69,9 +69,17 @@
             </div>
 
             {% if request.user == resume.candidate %}
-            <a href="{% url 'resume_edit' resume.pk %}" class="btn-primary w-full py-2.5 rounded-xl text-sm font-bold text-center block">
-                Editar Dados
-            </a>
+                {% if resume.ai_processed %}
+                <a href="{% url 'resume_edit' resume.pk %}" class="btn-primary w-full py-2.5 rounded-xl text-sm font-bold text-center block">
+                    Editar Dados
+                </a>
+                {% else %}
+                <button disabled class="w-full py-2.5 rounded-xl text-sm font-semibold text-center cursor-not-allowed"
+                    style="background:rgba(255,255,255,0.05);color:rgba(241,245,249,0.3);border:1px solid rgba(255,255,255,0.08);"
+                    title="Aguarda o processamento da IA antes de editar.">
+                    Editar Dados (aguarda IA...)
+                </button>
+                {% endif %}
             {% endif %}
         </div>
 
