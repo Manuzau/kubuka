@@ -90,10 +90,11 @@
                         <svg class="w-5 h-5 flex-shrink-0" style="color:#6EE7B7;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                         <p class="text-sm font-semibold" style="color:#6EE7B7;">Candidatura submetida a {{ app.applied_at|date:"d/m/Y" }}</p>
                     </div>
-                    <form method="post" action="{% url 'withdraw_application' app.pk %}" onsubmit="return confirm('Tem a certeza que quer retirar esta candidatura?')">
-                        {% csrf_token %}
-                        <button type="submit" class="text-sm font-medium hover:underline" style="color:#FCA5A5;">Retirar candidatura</button>
-                    </form>
+                    <button type="button"
+                        onclick="openConfirmModal('{{ app.pk }}', '{{ job.title|escapejs }}')"
+                        class="text-sm font-medium hover:underline" style="color:#FCA5A5;">
+                        Retirar candidatura
+                    </button>
                     {% elif app.status == 'withdrawn' %}
                     <a href="{% url 'apply_job' job.pk %}" class="btn-primary inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
@@ -136,4 +137,40 @@
         </div>
     </div>
 </div>
+
+<!-- Modal de confirmação de retirada de candidatura -->
+<div id="confirmModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay">
+    <div class="modal-box p-7 w-full max-w-sm mx-4 text-center">
+        <div class="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4"
+            style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.25);">
+            <svg class="w-6 h-6" style="color:#FCA5A5;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </div>
+        <h3 class="text-base font-bold text-white mb-2">Retirar candidatura?</h3>
+        <p class="text-sm mb-6" style="color:rgba(241,245,249,0.5);" id="confirmModalText"></p>
+        <div class="flex gap-3">
+            <button onclick="closeConfirmModal()" class="btn-ghost flex-1 py-2.5 rounded-xl text-sm font-semibold">Cancelar</button>
+            <form id="confirmForm" method="post" class="flex-1">
+                {% csrf_token %}
+                <button type="submit" class="btn-danger w-full py-2.5 rounded-xl text-sm font-semibold">Confirmar</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openConfirmModal(appId, jobTitle) {
+    document.getElementById('confirmModalText').textContent = 'Tem a certeza que quer retirar a candidatura para "' + jobTitle + '"? Esta acção pode ser revertida.';
+    document.getElementById('confirmForm').action = '/application/' + appId + '/withdraw/';
+    const m = document.getElementById('confirmModal');
+    m.classList.remove('hidden');
+    m.classList.add('flex');
+}
+function closeConfirmModal() {
+    const m = document.getElementById('confirmModal');
+    m.classList.add('hidden');
+    m.classList.remove('flex');
+}
+</script>
 {% endblock %}

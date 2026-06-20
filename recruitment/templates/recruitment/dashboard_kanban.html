@@ -150,15 +150,6 @@
 </div>
 
 <script>
-function getCsrfToken() {
-    const name = 'csrftoken';
-    const cookies = document.cookie.split(';');
-    for (let c of cookies) {
-        c = c.trim();
-        if (c.startsWith(name + '=')) return decodeURIComponent(c.slice(name.length + 1));
-    }
-    return '';
-}
 
 function showToast(msg, type) {
     const t = document.getElementById('toast');
@@ -227,21 +218,36 @@ async function onDrop(e, newStatus) {
 
     updateCounters();
 
+    function getCsrf() {
+        const m = document.cookie.match(/csrftoken=([^;]+)/);
+        return m ? m[1] : '';
+    }
+
     try {
-        const resp = await fetch(`/api/application/${appId}/update-status/`, {
+        const resp = await fetch(`/api/kanban/application/${appId}/status/`, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrf(),
+                'Accept': 'application/json',
+            },
             body: JSON.stringify({status: newStatus}),
             credentials: 'same-origin',
         });
+
+        const contentType = resp.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+            throw new Error(`Resposta inesperada do servidor (${resp.status}). Verifica se estás autenticado.`);
+        }
+
         const data = await resp.json();
         if (resp.ok && data.success) {
-            showToast('Estado actualizado.', 'success');
+            showToast('Estado actualizado com sucesso.', 'success');
         } else {
             throw new Error(data.error || 'Erro desconhecido');
         }
     } catch (err) {
-        showToast('Erro ao actualizar: ' + err.message, 'error');
+        showToast('Erro: ' + err.message, 'error');
         const srcCardsNow = sourceCol.querySelector('.kanban-cards');
         const revertEmpty = srcCardsNow.querySelector('.col-empty');
         if (revertEmpty) revertEmpty.remove();

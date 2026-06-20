@@ -5,6 +5,7 @@ django-axes
 pillow
 pdfplumber
 requests
+psycopg2-binary
 
 # OCR (opcional — apenas necessário para PDFs digitalizados/scaneados)
 # Requer também Tesseract e Poppler instalados no sistema operativo:

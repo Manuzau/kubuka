@@ -53,7 +53,13 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.5);">Prazo de Candidatura</label>
-                    {{ form.deadline }}
+                    <input type="date"
+                           name="deadline"
+                           id="id_deadline"
+                           value="{% if form.deadline.value %}{{ form.deadline.value|date:'Y-m-d' }}{% endif %}"
+                           min="{{ today }}"
+                           class="w-full p-2 border rounded">
+                    {% if form.deadline.errors %}<p class="text-xs mt-1.5" style="color:#FCA5A5;">{{ form.deadline.errors.0 }}</p>{% endif %}
                 </div>
             </div>
 
@@ -89,20 +95,32 @@
             <div style="border-top:1px solid rgba(255,255,255,0.06);" class="pt-5 space-y-4">
                 <p class="text-xs font-bold uppercase tracking-widest mb-3" style="color:rgba(241,245,249,0.3);">Opções</p>
 
-                <label class="flex items-center gap-3 cursor-pointer group">
-                    {{ form.is_active }}
-                    <span class="text-sm font-medium text-white group-hover:text-purple-300 transition-colors">Vaga activa (visível para candidatos)</span>
-                </label>
+                <div class="flex items-center gap-3">
+                    <input type="checkbox"
+                           name="is_active"
+                           id="id_is_active"
+                           style="width:18px;height:18px;accent-color:#7C3AED;cursor:pointer;flex-shrink:0;"
+                           {% if form.is_active.value %}checked{% endif %}>
+                    <label for="id_is_active" class="text-sm font-medium text-white cursor-pointer">
+                        Vaga activa (visível para candidatos)
+                    </label>
+                </div>
 
-                <label class="flex items-center gap-3 cursor-pointer group">
-                    {{ form.allow_candidate_unavailability }}
-                    <span class="text-sm font-medium text-white group-hover:text-purple-300 transition-colors">Permitir que candidatos indiquem indisponibilidade para entrevista</span>
-                </label>
+                <div class="flex items-center gap-3">
+                    <input type="checkbox"
+                           name="allow_candidate_unavailability"
+                           id="id_allow_candidate_unavailability"
+                           style="width:18px;height:18px;accent-color:#7C3AED;cursor:pointer;flex-shrink:0;"
+                           {% if form.allow_candidate_unavailability.value %}checked{% endif %}>
+                    <label for="id_allow_candidate_unavailability" class="text-sm font-medium text-white cursor-pointer">
+                        Permitir que candidatos indiquem indisponibilidade para entrevista
+                    </label>
+                </div>
 
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.5);">Score mínimo para triagem automática (0 = desactivado)</label>
                     {{ form.min_score_required }}
-                    <p class="text-xs mt-1.5" style="color:rgba(241,245,249,0.3);">Candidaturas com score abaixo deste valor serão automaticamente rejeitadas após análise da IA.</p>
+                    <p class="text-xs mt-1.5" style="color:rgba(241,245,249,0.3);">Score mínimo para triagem automática. Escala: 0 a 100%. Valor 0 desactiva a triagem automática. Candidaturas com score abaixo deste valor serão automaticamente rejeitadas após análise da IA.</p>
                     {% if form.min_score_required.errors %}<p class="text-xs mt-1" style="color:#FCA5A5;">{{ form.min_score_required.errors.0 }}</p>{% endif %}
                 </div>
             </div>
@@ -117,15 +135,4 @@
     </div>
 </div>
 
-<style>
-/* Checkboxes com estilo dark */
-input[type="checkbox"] {
-    width: 18px !important; height: 18px !important;
-    border-radius: 5px !important;
-    background: rgba(255,255,255,0.08) !important;
-    border: 1.5px solid rgba(255,255,255,0.2) !important;
-    cursor: pointer;
-    accent-color: #7C3AED;
-}
-</style>
 {% endblock %}

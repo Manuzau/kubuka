@@ -79,7 +79,7 @@
                 {% if user.resume.ai_processed %}
                     <div class="rounded-xl p-5 mb-4" style="background:{% if user.resume.score >= 80 %}rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2){% elif user.resume.score >= 60 %}rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2){% else %}rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2){% endif %}">
                         <div class="flex items-center justify-between mb-2">
-                            <p class="text-sm font-semibold text-white">Pontuação IA</p>
+                            <p class="text-sm font-semibold text-white">Qualidade do CV</p>
                             <span class="text-3xl font-extrabold {% if user.resume.score >= 80 %}text-emerald-400{% elif user.resume.score >= 60 %}text-amber-400{% else %}text-red-400{% endif %}">
                                 {{ user.resume.score }}%
                             </span>

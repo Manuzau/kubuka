@@ -93,7 +93,20 @@ class JobForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'rows': 5, 'class': 'w-full p-2 border rounded'}),
             'requirements': forms.Textarea(attrs={'rows': 5, 'class': 'w-full p-2 border rounded'}),
             'location': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
-            'salary_range': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
+            'salary_range': forms.Select(
+                attrs={'class': 'w-full p-2 border rounded'},
+                choices=[
+                    ('', '-- Seleccione a faixa salarial --'),
+                    ('Não divulgado', 'Não divulgado'),
+                    ('Até 50.000 AOA', 'Até 50.000 AOA'),
+                    ('50.000 – 100.000 AOA', '50.000 – 100.000 AOA'),
+                    ('100.000 – 200.000 AOA', '100.000 – 200.000 AOA'),
+                    ('200.000 – 350.000 AOA', '200.000 – 350.000 AOA'),
+                    ('350.000 – 500.000 AOA', '350.000 – 500.000 AOA'),
+                    ('Acima de 500.000 AOA', 'Acima de 500.000 AOA'),
+                    ('A negociar', 'A negociar'),
+                ]
+            ),
             'deadline': forms.DateInput(attrs={'class': 'w-full p-2 border rounded', 'type': 'date'}),
             'contact_email_primary': forms.EmailInput(attrs={'class': 'w-full p-2 border rounded'}),
             'contact_email_secondary': forms.EmailInput(attrs={'class': 'w-full p-2 border rounded'}),
@@ -101,6 +114,13 @@ class JobForm(forms.ModelForm):
                 'class': 'w-full p-2 border rounded', 'min': 0, 'max': 100, 'step': 5,
             }),
         }
+
+    def clean_deadline(self):
+        from django.utils import timezone
+        deadline = self.cleaned_data.get('deadline')
+        if deadline and deadline < timezone.now().date():
+            raise forms.ValidationError('O prazo de candidatura não pode ser uma data no passado.')
+        return deadline
 
     def clean_contact_email_primary(self):
         value = self.cleaned_data.get('contact_email_primary')
