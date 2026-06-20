@@ -38,7 +38,7 @@ O KUBUKA é um sistema web que automatiza a triagem de candidatos em empresas an
 | Backend | Django 5.x + Django REST Framework |
 | Frontend | Django Templates + Tailwind CSS (via CDN) + Flowbite |
 | Extracção de CV | pdfplumber + pytesseract (OCR) + pdf2image |
-| IA e automação | Ollama (llama3.2) + n8n |
+| IA e automação | Ollama (llama3.2:1b) + n8n |
 | Base de dados | PostgreSQL |
 | Configuração | django-environ (.env) |
 | Segurança | django-axes |
@@ -61,7 +61,7 @@ run_project.bat
 
 O script trata de tudo automaticamente:
 1. Verifica se o PostgreSQL está a correr na porta 5432
-2. Inicia o Ollama se não estiver a correr e verifica se o modelo `llama3.2` está disponível
+2. Inicia o Ollama se não estiver a correr e verifica se o modelo `llama3.2:1b` está disponível
 3. Abre o n8n numa nova janela se não estiver a correr
 4. Aplica migrações Django pendentes
 5. Arranca o Django em `http://localhost:8000`
@@ -87,9 +87,9 @@ npm install -g n8n
 ```
 
 **Ollama**
-Descarrega e instala em https://ollama.com. Depois de instalado, descarrega o modelo de IA (só é preciso fazer isto uma vez, ocupa cerca de 2 GB):
+Descarrega e instala em https://ollama.com. Depois de instalado, descarrega o modelo de IA (só é preciso fazer isto uma vez, ocupa cerca de 1.3 GB):
 ```bash
-ollama pull llama3.2
+ollama pull llama3.2:1b
 ```
 
 **Tesseract e Poppler** *(opcional — só necessário para PDFs digitalizados)*
@@ -267,20 +267,21 @@ python manage.py test recruitment
 
 ---
 
-## Modelo Ollama — recomendação do tutor
+## Modelo Ollama
 
-Por defeito o sistema usa o `llama3.2` (modelo local, cerca de 2 GB de RAM). O tutor recomendou também suporte a modelos cloud para quando o hardware disponível for limitado.
+O sistema usa o `llama3.2:1b` (1B parâmetros, 1.3 GB, ~25 segundos por análise). Este é o modelo recomendado para hardware com memória RAM limitada — foi testado e funciona bem neste projecto.
 
-Para usar o `nemotron-3-nano:30b-cloud` (modelo cloud, sem necessidade de GPU):
+O modelo foi escolhido depois de testar o `llama3.2` (3B parâmetros) que ultrapassava os 120 segundos por análise e dava timeout no n8n com a memória disponível na máquina de desenvolvimento.
 
-1. Cria conta em https://ollama.com/settings e activa os créditos cloud
-2. No `.env` do projecto, define:
+O modelo é configurável via variável de ambiente nos workflows n8n. Para mudar:
 ```env
-OLLAMA_MODEL=nemotron-3-nano:30b-cloud
+# .env
+OLLAMA_MODEL=llama3.2:1b        # recomendado (padrão)
+OLLAMA_MODEL=llama3.2           # se tiveres 8+ GB de RAM livre
+OLLAMA_MODEL=nemotron-3-nano:30b-cloud  # modelo cloud (requer conta em ollama.com/settings)
 ```
-3. Os workflows n8n lêem esta variável automaticamente — não é preciso mais nada
 
-Para voltar ao modelo local: `OLLAMA_MODEL=llama3.2`.
+Para o modelo cloud: cria conta em https://ollama.com/settings, activa os créditos cloud, e define `OLLAMA_MODEL=nemotron-3-nano:30b-cloud` no `.env`. Os workflows n8n lêem esta variável automaticamente — não é preciso mais nenhuma configuração.
 
 ---
 
@@ -303,19 +304,17 @@ Start-Service -Name "postgresql-x64-18"
 
 ---
 
-### Ollama muito lento
+### Ollama muito lento ou a dar timeout
 
-O `llama3.2` precisa de cerca de 2 GB de RAM livre. Em máquinas com menos de 8 GB disponíveis, a análise pode demorar vários minutos e o n8n pode dar timeout.
+O modelo padrão é o `llama3.2:1b` (~25s por análise). Se mesmo assim estiver lento, é sinal de que a RAM disponível é muito pouca.
 
-**Opções:**
-
-Usar o modelo mais pequeno (1B parâmetros, mais rápido):
-```bash
-ollama pull llama3.2:1b
+Verifica a RAM livre:
+```powershell
+(Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory / 1MB
+# resultado em GB — precisa de pelo menos 1.5 GB livres
 ```
-Depois, nos workflows n8n, alterar o campo do modelo para `llama3.2:1b`.
 
-Aumentar o timeout no workflow n8n (`n8n_workflow_kubuka.json`, nó Ollama):
+Se não tens RAM suficiente, aumenta o timeout no workflow n8n (`n8n_workflow_kubuka.json`, nó Ollama):
 ```json
 "options": { "timeout": 600000 }
 ```
@@ -376,7 +375,7 @@ Django extrai o texto (pdfplumber / OCR se necessário)
 Django envia para o n8n via webhook
     |
     v
-n8n passa o texto ao Ollama com o prompt de análise
+n8n passa o texto ao Ollama (llama3.2:1b) com o prompt de análise
     |
     v
 Ollama devolve JSON: score + competências + resumo + experiência + formação + idiomas + feedback

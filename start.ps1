@@ -57,16 +57,15 @@ if (Test-Port 11434) {
     }
 }
 
-# Verificar se o modelo esta disponivel (llama3.2 por defeito)
-$ollamaModel = "llama3.2"
+# Verificar se o modelo esta disponivel (llama3.2:1b — recomendado para hardware limitado)
+$ollamaModel = "llama3.2:1b"
 if (Test-Port 11434) {
     $models = ollama list 2>$null
-    if ($models -match "llama3.2") {
+    if ($models -match "llama3.2:1b") {
         Write-Host "[OK] Modelo $ollamaModel disponivel" -ForegroundColor Green
     } else {
-        Write-Host "[ ] Modelo $ollamaModel nao encontrado — a fazer download (pode demorar)..." -ForegroundColor Yellow
-        Write-Host "    Nota: para usar modelo cloud, muda OLLAMA_MODEL no .env" -ForegroundColor DarkGray
-        ollama pull llama3.2
+        Write-Host "[ ] Modelo $ollamaModel nao encontrado — a fazer download (~1.3 GB, aguarda)..." -ForegroundColor Yellow
+        ollama pull llama3.2:1b
     }
 }
 
