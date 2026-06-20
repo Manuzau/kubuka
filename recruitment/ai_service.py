@@ -6,7 +6,6 @@ logger = logging.getLogger(__name__)
 
 
 def send_cv_to_n8n(resume):
-    """Envia o CV para o n8n para análise pelo Ollama."""
     webhook_url = getattr(settings, 'N8N_WEBHOOK_CV_URL', '')
     if not webhook_url:
         logger.warning("[ai_service] N8N_WEBHOOK_CV_URL não configurado — análise de CV ignorada.")
@@ -35,7 +34,6 @@ def send_cv_to_n8n(resume):
 
 
 def send_application_for_scoring(application):
-    """Envia candidatura para o n8n calcular o score de correspondência."""
     webhook_url = getattr(settings, 'N8N_WEBHOOK_SCORE_URL', '')
     if not webhook_url:
         logger.warning("[ai_service] N8N_WEBHOOK_SCORE_URL não configurado — scoring ignorado.")
@@ -48,7 +46,6 @@ def send_application_for_scoring(application):
 
     resume = getattr(application.candidate, 'resume', None)
 
-    # Usar CV específico da candidatura se disponível; caso contrário usa o CV do perfil
     if application.cv_parsed_text:
         candidate_skills = application.cv_parsed_text
         candidate_summary = ''
@@ -75,7 +72,6 @@ def send_application_for_scoring(application):
     try:
         response = requests.post(webhook_url, json=payload, headers=headers, timeout=30)
         response.raise_for_status()
-        # Marca a candidatura como aguardando resultado — só agora o callback é autorizado
         application.awaiting_score = True
         application.save(update_fields=['awaiting_score'])
         logger.info(f"[ai_service] Application {application.pk} enviada ao n8n — status {response.status_code}")
