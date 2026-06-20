@@ -25,14 +25,13 @@ def _verify_secret(request):
 @csrf_exempt
 @require_POST
 def resume_ai_callback(request, resume_id: int):
-    """POST /internal/resume/<id>/callback/ — callback legado (compatibilidade)."""
+    # rota legada — mantida por compatibilidade com workflows antigos
     return _resume_ai_result(request, resume_id)
 
 
 @csrf_exempt
 @require_POST
 def resume_ai_result(request, resume_id: int):
-    """POST /api/resume/<id>/ai-result/ — callback n8n após análise do CV."""
     return _resume_ai_result(request, resume_id)
 
 

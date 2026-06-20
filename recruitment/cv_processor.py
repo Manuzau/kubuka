@@ -5,7 +5,7 @@ import pdfplumber
 
 logger = logging.getLogger(__name__)
 
-# Tentativa de importar dependências opcionais de OCR
+# OCR é opcional — funciona sem ele, mas não lê PDFs digitalizados
 try:
     import pytesseract
     from pdf2image import convert_from_path
@@ -15,7 +15,6 @@ except ImportError:
 
 
 def _find_tesseract():
-    """Localiza o executável do Tesseract em caminhos comuns do Windows."""
     candidatos = [
         r'C:\Program Files\Tesseract-OCR\tesseract.exe',
         r'C:\Program Files (x86)\Tesseract-OCR\tesseract.exe',
@@ -37,7 +36,6 @@ def _find_tesseract():
 
 
 def _poppler_disponivel():
-    """Verifica se o poppler está instalado (necessário para pdf2image)."""
     try:
         resultado = subprocess.run(
             ['pdftoppm', '-v'], capture_output=True, text=True, timeout=5
