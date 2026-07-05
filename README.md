@@ -1,8 +1,21 @@
 # KUBUKA — Sistema de Pré-Selecção Inteligente de Candidatos
 
-O KUBUKA é um sistema web que automatiza a triagem de candidatos em empresas angolanas. A ideia surgiu da necessidade de reduzir o tempo que os recrutadores passam a analisar currículos manualmente — o sistema usa IA (Ollama) para ler cada CV, atribuir uma pontuação e comparar o perfil do candidato com os requisitos da vaga.
+O KUBUKA é um sistema web que automatiza a triagem de candidatos em empresas angolanas. A ideia surgiu da necessidade de reduzir o tempo que os recrutadores passam a analisar currículos manualmente — o sistema usa IA local (Ollama) para ler cada CV, atribuir uma pontuação e comparar o perfil do candidato com os requisitos da vaga.
 
 > Trabalho de Fim de Curso — Licenciatura em Informática, 2025/2026
+
+---
+
+## Índice
+
+- [O que o sistema faz](#o-que-o-sistema-faz)
+- [Tecnologias usadas](#tecnologias-usadas)
+- [Como o sistema funciona](#como-o-sistema-funciona)
+- [Arranque rápido (dia-a-dia)](#arranque-rápido-dia-a-dia)
+- [Instalação de raiz num computador novo](#instalação-de-raiz-num-computador-novo)
+- [Testes automatizados](#testes-automatizados)
+- [Estrutura do projecto](#estrutura-do-projecto)
+- [Problemas frequentes](#problemas-frequentes)
 
 ---
 
@@ -10,13 +23,13 @@ O KUBUKA é um sistema web que automatiza a triagem de candidatos em empresas an
 
 ### Para candidatos
 - Registo de conta e edição de perfil
-- Upload do CV em PDF — o sistema extrai o texto automaticamente e, se o PDF for digitalizado, usa OCR
+- Upload do CV em PDF — o sistema extrai o texto automaticamente e, se for um PDF digitalizado, usa OCR
 - A IA analisa o CV e devolve: pontuação geral, competências, resumo profissional, experiência, formação, idiomas e feedback
-- Possibilidade de se candidatar a vagas e acompanhar o estado das candidaturas
+- Candidatura a vagas e acompanhamento do estado das candidaturas
 
 ### Para recrutadores
 - Criação e gestão de vagas (título, empresa, localização, salário, prazo, requisitos)
-- Definição de uma pontuação mínima por vaga — candidaturas abaixo desse valor são rejeitadas automaticamente pelo sistema
+- Definição de uma pontuação mínima por vaga — candidaturas abaixo desse valor são rejeitadas automaticamente
 - Dashboard com todos os candidatos das suas vagas, ordenados por score de compatibilidade
 - Vista em tabela e em Kanban com drag-and-drop para mover candidatos entre estados
 - Filtros por vaga, pontuação, estado e competências
@@ -25,7 +38,7 @@ O KUBUKA é um sistema web que automatiza a triagem de candidatos em empresas an
 
 ### Outras funcionalidades
 - Notificações dentro da aplicação quando o estado de uma candidatura muda
-- Envio de email automático (configurável via SMTP ou consola em desenvolvimento)
+- Envio de email automático (SMTP em produção, consola em desenvolvimento)
 - Protecção contra força bruta: bloqueio automático após 5 tentativas de login falhadas
 - 44 testes automatizados
 
@@ -38,37 +51,38 @@ O KUBUKA é um sistema web que automatiza a triagem de candidatos em empresas an
 | Backend | Django 5.x + Django REST Framework |
 | Frontend | Django Templates + Tailwind CSS (via CDN) + Flowbite |
 | Extracção de CV | pdfplumber + pytesseract (OCR) + pdf2image |
-| IA e automação | Ollama (llama3.2:1b) + n8n |
+| IA local | Ollama com dois modelos (llama3.2:1b e qwen2.5:3b) |
+| Automação | n8n (workflows self-hosted) |
 | Base de dados | PostgreSQL |
 | Configuração | django-environ (.env) |
 | Segurança | django-axes |
 
 ---
 
-## Como o sistema funciona (resumo)
+## Como o sistema funciona
 
 ```
 Candidato faz upload do CV
     |
     v
-Django extrai o texto (pdfplumber / OCR se necessário)
+Django extrai o texto (pdfplumber ou OCR)
     |
     v
-Django envia para o n8n via webhook (POST com resume_id + cv_text + callback_url)
+Django envia para o n8n via webhook
     |
     v
-n8n passa o texto ao Ollama (llama3.2:1b) com o prompt de análise
+n8n passa o texto ao Ollama (llama3.2:1b)
     |
     v
-Ollama devolve JSON: score + competências + resumo + experiência + formação + idiomas + feedback
+Ollama devolve JSON com: score, competências, resumo, experiência, formação, idiomas, feedback
     |
     v
 n8n faz callback para /api/resume/<id>/ai-result/
     |
     v
-Django actualiza o perfil do candidato na base de dados
+Django actualiza o perfil na base de dados
 
-─────────────────────────────────────────────
+--------------------------------------------------
 
 Candidato candidata-se a uma vaga
     |
@@ -76,7 +90,7 @@ Candidato candidata-se a uma vaga
 Django cria o registo Application e envia para o n8n
     |
     v
-n8n + Ollama compara o perfil com os requisitos da vaga
+n8n + Ollama (qwen2.5:3b) comparam o perfil com os requisitos
     |
     v
 n8n faz callback para /api/application/<id>/score-result/
@@ -86,11 +100,15 @@ Django guarda o score de compatibilidade (visível só ao recrutador)
 Se score < mínimo definido na vaga → candidatura rejeitada automaticamente
 ```
 
+**Porquê dois modelos?**
+- `llama3.2:1b` (1.3 GB, ~70s) é usado para **análise de CV** — rápido e suficiente para extrair texto estruturado.
+- `qwen2.5:3b` (1.9 GB, ~2 min) é usado para **scoring de candidaturas** — muito melhor a produzir JSON estruturado e a raciocinar sobre a correspondência entre candidato e vaga.
+
 ---
 
-## Arranque rápido
+## Arranque rápido (dia-a-dia)
 
-Se já tens tudo instalado e configurado (ver secção seguinte), para arrancar o sistema basta:
+Se já tens tudo instalado (ver secção seguinte), para arrancar:
 
 **Windows — duplo clique em:**
 ```
@@ -103,56 +121,74 @@ run_project.bat
 ```
 
 O script trata de tudo automaticamente:
-1. Verifica se o PostgreSQL está a correr na porta 5432
-2. Inicia o Ollama se não estiver a correr e verifica se o modelo `llama3.2:1b` está disponível
-3. Abre o n8n numa nova janela se não estiver a correr
+
+1. Verifica se o **PostgreSQL** está a correr (porta 5432)
+2. Inicia o **Ollama** se não estiver a correr e faz download automático dos modelos `llama3.2:1b` e `qwen2.5:3b` se faltarem
+3. Abre o **n8n** numa nova janela se não estiver a correr
 4. Aplica migrações Django pendentes
-5. Arranca o Django em `http://localhost:8000`
+5. Arranca o **Django** em `http://localhost:8000`
 
 ---
 
-## Instalação de raiz (novo computador)
+## Instalação de raiz num computador novo
 
-### 1. Instalar as ferramentas necessárias
+> Assume-se que estás em **Windows 10/11**. Para Linux/macOS, adapta os comandos onde indicado.
 
-**Python 3.10 ou superior**
-Descarrega em https://www.python.org/downloads/ — durante a instalação marca a opção "Add Python to PATH".
+### Passo 1 — Instalar ferramentas base
 
-**PostgreSQL 14 ou superior**
-Descarrega em https://www.postgresql.org/download/ e guarda a palavra-passe do utilizador `postgres` — vais precisar dela a seguir.
+| Ferramenta | Onde | Notas de instalação |
+|---|---|---|
+| **Python 3.10+** | https://www.python.org/downloads/ | Marca "Add Python to PATH" durante a instalação |
+| **Git** | https://git-scm.com/download/win | Aceita as opções padrão |
+| **PostgreSQL 14+** | https://www.postgresql.org/download/ | Guarda a palavra-passe do utilizador `postgres` |
+| **Node.js LTS** | https://nodejs.org/ | Necessário para o n8n |
+| **Ollama** | https://ollama.com | IA local, ocupa ~200 MB antes dos modelos |
 
-**Node.js 18+** (necessário para o n8n)
-Descarrega a versão LTS em https://nodejs.org/
+**Opcional — apenas se precisares de OCR (PDFs digitalizados):**
+```powershell
+# Windows com Chocolatey
+choco install tesseract poppler
+```
 
-**n8n**
+### Passo 2 — Configurar o PostgreSQL para arrancar sempre
+
+Por omissão, o serviço fica em arranque manual. Para que arranque sempre que ligares o computador (PowerShell como Administrador):
+
+```powershell
+Set-Service -Name "postgresql-x64-18" -StartupType Automatic
+Start-Service -Name "postgresql-x64-18"
+```
+
+> Se a versão for diferente, ajusta o número. Para descobrir o nome exacto:
+> ```powershell
+> Get-Service | Where-Object { $_.DisplayName -like "*postgresql*" }
+> ```
+
+### Passo 3 — Instalar o n8n globalmente
+
 ```bash
 npm install -g n8n
 ```
 
-**Ollama**
-Descarrega e instala em https://ollama.com. Depois de instalado, descarrega o modelo de IA (só é preciso fazer isto uma vez, ocupa cerca de 1.3 GB):
+Verifica com `n8n --version`.
+
+### Passo 4 — Descarregar os modelos Ollama
+
+O `start.ps1` faz isto automaticamente na primeira execução, mas se preferires fazê-lo já (total ~3.2 GB):
+
 ```bash
 ollama pull llama3.2:1b
+ollama pull qwen2.5:3b
 ```
 
-**Tesseract e Poppler** *(opcional — só necessário para PDFs digitalizados)*
-```bash
-# Windows, com Chocolatey
-choco install tesseract poppler
-```
-
----
-
-### 2. Clonar o repositório
+### Passo 5 — Clonar o repositório
 
 ```bash
 git clone https://github.com/Manuzau/kubuka.git
 cd kubuka
 ```
 
----
-
-### 3. Criar o ambiente virtual Python
+### Passo 6 — Criar o ambiente virtual Python
 
 ```bash
 python -m venv .venv
@@ -164,21 +200,17 @@ python -m venv .venv
 source .venv/bin/activate
 ```
 
----
+Verifica o prompt: deve começar por `(.venv)`.
 
-### 4. Instalar as dependências Python
+### Passo 7 — Instalar dependências Python
 
 ```bash
 pip install -r requirements.txt
 ```
 
----
+### Passo 8 — Criar a base de dados e o utilizador
 
-### 5. Configurar o PostgreSQL
-
-#### 5a. Criar a base de dados e o utilizador
-
-Abre o **SQL Shell (psql)** que vem com o PostgreSQL (ou usa o pgAdmin) e executa:
+Abre o **SQL Shell (psql)** que vem com o PostgreSQL (ou usa pgAdmin) e executa:
 
 ```sql
 CREATE DATABASE kubuka_db;
@@ -187,42 +219,17 @@ GRANT ALL PRIVILEGES ON DATABASE kubuka_db TO kubuka_user;
 ALTER USER kubuka_user CREATEDB;
 ```
 
-> O `CREATEDB` é necessário para o Django poder criar a base de dados temporária quando correres os testes (`python manage.py test`).
+> O `CREATEDB` é necessário para o Django poder criar a base de dados temporária dos testes.
 
-Se preferires via linha de comandos (com o `postgres` no PATH):
+Alternativa via linha de comandos:
 ```bash
-createdb kubuka_db
-createuser kubuka_user
-psql -U postgres -c "ALTER USER kubuka_user WITH PASSWORD 'kubuka_pass';"
+psql -U postgres -c "CREATE DATABASE kubuka_db;"
+psql -U postgres -c "CREATE USER kubuka_user WITH PASSWORD 'kubuka_pass';"
 psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE kubuka_db TO kubuka_user;"
 psql -U postgres -c "ALTER USER kubuka_user CREATEDB;"
 ```
 
-#### 5b. Configurar o PostgreSQL para arrancar automaticamente com o Windows
-
-Por omissão, o PostgreSQL fica como arranque manual após a instalação. Para que arranque sozinho sempre que ligares o computador (e o `start.ps1` o encontre sem erros):
-
-**Opção A — via linha de comandos (recomendado, requer PowerShell como Administrador):**
-```powershell
-Set-Service -Name "postgresql-x64-18" -StartupType Automatic
-Start-Service -Name "postgresql-x64-18"
-```
-
-> Se a tua versão do PostgreSQL for diferente, ajusta o número. Para ver o nome exacto do serviço: `Get-Service | Where-Object { $_.DisplayName -like "*postgresql*" }`
-
-**Opção B — via interface gráfica:**
-1. Abre o **Gestor de Serviços do Windows**: prime `Win + R` → escreve `services.msc` → Enter
-2. Procura o serviço `postgresql-x64-18` (ou similar)
-3. Clica com o botão direito → **Propriedades**
-4. Em **Tipo de arranque**, selecciona **Automático**
-5. Clica em **Iniciar** se o serviço não estiver já a correr
-6. Clica em **OK**
-
-Após esta configuração, o PostgreSQL arranca antes do `start.ps1` e nunca precisas de o iniciar manualmente.
-
----
-
-### 6. Ficheiro de configuração .env
+### Passo 9 — Criar o ficheiro .env
 
 ```bash
 # Windows
@@ -232,172 +239,81 @@ copy .env.example .env
 cp .env.example .env
 ```
 
-Abre o ficheiro `.env` e preenche:
+Abre o ficheiro `.env` e substitui a `SECRET_KEY` por uma chave aleatória:
 
-```env
-SECRET_KEY=cola-aqui-uma-chave-longa-e-aleatoria
-DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
-
-DB_NAME=kubuka_db
-DB_USER=kubuka_user
-DB_PASSWORD=kubuka_pass
-DB_HOST=localhost
-DB_PORT=5432
-
-N8N_WEBHOOK_CV_URL=http://127.0.0.1:5678/webhook/cv-analysis
-N8N_WEBHOOK_SCORE_URL=http://127.0.0.1:5678/webhook/job-scoring
-N8N_CALLBACK_SECRET=kubuka-secret-token-2025
-DJANGO_BASE_URL=http://127.0.0.1:8000
-
-EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
-```
-
-Para gerar a `SECRET_KEY`:
 ```bash
-python -c "import secrets; print(secrets.token_urlsafe(50))"
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 ```
 
-> **Nota para Windows:** usa sempre `127.0.0.1` em vez de `localhost` no `DJANGO_BASE_URL` e nos URLs do n8n. O Node.js resolve `localhost` como IPv6 (`::1`) mas o Django e o Ollama ouvem em IPv4.
+Cola o resultado no `.env`. As restantes variáveis já vêm preenchidas para desenvolvimento local.
 
----
-
-### 7. Aplicar as migrações e criar o administrador
+### Passo 10 — Aplicar as migrações e criar o superutilizador
 
 ```bash
 python manage.py migrate
 python manage.py createsuperuser
 ```
 
----
+Guarda o utilizador/palavra-passe que criares — vais precisar para aceder ao Django Admin.
 
-### 8. Importar os workflows do n8n
+### Passo 11 — Importar os workflows do n8n
 
-Inicia o n8n (`n8n start`) e acede a `http://localhost:5678`. Cria uma conta na primeira execução.
+Inicia o n8n numa janela separada:
+```bash
+n8n start
+```
 
-Depois vai a **Workflows → Import from File** e importa os dois ficheiros que estão na raiz do projecto:
+Acede a `http://localhost:5678` e cria a conta inicial.
+
+Depois vai a **Workflows → Import from File** e importa os dois ficheiros da raiz do projecto:
 
 | Ficheiro | O que faz |
 |---|---|
-| `n8n_workflow_kubuka.json` | Recebe o texto do CV, envia ao Ollama e devolve a análise ao Django |
-| `n8n_workflow_job_scoring.json` | Compara o perfil do candidato com os requisitos da vaga e calcula o score |
+| `n8n_workflow_kubuka.json` | Recebe o CV e devolve a análise |
+| `n8n_workflow_job_scoring.json` | Compara candidato com vaga e devolve score |
 
-Activa cada workflow com o botão **Active** (canto superior direito de cada workflow).
+**Activa cada workflow** com o toggle **Active** no canto superior direito.
 
----
+### Passo 12 — Arrancar o sistema
 
-### 9. Arrancar o sistema
-
-```bash
-# Recomendado — script automático (trata de tudo)
+```powershell
 .\start.ps1
-
-# Ou manualmente, em três terminais separados
-ollama serve                   # terminal 1
-n8n start                      # terminal 2
-python manage.py runserver     # terminal 3
 ```
 
 A aplicação fica disponível em **http://localhost:8000**.
 
+Acede a `/signup/` para criar uma conta de candidato ou a `/signup/recruiter/` para uma conta de recrutador (fica pendente de aprovação — vai ao Django Admin para aprovar).
+
 ---
 
-### 10. Correr os testes
+## Testes automatizados
+
+Correr toda a suite (44 testes):
 
 ```bash
 python manage.py test recruitment
 ```
 
----
+**Testes end-to-end contra o Ollama real** (dentro de `scripts/`):
 
-## Modelo Ollama
-
-O sistema usa o `llama3.2:1b` (1B parâmetros, 1.3 GB, ~25 segundos por análise). Este é o modelo recomendado para hardware com memória RAM limitada — foi testado e funciona bem neste projecto.
-
-O modelo `llama3.2` (3B parâmetros) foi testado mas ultrapassava os 120 segundos por análise na máquina de desenvolvimento, dando timeout no n8n.
-
-O modelo está configurado directamente nos workflows do n8n (`model: 'llama3.2:1b'`). Para mudar, abre o workflow no n8n e edita o nó de código.
-
----
-
-## Problemas frequentes
-
-### PostgreSQL não está a correr quando abro o start.ps1
-
-O `start.ps1` verifica o PostgreSQL na porta 5432 e avisa se não estiver disponível. Para resolver de uma vez por todas, configura o serviço para arrancar automaticamente com o Windows (ver **secção 5b** acima).
-
-Para verificar o estado do serviço:
-```powershell
-Get-Service | Where-Object { $_.DisplayName -like "*postgresql*" }
-```
-
-Para iniciar manualmente quando necessário:
-```powershell
-# PowerShell como Administrador
-Start-Service -Name "postgresql-x64-18"
-```
-
----
-
-### Ollama muito lento ou a dar timeout no n8n
-
-O modelo padrão é o `llama3.2:1b` (~25s por análise). Se mesmo assim estiver lento, é sinal de que a RAM disponível é muito pouca.
-
-Verifica a RAM livre:
-```powershell
-(Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory / 1MB
-# resultado em GB — precisa de pelo menos 1.5 GB livres
-```
-
-Se não tens RAM suficiente, podes testar o callback directamente sem precisar do Ollama:
-```bash
-curl -X POST http://127.0.0.1:8000/api/resume/1/ai-result/ \
-  -H "Content-Type: application/json" \
-  -H "X-Kubuka-Secret: kubuka-secret-token-2025" \
-  -d "{\"score\": 78, \"skills\": \"Python, Django\", \"summary\": \"Candidato com experiência em backend.\", \"experience\": \"2 anos de desenvolvimento web.\", \"education\": \"Licenciatura em Informática.\", \"languages\": \"Português, Inglês\", \"feedback\": \"Bom perfil técnico.\"}"
-```
-
----
-
-### n8n não encontra os workflows após importar
-
-Certifica-te de que activaste cada workflow (botão **Active** no canto superior direito). Workflows inactivos não respondem a webhooks.
-
-Se o caminho do webhook estiver errado, clica no nó **Webhook** do workflow — o n8n mostra o URL exacto de produção que deves usar no `.env`.
-
----
-
-### Conta bloqueada após tentativas de login falhadas
-
-```bash
-python manage.py axes_reset
-
-# ou para um utilizador específico:
-python manage.py axes_reset_user <username>
-```
-
----
-
-### `localhost` vs `127.0.0.1` no Windows
-
-O n8n (Node.js) resolve `localhost` como `::1` (IPv6) no Windows, mas o Django e o Ollama ouvem em `127.0.0.1` (IPv4). Por isso:
-- No `.env` usa `DJANGO_BASE_URL=http://127.0.0.1:8000`
-- Nos workflows n8n usa `http://127.0.0.1:11434/api/generate` para o Ollama
-- Nos workflows n8n usa `http://127.0.0.1:8000` para os callbacks do Django
-
----
-
-## Contas de teste
-
-Depois de criar o superutilizador, podes criar contas directamente na aplicação:
-
-| URL | O que faz |
+| Script | O que faz |
 |---|---|
-| `/signup/` | Criar conta de candidato |
-| `/signup/recruiter/` | Registar conta de recrutador (fica pendente de aprovação) |
-| `/admin/` | Django Admin — gestão completa do sistema |
+| `scripts/test_end_to_end.py` | Análise de CV + scoring de candidatura em sequência |
+| `scripts/test_n8n_flow.py` | Só análise de CV |
+| `scripts/test_scoring_flow.py` | Só scoring de candidatura |
 
-Para aprovar um recrutador: **Django Admin → Users → seleccionar o utilizador → activar `is_recruiter` e `recruiter_approved`**.
+Executar (com os serviços a correr):
+```bash
+python scripts/test_end_to_end.py
+```
+
+**Manutenção dos workflows n8n:**
+
+Se precisares de reinstalar os workflows na BD do n8n (por exemplo depois de mudar de PC):
+```bash
+python scripts/update_n8n_workflows.py
+```
+Este script escreve directamente na SQLite do n8n (`~\.n8n\database.sqlite`) — o n8n tem de estar **parado** antes de o correres.
 
 ---
 
@@ -405,23 +321,102 @@ Para aprovar um recrutador: **Django Admin → Users → seleccionar o utilizado
 
 ```
 kubuka/
-├── core/
+├── core/                             — configuração Django
 │   ├── settings.py
 │   └── urls.py
-├── recruitment/
-│   ├── models.py            — User, Resume, Job, Application, Notification, AuditLog
-│   ├── views.py             — views HTML
-│   ├── callback_views.py    — endpoints de callback do n8n
-│   ├── ai_service.py        — envia pedidos ao n8n e trata erros de comunicação
-│   ├── cv_processor.py      — extracção de texto do PDF
-│   ├── notifications.py     — notificações in-app e email
-│   ├── rate_limit.py        — rate limiting
-│   ├── tests.py             — 44 testes automatizados
-│   └── templates/           — HTML com Tailwind + Flowbite
-├── n8n_workflow_kubuka.json       — workflow de análise de CV
-├── n8n_workflow_job_scoring.json  — workflow de scoring de candidatura
-├── start.ps1                — script de arranque (Windows)
-├── run_project.bat          — duplo clique para arrancar
+├── recruitment/                      — aplicação principal
+│   ├── models.py                     — User, Resume, Job, Application, Notification, AuditLog
+│   ├── views.py                      — views HTML (candidatos e recrutadores)
+│   ├── api_views.py                  — endpoints REST
+│   ├── callback_views.py             — callbacks recebidos do n8n
+│   ├── ai_service.py                 — envia pedidos para o n8n
+│   ├── cv_processor.py               — extracção de texto do PDF
+│   ├── notifications.py              — notificações in-app e email
+│   ├── rate_limit.py                 — rate limiting
+│   ├── tests.py                      — 44 testes
+│   ├── migrations/
+│   └── templates/                    — HTML com Tailwind + Flowbite
+├── scripts/                          — scripts utilitários e testes end-to-end
+│   ├── update_n8n_workflows.py       — reinstalar workflows na SQLite do n8n
+│   ├── test_end_to_end.py            — teste CV + scoring
+│   ├── test_n8n_flow.py              — só CV
+│   └── test_scoring_flow.py          — só scoring
+├── n8n_workflow_kubuka.json          — workflow de análise de CV
+├── n8n_workflow_job_scoring.json     — workflow de scoring
+├── start.ps1                         — script de arranque (Windows)
+├── run_project.bat                   — duplo clique para arrancar
+├── install_ocr_dependencies.py       — helper para instalar Tesseract/Poppler
+├── manage.py
+├── requirements.txt
 ├── .env.example
-└── requirements.txt
+├── CLAUDE.md                         — contexto do projecto (para IA)
+├── SECURITY_REPORT.md                — relatório de segurança
+└── README.md
 ```
+
+---
+
+## Problemas frequentes
+
+### PostgreSQL não está a correr
+
+O `start.ps1` avisa se a porta 5432 não estiver aberta. Para resolver de vez, configura o serviço como **automático** (ver Passo 2 acima).
+
+Para verificar o estado:
+```powershell
+Get-Service | Where-Object { $_.DisplayName -like "*postgresql*" }
+```
+
+### O Ollama demora imenso a responder na primeira chamada
+
+Na primeira chamada, o Ollama tem de carregar o modelo (~2 GB) do disco para a memória — isto pode demorar 1-5 minutos dependendo do disco/RAM. Chamadas seguintes são rápidas enquanto o modelo estiver carregado (por defeito 5 min).
+
+Se o teu computador tem pouca RAM, podes forçar o Ollama a manter o modelo carregado mais tempo enviando `keep_alive` no pedido (já está configurado nos workflows).
+
+### n8n devolve timeout ao chamar o Ollama
+
+Sinal de que o modelo não está a caber em memória ou o CPU está sobrecarregado. Verifica RAM livre:
+```powershell
+(Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory / 1MB
+# resultado em GB - precisa de pelo menos 2 GB livres
+```
+
+Alternativa temporária: em `scripts/update_n8n_workflows.py` muda o modelo do CV para `llama3.2:1b` (mais leve) e volta a correr o script.
+
+### n8n não reage aos webhooks depois de importar os workflows
+
+Certifica-te de que **activaste** cada workflow (toggle **Active** no canto superior direito de cada um). Workflows inactivos ignoram webhooks.
+
+Se ainda assim não funcionar, clica no nó **Webhook** — o n8n mostra o URL de produção que deve corresponder ao valor no `.env`.
+
+### Conta bloqueada após tentativas de login falhadas
+
+O django-axes bloqueia após 5 tentativas erradas:
+```bash
+python manage.py axes_reset
+# ou para um utilizador específico:
+python manage.py axes_reset_user <username>
+```
+
+### `localhost` vs `127.0.0.1` no Windows
+
+No Windows, o Node.js (n8n) resolve `localhost` como `::1` (IPv6), mas o Django e o Ollama ouvem em `127.0.0.1` (IPv4). Regra prática:
+- Nos URLs do n8n dentro do `.env`: sempre `127.0.0.1`
+- No `DJANGO_BASE_URL`: sempre `127.0.0.1`
+- Dentro dos workflows n8n (que já vêm configurados): `http://127.0.0.1:11434` para o Ollama e `http://127.0.0.1:8000` para o Django
+
+### Callback do n8n dá 403
+
+Verifica que o header `X-Kubuka-Secret` nos nós HTTP dos workflows corresponde ao `N8N_CALLBACK_SECRET` no `.env`. Se mudares o secret, tens de o mudar nos dois lados.
+
+---
+
+## Contas de teste
+
+| URL | O que faz |
+|---|---|
+| `/signup/` | Criar conta de candidato |
+| `/signup/recruiter/` | Registar conta de recrutador (fica pendente de aprovação) |
+| `/admin/` | Django Admin — gestão completa |
+
+Para aprovar um recrutador: **Django Admin → Users → seleccionar o utilizador → activar `is_recruiter` e `recruiter_approved`**.

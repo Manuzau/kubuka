@@ -16,7 +16,9 @@ SCORE_WORKFLOW_ID    = 'niPepZ38tAPvIXPr'
 CV_ACTIVE_VERSION    = '7a546d6d-c262-48f6-abc0-1b6ad8d09427'
 SCORE_ACTIVE_VERSION = '324a9c1a-a105-4817-98e0-66a8d326ef27'
 
-OLLAMA_MODEL = 'qwen2.5:3b'  # melhor a produzir JSON estruturado que o llama3.2:1b
+# Dois modelos: llama3.2:1b (rapido) para analise de CV, qwen2.5:3b (melhor) para scoring
+OLLAMA_MODEL_CV    = 'llama3.2:1b'
+OLLAMA_MODEL_SCORE = 'qwen2.5:3b'
 
 
 # ---------- CV Workflow ----------
@@ -45,7 +47,7 @@ CV_CODE_PREPARE = (
     "return [{ json: {\n"
     "  resume_id:    body.resume_id,\n"
     "  callback_url: body.callback_url,\n"
-    "  ollamaModel:  '" + OLLAMA_MODEL + "',\n"
+    "  ollamaModel:  '" + OLLAMA_MODEL_CV + "',\n"
     "  ollamaStream: false,\n"
     "  ollamaFormat: 'json',\n"
     "  ollamaPrompt: prompt,\n"
@@ -136,7 +138,7 @@ CV_NODES = [
             "sendBody": True,
             "specifyBody": "json",
             "jsonBody": "={{ {model: $json.ollamaModel, stream: $json.ollamaStream, format: $json.ollamaFormat, prompt: $json.ollamaPrompt} }}",
-            "options": {"timeout": 180000}
+            "options": {"timeout": 600000}
         },
         "id": "http-ollama-cv", "name": "Chamar Ollama",
         "type": "n8n-nodes-base.httpRequest", "typeVersion": 3,
@@ -208,7 +210,7 @@ SCORE_CODE_PREPARE = (
     "return [{ json: {\n"
     "  application_id: body.application_id,\n"
     "  callback_url:   body.callback_url,\n"
-    "  ollamaModel:    '" + OLLAMA_MODEL + "',\n"
+    "  ollamaModel:    '" + OLLAMA_MODEL_SCORE + "',\n"
     "  ollamaStream:   false,\n"
     "  ollamaFormat:   'json',\n"
     "  ollamaPrompt:   prompt,\n"
@@ -312,7 +314,7 @@ SCORE_NODES = [
             "sendBody": True,
             "specifyBody": "json",
             "jsonBody": "={{ {model: $json.ollamaModel, stream: $json.ollamaStream, format: $json.ollamaFormat, prompt: $json.ollamaPrompt} }}",
-            "options": {"timeout": 180000}
+            "options": {"timeout": 600000}
         },
         "id": "http-ollama-score", "name": "Chamar Ollama Score",
         "type": "n8n-nodes-base.httpRequest", "typeVersion": 3,
@@ -357,7 +359,7 @@ def update_workflow(conn, wf_id, version_id, nodes, connections, label):
     cj = json.dumps(connections, ensure_ascii=False)
     conn.execute('UPDATE workflow_entity SET nodes=?, connections=? WHERE id=?', (nj, cj, wf_id))
     conn.execute('UPDATE workflow_history SET nodes=?, connections=? WHERE versionId=?', (nj, cj, version_id))
-    print(f'  [{label}] actualizado - {len(nodes)} nos, modelo={OLLAMA_MODEL}')
+    print(f'  [{label}] actualizado - {len(nodes)} nos')
 
 
 def main():
