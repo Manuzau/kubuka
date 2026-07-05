@@ -161,10 +161,10 @@ N8N_SECRET_TOKEN = env('N8N_SECRET_TOKEN', default='')
 CALLBACK_SECRET = env('CALLBACK_SECRET', default='')
 
 # n8n + Ollama
-N8N_WEBHOOK_CV_URL = env('N8N_WEBHOOK_CV_URL', default='')
-N8N_WEBHOOK_SCORE_URL = env('N8N_WEBHOOK_SCORE_URL', default='')
+N8N_WEBHOOK_CV_URL = env('N8N_WEBHOOK_CV_URL', default='http://127.0.0.1:5678/webhook/cv-analysis')
+N8N_WEBHOOK_SCORE_URL = env('N8N_WEBHOOK_SCORE_URL', default='http://127.0.0.1:5678/webhook/job-scoring')
 N8N_CALLBACK_SECRET = env('N8N_CALLBACK_SECRET', default='')
-DJANGO_BASE_URL = env('DJANGO_BASE_URL', default='http://localhost:8000')
+DJANGO_BASE_URL = env('DJANGO_BASE_URL', default='http://127.0.0.1:8000')
 
 # ---------------------------------------------------------------------------
 # Limites de upload
