@@ -66,7 +66,7 @@ if (Test-Port 5678) {
 } else {
     Write-Host "[ ] A iniciar n8n numa nova janela..." -ForegroundColor Yellow
     Start-Process -FilePath "cmd" -ArgumentList "/k n8n start" -WindowStyle Normal
-    Start-Sleep -Seconds 15
+    Start-Sleep -Seconds 25
     if (Test-Port 5678) {
         Write-Host "[OK] n8n iniciado" -ForegroundColor Green
     } else {
