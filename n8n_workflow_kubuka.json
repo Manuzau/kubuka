@@ -17,21 +17,84 @@
     },
     {
       "parameters": {
-        "jsCode": "// Extrair dados do webhook\nconst wh = $input.first().json;\nconst body = (wh.resume_id !== undefined) ? wh : (wh.body || wh);\n\nconst resumeId   = body.resume_id;\nconst callbackUrl = body.callback_url;\nconst cvText     = String(body.cv_text || '').slice(0, 6000);\n\nif (!resumeId || !callbackUrl) {\n  throw new Error('Dados em falta: resume_id=' + resumeId + ' callback_url=' + callbackUrl);\n}\n\n// Construir prompt\nconst prompt =\n  'Analisa o seguinte curriculo e responde APENAS com JSON valido com estes campos: ' +\n  'score (inteiro 0-100), skills (lista de strings), summary (string), experience (string), ' +\n  'education (string), languages (string), feedback (string).\\n\\nCurriculo:\\n' + cvText;\n\n// Chamar Ollama — stream tem de ser boolean false, nunca string\nconst ollamaResp = await $helpers.httpRequest({\n  method: 'POST',\n  url: 'http://127.0.0.1:11434/api/generate',\n  headers: { 'Content-Type': 'application/json' },\n  body: JSON.stringify({ model: 'llama3.2:1b', stream: false, format: 'json', prompt }),\n  returnFullResponse: false\n});\n\nfunction toStr(val) {\n  if (val == null) return '';\n  if (typeof val === 'string') return val.trim();\n  if (Array.isArray(val)) return val.map(i => (typeof i === 'object' ? JSON.stringify(i) : String(i))).join(', ');\n  if (typeof val === 'object') return Object.values(val).filter(Boolean).join(' | ') || JSON.stringify(val);\n  return String(val);\n}\n\nlet analysis = {};\ntry {\n  const raw = String(\n    (typeof ollamaResp === 'string' ? ollamaResp : null) ||\n    (ollamaResp && ollamaResp.response) ||\n    '{}'\n  );\n  const cleaned = raw.replace(/```json\\s*/gi, '').replace(/```\\s*/g, '').trim();\n  analysis = JSON.parse(cleaned);\n} catch (_) {\n  analysis = {};\n}\n\nconst score      = Math.min(100, Math.max(0, parseFloat(analysis.score) || 50));\nconst skills     = Array.isArray(analysis.skills)\n  ? analysis.skills.map(s => (typeof s === 'object' ? toStr(s) : String(s))).join(', ')\n  : toStr(analysis.skills) || 'Nao identificadas';\nconst summary    = toStr(analysis.summary)    || 'Resumo nao disponivel';\nconst experience = toStr(analysis.experience) || 'Nao especificada';\nconst education  = toStr(analysis.education)  || 'Nao especificada';\nconst languages  = toStr(analysis.languages)  || 'Nao identificados';\nconst feedback   = toStr(analysis.feedback)   || 'Analise concluida.';\n\n// Callback para o Django\nawait $helpers.httpRequest({\n  method: 'POST',\n  url: callbackUrl,\n  headers: {\n    'Content-Type': 'application/json',\n    'X-Kubuka-Secret': 'kubuka-secret-token-2025'\n  },\n  body: JSON.stringify({ score, skills, summary, experience, education, languages, feedback }),\n  returnFullResponse: false\n});\n\nreturn [{ json: { success: true, resume_id: resumeId, score } }];"
+        "jsCode": "const wh = $input.first().json;\nconst body = (wh.resume_id !== undefined) ? wh : (wh.body || wh);\n\nif (!body.resume_id || !body.callback_url) {\n  throw new Error('Dados em falta: resume_id=' + body.resume_id + ' callback_url=' + body.callback_url);\n}\n\nconst cvText = String(body.cv_text || '').slice(0, 6000);\nconst prompt =\n  'Analisa o seguinte curriculo e responde APENAS com JSON valido com estes campos: ' +\n  'score (inteiro 0-100), skills (lista de strings), summary (string), experience (string), ' +\n  'education (string), languages (string), feedback (string).\\n\\nCurriculo:\\n' + cvText;\n\nreturn [{ json: {\n  resume_id:    body.resume_id,\n  callback_url: body.callback_url,\n  ollamaModel:  'llama3.2:1b',\n  ollamaStream: false,\n  ollamaFormat: 'json',\n  ollamaPrompt: prompt,\n}}];"
       },
-      "id": "process-cv-01",
-      "name": "Processar CV + Ollama + Callback",
+      "id": "code-cv-01",
+      "name": "Preparar Pedido",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [500, 300]
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:11434/api/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "Content-Type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {model: $json.ollamaModel, stream: $json.ollamaStream, format: $json.ollamaFormat, prompt: $json.ollamaPrompt} }}",
+        "options": {}
+      },
+      "id": "http-ollama-cv",
+      "name": "Chamar Ollama",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ollamaResp = $input.first().json;\nconst prev = $('Preparar Pedido').first().json;\n\nfunction toStr(val) {\n  if (val == null) return '';\n  if (typeof val === 'string') return val.trim();\n  if (Array.isArray(val)) return val.map(i => (typeof i === 'object' ? JSON.stringify(i) : String(i))).join(', ');\n  if (typeof val === 'object') return Object.values(val).filter(Boolean).join(' | ') || JSON.stringify(val);\n  return String(val);\n}\n\nlet analysis = {};\ntry {\n  const raw = String(ollamaResp.response || '{}');\n  analysis = JSON.parse(raw.replace(/```json\\s*/gi, '').replace(/```\\s*/g, '').trim());\n} catch (_) {}\n\nreturn [{ json: {\n  resume_id:    prev.resume_id,\n  callback_url: prev.callback_url,\n  score:      Math.min(100, Math.max(0, parseFloat(analysis.score) || 50)),\n  skills:     Array.isArray(analysis.skills) ? analysis.skills.map(s => (typeof s === 'object' ? JSON.stringify(s) : String(s))).join(', ') : toStr(analysis.skills) || 'Nao identificadas',\n  summary:    toStr(analysis.summary)    || 'Resumo nao disponivel',\n  experience: toStr(analysis.experience) || 'Nao especificada',\n  education:  toStr(analysis.education)  || 'Nao especificada',\n  languages:  toStr(analysis.languages)  || 'Nao identificados',\n  feedback:   toStr(analysis.feedback)   || 'Analise concluida.',\n}}];"
+      },
+      "id": "code-cv-02",
+      "name": "Processar Resposta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [920, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.callback_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "Content-Type", "value": "application/json"},
+            {"name": "X-Kubuka-Secret", "value": "kubuka-secret-token-2025"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {score: $json.score, skills: $json.skills, summary: $json.summary, experience: $json.experience, education: $json.education, languages: $json.languages, feedback: $json.feedback} }}",
+        "options": {}
+      },
+      "id": "http-django-cv",
+      "name": "Callback Django",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1160, 300]
     }
   ],
   "connections": {
     "Webhook — Receber CV": {
-      "main": [[{"node": "Processar CV + Ollama + Callback", "type": "main", "index": 0}]]
+      "main": [[{"node": "Preparar Pedido", "type": "main", "index": 0}]]
+    },
+    "Preparar Pedido": {
+      "main": [[{"node": "Chamar Ollama", "type": "main", "index": 0}]]
+    },
+    "Chamar Ollama": {
+      "main": [[{"node": "Processar Resposta", "type": "main", "index": 0}]]
+    },
+    "Processar Resposta": {
+      "main": [[{"node": "Callback Django", "type": "main", "index": 0}]]
     }
   },
   "settings": {
     "executionOrder": "v1"
-  }
+  },
+  "id": "XgXXXZxjLwPAzjGz"
 }
