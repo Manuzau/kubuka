@@ -1,9 +1,11 @@
 """
-Reconstroi os workflows com configuracao correcta do HTTP Request node V3:
-  specifyBody: "json" + jsonBody: expressao n8n
+Reconstroi os workflows do n8n para o KUBUKA.
 
-specifyBody "string" no V3 = form-urlencoded (ERRADO para JSON)
-specifyBody "json"   no V3 = corpo JSON (CORRECTO)
+Estrutura de 5 nos por workflow:
+  Webhook -> Code (preparar) -> HTTP Request (Ollama) -> Code (processar) -> HTTP Request (Django callback)
+
+Modelo: qwen2.5:3b (melhor a produzir JSON estruturado que o llama3.2:1b)
+Parsers: busca recursiva pelos campos em qualquer estrutura devolvida pelo LLM
 """
 import sqlite3, json
 
@@ -14,7 +16,11 @@ SCORE_WORKFLOW_ID    = 'niPepZ38tAPvIXPr'
 CV_ACTIVE_VERSION    = '7a546d6d-c262-48f6-abc0-1b6ad8d09427'
 SCORE_ACTIVE_VERSION = '324a9c1a-a105-4817-98e0-66a8d326ef27'
 
-# Code node: prepara os campos individualmente para o HTTP Request node poder aceder via $json
+OLLAMA_MODEL = 'qwen2.5:3b'  # melhor a produzir JSON estruturado que o llama3.2:1b
+
+
+# ---------- CV Workflow ----------
+
 CV_CODE_PREPARE = (
     "const wh = $input.first().json;\n"
     "const body = (wh.resume_id !== undefined) ? wh : (wh.body || wh);\n"
@@ -25,48 +31,85 @@ CV_CODE_PREPARE = (
     "\n"
     "const cvText = String(body.cv_text || '').slice(0, 6000);\n"
     "const prompt =\n"
-    "  'Analisa o seguinte curriculo e responde APENAS com JSON valido com estes campos: ' +\n"
-    "  'score (inteiro 0-100), skills (lista de strings), summary (string), experience (string), ' +\n"
-    "  'education (string), languages (string), feedback (string).\\n\\nCurriculo:\\n' + cvText;\n"
+    "  'Es um especialista em recrutamento. Analisa o seguinte curriculo e extrai a informacao.\\n\\n' +\n"
+    "  'CURRICULO:\\n' + cvText + '\\n\\n' +\n"
+    "  'Responde APENAS com um objecto JSON plano contendo:\\n' +\n"
+    "  'score: numero inteiro 0-100 (qualidade global do CV).\\n' +\n"
+    "  'skills: array de strings com as competencias identificadas.\\n' +\n"
+    "  'summary: resumo profissional em portugues.\\n' +\n"
+    "  'experience: descricao da experiencia profissional em portugues.\\n' +\n"
+    "  'education: formacao academica em portugues.\\n' +\n"
+    "  'languages: idiomas em portugues.\\n' +\n"
+    "  'feedback: analise em portugues com pontos fortes e sugestoes de melhoria.';\n"
     "\n"
     "return [{ json: {\n"
     "  resume_id:    body.resume_id,\n"
     "  callback_url: body.callback_url,\n"
-    "  ollamaModel:  'llama3.2:1b',\n"
+    "  ollamaModel:  '" + OLLAMA_MODEL + "',\n"
     "  ollamaStream: false,\n"
     "  ollamaFormat: 'json',\n"
     "  ollamaPrompt: prompt,\n"
     "}}];"
 )
 
+# Parser CV: busca recursiva por cada campo em qualquer estrutura devolvida pelo LLM
 CV_CODE_PARSE = (
     "const ollamaResp = $input.first().json;\n"
     "const prev = $('Preparar Pedido').first().json;\n"
     "\n"
+    "function findField(obj, names) {\n"
+    "  if (obj == null) return undefined;\n"
+    "  if (typeof obj !== 'object') return undefined;\n"
+    "  for (const k of Object.keys(obj)) {\n"
+    "    if (names.includes(k.toLowerCase())) return obj[k];\n"
+    "  }\n"
+    "  for (const k of Object.keys(obj)) {\n"
+    "    const v = obj[k];\n"
+    "    if (v && typeof v === 'object') {\n"
+    "      const nested = findField(v, names);\n"
+    "      if (nested !== undefined) return nested;\n"
+    "    }\n"
+    "  }\n"
+    "  return undefined;\n"
+    "}\n"
+    "\n"
     "function toStr(val) {\n"
     "  if (val == null) return '';\n"
     "  if (typeof val === 'string') return val.trim();\n"
-    "  if (Array.isArray(val)) return val.map(i => (typeof i === 'object' ? JSON.stringify(i) : String(i))).join(', ');\n"
-    "  if (typeof val === 'object') return Object.values(val).filter(Boolean).join(' | ') || JSON.stringify(val);\n"
+    "  if (Array.isArray(val)) return val.map(i => (typeof i === 'object' ? toStr(i) : String(i))).filter(Boolean).join(', ');\n"
+    "  if (typeof val === 'object') {\n"
+    "    const parts = Object.entries(val).map(([k,v]) => k + ': ' + toStr(v)).filter(x => x.length > 5);\n"
+    "    return parts.join(' | ') || JSON.stringify(val);\n"
+    "  }\n"
     "  return String(val);\n"
     "}\n"
     "\n"
     "let analysis = {};\n"
     "try {\n"
     "  const raw = String(ollamaResp.response || '{}');\n"
-    "  analysis = JSON.parse(raw.replace(/```json\\s*/gi, '').replace(/```\\s*/g, '').trim());\n"
+    "  const cleaned = raw.replace(/```json\\s*/gi, '').replace(/```\\s*/g, '').trim();\n"
+    "  analysis = JSON.parse(cleaned);\n"
+    "  if (typeof analysis !== 'object' || analysis === null) analysis = {};\n"
     "} catch (_) {}\n"
+    "\n"
+    "const scoreRaw     = findField(analysis, ['score','cv_score','overall_score','quality_score']);\n"
+    "const skillsRaw    = findField(analysis, ['skills','competencias','habilidades']);\n"
+    "const summaryRaw   = findField(analysis, ['summary','resumo','sumario']);\n"
+    "const experienceRaw= findField(analysis, ['experience','experiencia']);\n"
+    "const educationRaw = findField(analysis, ['education','educacao','formacao']);\n"
+    "const languagesRaw = findField(analysis, ['languages','idiomas','linguas']);\n"
+    "const feedbackRaw  = findField(analysis, ['feedback','analise','comentario']);\n"
     "\n"
     "return [{ json: {\n"
     "  resume_id:    prev.resume_id,\n"
     "  callback_url: prev.callback_url,\n"
-    "  score:      Math.min(100, Math.max(0, parseFloat(analysis.score) || 50)),\n"
-    "  skills:     Array.isArray(analysis.skills) ? analysis.skills.map(s => (typeof s === 'object' ? JSON.stringify(s) : String(s))).join(', ') : toStr(analysis.skills) || 'Nao identificadas',\n"
-    "  summary:    toStr(analysis.summary)    || 'Resumo nao disponivel',\n"
-    "  experience: toStr(analysis.experience) || 'Nao especificada',\n"
-    "  education:  toStr(analysis.education)  || 'Nao especificada',\n"
-    "  languages:  toStr(analysis.languages)  || 'Nao identificados',\n"
-    "  feedback:   toStr(analysis.feedback)   || 'Analise concluida.',\n"
+    "  score:      Math.min(100, Math.max(0, parseFloat(scoreRaw) || 50)),\n"
+    "  skills:     toStr(skillsRaw)     || 'Nao identificadas',\n"
+    "  summary:    toStr(summaryRaw)    || 'Resumo nao disponivel',\n"
+    "  experience: toStr(experienceRaw) || 'Nao especificada',\n"
+    "  education:  toStr(educationRaw)  || 'Nao especificada',\n"
+    "  languages:  toStr(languagesRaw)  || 'Nao identificados',\n"
+    "  feedback:   toStr(feedbackRaw)   || 'Analise concluida.',\n"
     "}}];"
 )
 
@@ -93,7 +136,7 @@ CV_NODES = [
             "sendBody": True,
             "specifyBody": "json",
             "jsonBody": "={{ {model: $json.ollamaModel, stream: $json.ollamaStream, format: $json.ollamaFormat, prompt: $json.ollamaPrompt} }}",
-            "options": {}
+            "options": {"timeout": 180000}
         },
         "id": "http-ollama-cv", "name": "Chamar Ollama",
         "type": "n8n-nodes-base.httpRequest", "typeVersion": 3,
@@ -132,6 +175,9 @@ CV_CONNECTIONS = {
     "Processar Resposta": {"main": [[{"node": "Callback Django", "type": "main", "index": 0}]]}
 }
 
+
+# ---------- Score Workflow ----------
+
 SCORE_CODE_PREPARE = (
     "const wh = $input.first().json;\n"
     "const body = (wh.application_id !== undefined) ? wh : (wh.body || wh);\n"
@@ -147,36 +193,99 @@ SCORE_CODE_PREPARE = (
     "const requirements = String(body.job_requirements   || '').slice(0, 3000);\n"
     "\n"
     "const prompt =\n"
-    "  'Compara o candidato com a vaga. Responde APENAS com JSON valido com dois campos: ' +\n"
-    "  'similarity_score (inteiro 0-100) e match_feedback (string).\\n\\n' +\n"
-    "  'Candidato - Skills: ' + skills + ' | Resumo: ' + summary + ' | Experiencia: ' + experience + '\\n' +\n"
-    "  'Vaga: ' + jobTitle + ' | Requisitos: ' + requirements;\n"
+    "  'Es um especialista em recrutamento. Analisa a correspondencia entre o candidato e a vaga abaixo.\\n\\n' +\n"
+    "  'CANDIDATO:\\n' +\n"
+    "  '- Competencias: ' + skills + '\\n' +\n"
+    "  '- Resumo: ' + summary + '\\n' +\n"
+    "  '- Experiencia: ' + experience + '\\n\\n' +\n"
+    "  'VAGA:\\n' +\n"
+    "  '- Titulo: ' + jobTitle + '\\n' +\n"
+    "  '- Requisitos: ' + requirements + '\\n\\n' +\n"
+    "  'Responde APENAS com um objecto JSON plano com dois campos:\\n' +\n"
+    "  'similarity_score: um numero inteiro entre 0 e 100 representando a percentagem de correspondencia.\\n' +\n"
+    "  'match_feedback: uma frase em portugues com os pontos fortes e as lacunas do candidato em relacao aos requisitos.';\n"
     "\n"
     "return [{ json: {\n"
     "  application_id: body.application_id,\n"
     "  callback_url:   body.callback_url,\n"
-    "  ollamaModel:    'llama3.2:1b',\n"
+    "  ollamaModel:    '" + OLLAMA_MODEL + "',\n"
     "  ollamaStream:   false,\n"
     "  ollamaFormat:   'json',\n"
     "  ollamaPrompt:   prompt,\n"
     "}}];"
 )
 
+# Parser Score: bulletproof — aceita qualquer estrutura devolvida pelo modelo
 SCORE_CODE_PARSE = (
     "const ollamaResp = $input.first().json;\n"
     "const prev = $('Preparar Pedido Score').first().json;\n"
     "\n"
-    "let result = {};\n"
+    "function findNumeric(obj, names) {\n"
+    "  if (obj == null) return undefined;\n"
+    "  if (typeof obj === 'number') return obj;\n"
+    "  if (typeof obj === 'string') { const n = parseFloat(obj); return isNaN(n) ? undefined : n; }\n"
+    "  if (typeof obj !== 'object') return undefined;\n"
+    "  for (const k of Object.keys(obj)) {\n"
+    "    if (names.includes(k.toLowerCase())) {\n"
+    "      const v = obj[k];\n"
+    "      if (typeof v === 'number') return v;\n"
+    "      if (typeof v === 'string') { const n = parseFloat(v); if (!isNaN(n)) return n; }\n"
+    "    }\n"
+    "  }\n"
+    "  for (const k of Object.keys(obj)) {\n"
+    "    const v = obj[k];\n"
+    "    if (v && typeof v === 'object') {\n"
+    "      const nested = findNumeric(v, names);\n"
+    "      if (nested !== undefined) return nested;\n"
+    "    }\n"
+    "  }\n"
+    "  return undefined;\n"
+    "}\n"
+    "\n"
+    "function findText(obj, names) {\n"
+    "  if (obj == null) return undefined;\n"
+    "  if (typeof obj !== 'object') return undefined;\n"
+    "  for (const k of Object.keys(obj)) {\n"
+    "    if (names.includes(k.toLowerCase())) {\n"
+    "      const v = obj[k];\n"
+    "      if (typeof v === 'string' && v.trim().length > 0) return v.trim();\n"
+    "      if (typeof v === 'object' && v !== null) {\n"
+    "        const parts = [];\n"
+    "        for (const kk of Object.keys(v)) {\n"
+    "          const vv = v[kk];\n"
+    "          if (typeof vv === 'string') parts.push(vv);\n"
+    "        }\n"
+    "        if (parts.length) return parts.join(' ');\n"
+    "      }\n"
+    "    }\n"
+    "  }\n"
+    "  for (const k of Object.keys(obj)) {\n"
+    "    const v = obj[k];\n"
+    "    if (v && typeof v === 'object') {\n"
+    "      const nested = findText(v, names);\n"
+    "      if (nested !== undefined) return nested;\n"
+    "    }\n"
+    "  }\n"
+    "  return undefined;\n"
+    "}\n"
+    "\n"
+    "let parsed = {};\n"
     "try {\n"
     "  const raw = String(ollamaResp.response || '{}');\n"
-    "  result = JSON.parse(raw.replace(/```json\\s*/gi, '').replace(/```\\s*/g, '').trim());\n"
+    "  const cleaned = raw.replace(/```json\\s*/gi, '').replace(/```\\s*/g, '').trim();\n"
+    "  parsed = JSON.parse(cleaned);\n"
+    "  if (typeof parsed === 'number') parsed = { similarity_score: parsed };\n"
+    "  if (typeof parsed !== 'object' || parsed === null) parsed = {};\n"
     "} catch (_) {}\n"
+    "\n"
+    "const scoreRaw    = findNumeric(parsed, ['similarity_score','score','match_score','similarity','percentage','match_percentage']);\n"
+    "const feedbackRaw = findText(parsed,    ['match_feedback','feedback','explanation','analysis','comentario','analise','justification']);\n"
     "\n"
     "return [{ json: {\n"
     "  application_id: prev.application_id,\n"
     "  callback_url:   prev.callback_url,\n"
-    "  similarity_score: Math.min(100, Math.max(0, parseFloat(result.similarity_score) || 0)),\n"
-    "  match_feedback:   String(result.match_feedback || 'Analise nao disponivel.').trim(),\n"
+    "  similarity_score: Math.min(100, Math.max(0, parseFloat(scoreRaw) || 0)),\n"
+    "  match_feedback:   (feedbackRaw || 'Analise concluida.').toString().slice(0, 4000),\n"
     "}}];"
 )
 
@@ -203,7 +312,7 @@ SCORE_NODES = [
             "sendBody": True,
             "specifyBody": "json",
             "jsonBody": "={{ {model: $json.ollamaModel, stream: $json.ollamaStream, format: $json.ollamaFormat, prompt: $json.ollamaPrompt} }}",
-            "options": {}
+            "options": {"timeout": 180000}
         },
         "id": "http-ollama-score", "name": "Chamar Ollama Score",
         "type": "n8n-nodes-base.httpRequest", "typeVersion": 3,
@@ -248,7 +357,7 @@ def update_workflow(conn, wf_id, version_id, nodes, connections, label):
     cj = json.dumps(connections, ensure_ascii=False)
     conn.execute('UPDATE workflow_entity SET nodes=?, connections=? WHERE id=?', (nj, cj, wf_id))
     conn.execute('UPDATE workflow_history SET nodes=?, connections=? WHERE versionId=?', (nj, cj, version_id))
-    print(f'  [{label}] actualizado — {len(nodes)} nos')
+    print(f'  [{label}] actualizado - {len(nodes)} nos, modelo={OLLAMA_MODEL}')
 
 
 def main():
