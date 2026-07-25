@@ -217,6 +217,44 @@ N8N_CALLBACK_SECRET=kubuka-secret-token-2025
 DJANGO_BASE_URL=http://localhost:8000
 ```
 
+### Motor de IA configurável e com fallback automático: Ollama (local) ou Groq (cloud)
+
+O Django **não** sabe qual motor de IA está a ser usado — ele apenas chama o webhook do n8n
+e espera o callback, tal como sempre. A escolha entre Ollama local e Groq (cloud, API
+compatível com OpenAI) acontece inteiramente dentro dos workflows do n8n, em dois níveis:
+
+1. **Nó `IF` "Escolher Motor de IA"** (logo a seguir a "Preparar Pedido"/"Preparar Pedido
+   Score"), que avalia `{{ $env.AI_PROVIDER }}`:
+   - `AI_PROVIDER=cloud` → vai directo ao ramo "Chamar Groq", sem sequer tentar o Ollama
+     (mais rápido — útil para demos/apresentações).
+   - `AI_PROVIDER=local` ou omisso (omissão) → ramo "Chamar Ollama"
+     (`http://127.0.0.1:11434/api/generate`).
+2. **Fallback automático dentro do ramo local**: o nó "Chamar Ollama"/"Chamar Ollama Score"
+   tem `onError: "continueErrorOutput"`, com a saída de erro ligada directamente ao nó
+   "Chamar Groq"/"Chamar Groq Score". Ou seja, se o Ollama não estiver instalado/a correr
+   (ligação recusada) ou falhar por qualquer razão, o n8n cai automaticamente para a Groq
+   **sem qualquer alteração ao `.env`** — desde que `GROQ_API_KEY` esteja definida no
+   ambiente do n8n. O timeout do pedido ao Ollama mantém-se em 180s para não interromper
+   prematuramente um modelo local que esteja apenas a demorar a carregar.
+
+Esta cadeia (Postgres→SQLite automático no `core/settings.py`, Ollama→Groq automático aqui)
+significa que o KUBUKA arranca e funciona de ponta a ponta mesmo numa máquina onde só o
+Django e o n8n estejam instalados, sem PostgreSQL nem Ollama — útil para demonstrações
+rápidas ou ambientes de avaliação onde não se quer depender de infra-estrutura pesada.
+
+Os nós "Processar Resposta"/"Processar Score" foram tornados tolerantes a ambos os formatos
+de resposta (`ollamaResp.response` para Ollama, `ollamaResp.choices[0].message.content` para
+Groq/OpenAI-compatível), pelo que nenhuma outra alteração é necessária ao trocar de motor.
+
+O `start.ps1` lê `AI_PROVIDER` e `GROQ_API_KEY` do `.env` e exporta-os para o processo do n8n
+(incluindo `N8N_BLOCK_ENV_ACCESS_IN_NODE=false`, necessário em versões recentes do n8n para
+permitir o acesso a `$env` dentro das expressões dos nós). Este desenho mantém o Ollama como
+opção por omissão — preservando o argumento de privacidade da tese — e disponibiliza a Groq
+como rede de segurança/alternativa para mitigar o custo computacional local, conforme
+sugerido pelo orientador. Ver `scripts/update_n8n_workflows.py` para a definição canónica dos
+nós (usada para reescrever os workflows directamente na base SQLite do n8n) e os ficheiros
+`n8n_workflow_kubuka.json` / `n8n_workflow_job_scoring.json` para importação manual via UI.
+
 ### Prompt para análise de CV (n8n → Ollama)
 ```
 Analisa o seguinte currículo e devolve APENAS um JSON válido, sem texto adicional,

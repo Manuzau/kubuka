@@ -20,7 +20,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const wh = $input.first().json;\nconst body = (wh.resume_id !== undefined) ? wh : (wh.body || wh);\n\nif (!body.resume_id || !body.callback_url) {\n  throw new Error('Dados em falta: resume_id=' + body.resume_id + ' callback_url=' + body.callback_url);\n}\n\nconst cvText = String(body.cv_text || '').slice(0, 6000);\nconst prompt =\n  'Es um especialista em recrutamento. Analisa o seguinte curriculo e extrai a informacao.\\n\\n' +\n  'CURRICULO:\\n' + cvText + '\\n\\n' +\n  'Responde APENAS com um objecto JSON plano contendo:\\n' +\n  'score: numero inteiro 0-100 (qualidade global do CV).\\n' +\n  'skills: array de strings com as competencias identificadas.\\n' +\n  'summary: resumo profissional em portugues.\\n' +\n  'experience: descricao da experiencia profissional em portugues.\\n' +\n  'education: formacao academica em portugues.\\n' +\n  'languages: idiomas em portugues.\\n' +\n  'feedback: analise em portugues com pontos fortes e sugestoes de melhoria.';\n\nreturn [{ json: {\n  resume_id:    body.resume_id,\n  callback_url: body.callback_url,\n  ollamaModel:  'qwen2.5:3b',\n  ollamaStream: false,\n  ollamaFormat: 'json',\n  ollamaPrompt: prompt,\n}}];"
+        "jsCode": "const wh = $input.first().json;\nconst body = (wh.resume_id !== undefined) ? wh : (wh.body || wh);\n\nif (!body.resume_id || !body.callback_url) {\n  throw new Error('Dados em falta: resume_id=' + body.resume_id + ' callback_url=' + body.callback_url);\n}\n\nconst cvText = String(body.cv_text || '').slice(0, 6000);\nconst prompt =\n  'Es um especialista em recrutamento. Analisa o seguinte curriculo e extrai a informacao.\\n\\n' +\n  'CURRICULO:\\n' + cvText + '\\n\\n' +\n  'Responde APENAS com um objecto JSON plano contendo:\\n' +\n  'score: numero inteiro 0-100 (qualidade global do CV).\\n' +\n  'skills: array de strings com as competencias identificadas.\\n' +\n  'summary: resumo profissional em portugues.\\n' +\n  'experience: descricao da experiencia profissional em portugues.\\n' +\n  'education: formacao academica em portugues.\\n' +\n  'languages: idiomas em portugues.\\n' +\n  'feedback: analise em portugues com pontos fortes e sugestoes de melhoria.';\n\nreturn [{ json: {\n  resume_id:    body.resume_id,\n  callback_url: body.callback_url,\n  ollamaModel:  'qwen2.5:3b',\n  cloudModel:   'llama-3.1-8b-instant',\n  ollamaStream: false,\n  ollamaFormat: 'json',\n  ollamaPrompt: prompt,\n}}];"
       },
       "id": "code-cv-01",
       "name": "Preparar Pedido",
@@ -29,6 +29,71 @@
       "position": [
         440,
         300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-provider-cv",
+              "leftValue": "={{ $env.AI_PROVIDER }}",
+              "rightValue": "cloud",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-provider-cv",
+      "name": "Escolher Motor de IA",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GROQ_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {model: $json.cloudModel, temperature: 0.3, response_format: {type: \"json_object\"}, messages: [ {role: \"user\", content: $json.ollamaPrompt} ]} }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "http-groq-cv",
+      "name": "Chamar Groq",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        940,
+        160
       ]
     },
     {
@@ -55,21 +120,22 @@
       "name": "Chamar Ollama",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
+      "onError": "continueErrorOutput",
       "position": [
-        680,
-        300
+        940,
+        440
       ]
     },
     {
       "parameters": {
-        "jsCode": "const ollamaResp = $input.first().json;\nconst prev = $('Preparar Pedido').first().json;\n\nfunction findField(obj, names) {\n  if (obj == null) return undefined;\n  if (typeof obj !== 'object') return undefined;\n  for (const k of Object.keys(obj)) {\n    if (names.includes(k.toLowerCase())) return obj[k];\n  }\n  for (const k of Object.keys(obj)) {\n    const v = obj[k];\n    if (v && typeof v === 'object') {\n      const nested = findField(v, names);\n      if (nested !== undefined) return nested;\n    }\n  }\n  return undefined;\n}\n\nfunction toStr(val) {\n  if (val == null) return '';\n  if (typeof val === 'string') return val.trim();\n  if (Array.isArray(val)) return val.map(i => (typeof i === 'object' ? toStr(i) : String(i))).filter(Boolean).join(', ');\n  if (typeof val === 'object') {\n    const parts = Object.entries(val).map(([k,v]) => k + ': ' + toStr(v)).filter(x => x.length > 5);\n    return parts.join(' | ') || JSON.stringify(val);\n  }\n  return String(val);\n}\n\nlet analysis = {};\ntry {\n  const raw = String(ollamaResp.response || '{}');\n  const cleaned = raw.replace(/```json\\s*/gi, '').replace(/```\\s*/g, '').trim();\n  analysis = JSON.parse(cleaned);\n  if (typeof analysis !== 'object' || analysis === null) analysis = {};\n} catch (_) {}\n\nconst scoreRaw     = findField(analysis, ['score','cv_score','overall_score','quality_score']);\nconst skillsRaw    = findField(analysis, ['skills','competencias','habilidades']);\nconst summaryRaw   = findField(analysis, ['summary','resumo','sumario']);\nconst experienceRaw= findField(analysis, ['experience','experiencia']);\nconst educationRaw = findField(analysis, ['education','educacao','formacao']);\nconst languagesRaw = findField(analysis, ['languages','idiomas','linguas']);\nconst feedbackRaw  = findField(analysis, ['feedback','analise','comentario']);\n\nreturn [{ json: {\n  resume_id:    prev.resume_id,\n  callback_url: prev.callback_url,\n  score:      Math.min(100, Math.max(0, parseFloat(scoreRaw) || 50)),\n  skills:     toStr(skillsRaw)     || 'Nao identificadas',\n  summary:    toStr(summaryRaw)    || 'Resumo nao disponivel',\n  experience: toStr(experienceRaw) || 'Nao especificada',\n  education:  toStr(educationRaw)  || 'Nao especificada',\n  languages:  toStr(languagesRaw)  || 'Nao identificados',\n  feedback:   toStr(feedbackRaw)   || 'Analise concluida.',\n}}];"
+        "jsCode": "const ollamaResp = $input.first().json;\nconst prev = $('Preparar Pedido').first().json;\n\nfunction findField(obj, names) {\n  if (obj == null) return undefined;\n  if (typeof obj !== 'object') return undefined;\n  for (const k of Object.keys(obj)) {\n    if (names.includes(k.toLowerCase())) return obj[k];\n  }\n  for (const k of Object.keys(obj)) {\n    const v = obj[k];\n    if (v && typeof v === 'object') {\n      const nested = findField(v, names);\n      if (nested !== undefined) return nested;\n    }\n  }\n  return undefined;\n}\n\nfunction toStr(val) {\n  if (val == null) return '';\n  if (typeof val === 'string') return val.trim();\n  if (Array.isArray(val)) return val.map(i => (typeof i === 'object' ? toStr(i) : String(i))).filter(Boolean).join(', ');\n  if (typeof val === 'object') {\n    const parts = Object.entries(val).map(([k,v]) => k + ': ' + toStr(v)).filter(x => x.length > 5);\n    return parts.join(' | ') || JSON.stringify(val);\n  }\n  return String(val);\n}\n\nlet analysis = {};\ntry {\n  // 'response' -> formato Ollama; 'choices[0].message.content' -> formato OpenAI-compativel (Groq)\n  const raw = String(\n    ollamaResp.response ||\n    (ollamaResp.choices && ollamaResp.choices[0] && ollamaResp.choices[0].message && ollamaResp.choices[0].message.content) ||\n    '{}'\n  );\n  const cleaned = raw.replace(/```json\\s*/gi, '').replace(/```\\s*/g, '').trim();\n  analysis = JSON.parse(cleaned);\n  if (typeof analysis !== 'object' || analysis === null) analysis = {};\n} catch (_) {}\n\nconst scoreRaw     = findField(analysis, ['score','cv_score','overall_score','quality_score']);\nconst skillsRaw    = findField(analysis, ['skills','competencias','habilidades']);\nconst summaryRaw   = findField(analysis, ['summary','resumo','sumario']);\nconst experienceRaw= findField(analysis, ['experience','experiencia']);\nconst educationRaw = findField(analysis, ['education','educacao','formacao']);\nconst languagesRaw = findField(analysis, ['languages','idiomas','linguas']);\nconst feedbackRaw  = findField(analysis, ['feedback','analise','comentario']);\n\nreturn [{ json: {\n  resume_id:    prev.resume_id,\n  callback_url: prev.callback_url,\n  score:      Math.min(100, Math.max(0, parseFloat(scoreRaw) || 50)),\n  skills:     toStr(skillsRaw)     || 'Nao identificadas',\n  summary:    toStr(summaryRaw)    || 'Resumo nao disponivel',\n  experience: toStr(experienceRaw) || 'Nao especificada',\n  education:  toStr(educationRaw)  || 'Nao especificada',\n  languages:  toStr(languagesRaw)  || 'Nao identificados',\n  feedback:   toStr(feedbackRaw)   || 'Analise concluida.',\n}}];"
       },
       "id": "code-cv-02",
       "name": "Processar Resposta",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        920,
+        1180,
         300
       ]
     },
@@ -100,7 +166,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
       "position": [
-        1160,
+        1420,
         300
       ]
     }
@@ -121,7 +187,36 @@
       "main": [
         [
           {
+            "node": "Escolher Motor de IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Escolher Motor de IA": {
+      "main": [
+        [
+          {
+            "node": "Chamar Groq",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
             "node": "Chamar Ollama",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chamar Groq": {
+      "main": [
+        [
+          {
+            "node": "Processar Resposta",
             "type": "main",
             "index": 0
           }
@@ -133,6 +228,13 @@
         [
           {
             "node": "Processar Resposta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Chamar Groq",
             "type": "main",
             "index": 0
           }

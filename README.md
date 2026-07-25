@@ -104,6 +104,32 @@ Se score < mínimo definido na vaga → candidatura rejeitada automaticamente
 - `llama3.2:1b` (1.3 GB, ~70s) é usado para **análise de CV** — rápido e suficiente para extrair texto estruturado.
 - `qwen2.5:3b` (1.9 GB, ~2 min) é usado para **scoring de candidaturas** — muito melhor a produzir JSON estruturado e a raciocinar sobre a correspondência entre candidato e vaga.
 
+### IA na cloud (opcional, com fallback automático do Ollama)
+
+Por omissão o KUBUKA usa o Ollama local (razões de privacidade — ver tese). Os workflows do
+n8n suportam também a **Groq** (API compatível com OpenAI, gratuita até um limite generoso e
+muito rápida) como alternativa, sem qualquer alteração ao código Django, de duas formas:
+
+**Automática (recomendada):** se o Ollama não estiver instalado ou não estiver a correr, o
+n8n cai sozinho para a Groq assim que a chamada ao Ollama falhar — não é preciso mudar nada
+no `.env`. Só é necessário ter uma `GROQ_API_KEY` configurada:
+```env
+GROQ_API_KEY=a-tua-chave-aqui
+```
+Cria a conta/chave em https://console.groq.com/keys.
+
+**Forçada (para demos rápidas):** para ignorar o Ollama por completo e ir sempre directo à
+Groq (mais previsível, sem esperar por uma tentativa de ligação ao Ollama primeiro):
+```env
+AI_PROVIDER=cloud
+GROQ_API_KEY=a-tua-chave-aqui
+```
+
+Em qualquer dos casos é preciso reiniciar o n8n depois de editar o `.env` (o `start.ps1` faz
+isto automaticamente a cada arranque). Para voltar a exigir sempre o Ollama local (sem
+fallback), seria necessário remover a ligação de erro no nó "Chamar Ollama" — não recomendado,
+pois a rede de segurança automática não tem custo quando o Ollama funciona normalmente.
+
 ---
 
 ## Arranque rápido (dia-a-dia)

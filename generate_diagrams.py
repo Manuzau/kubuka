@@ -434,7 +434,205 @@ def make_context_diagram():
     print(f"Saved: {out}")
 
 
+# ---------------------------------------------------------------------------
+# CLASS DIAGRAM (UML)
+# ---------------------------------------------------------------------------
+
+def measure_uml_class(draw, attrs, methods, font_title, font_body):
+    line_h = text_size(draw, "Ag", font_body)[1] + 8
+    title_h = text_size(draw, "Ag", font_title)[1] + 18
+    attrs_h = max(len(attrs), 1) * line_h + 10
+    methods_h = (len(methods) * line_h + 10) if methods else 0
+    return title_h + attrs_h + methods_h, line_h, title_h, attrs_h, methods_h
+
+
+def draw_uml_class(draw, cx, cy, w, name, attrs, methods, font_title, font_body,
+                    border="#7C3AED", header_fill="#EDE9FE"):
+    total_h, line_h, title_h, attrs_h, methods_h = measure_uml_class(
+        draw, attrs, methods, font_title, font_body)
+    x, y = int(cx - w / 2), int(cy - total_h / 2)
+
+    rect(draw, x, y, x + w, y + total_h, outline=border, width=2, fill="white")
+    rect(draw, x, y, x + w, y + title_h, outline=border, width=2, fill=header_fill)
+    tw, th = text_size(draw, name, font_title)
+    draw.text((x + (w - tw) // 2, y + (title_h - th) // 2), name, font=font_title, fill="#4C1D95")
+
+    ay = y + title_h
+    for i, a in enumerate(attrs):
+        draw.text((x + 10, ay + 5 + i * line_h), a, font=font_body, fill="#1E293B")
+
+    if methods:
+        my = ay + attrs_h
+        draw.line([(x, my), (x + w, my)], fill=border, width=1)
+        for i, m in enumerate(methods):
+            draw.text((x + 10, my + 5 + i * line_h), m, font=font_body, fill="#0F172A")
+
+    return {"x": x, "y": y, "w": w, "h": total_h, "cx": x + w / 2, "cy": y + total_h / 2}
+
+
+def rect_edge_pt(box, tx, ty):
+    cx, cy = box["cx"], box["cy"]
+    dx, dy = tx - cx, ty - cy
+    hw, hh = box["w"] / 2, box["h"] / 2
+    if dx == 0 and dy == 0:
+        return cx, cy
+    if abs(dx) * hh > abs(dy) * hw:
+        sx = hw if dx > 0 else -hw
+        sy = dy * hw / abs(dx) if dx != 0 else 0
+    else:
+        sy = hh if dy > 0 else -hh
+        sx = dx * hh / abs(dy) if dy != 0 else 0
+    return cx + sx, cy + sy
+
+
+def draw_uml_association(draw, box_a, box_b, mult_a, mult_b, label, font, color="#334155"):
+    pa = rect_edge_pt(box_a, box_b["cx"], box_b["cy"])
+    pb = rect_edge_pt(box_b, box_a["cx"], box_a["cy"])
+    draw.line([pa, pb], fill=color, width=2)
+
+    dist = math.hypot(pb[0] - pa[0], pb[1] - pa[1]) or 1
+    ux, uy = (pb[0] - pa[0]) / dist, (pb[1] - pa[1]) / dist
+
+    def label_at(px, py, dx, dy, text):
+        lw, lh = text_size(draw, text, font)
+        draw.rectangle([px + dx - lw // 2 - 2, py + dy - lh // 2 - 1,
+                         px + dx + lw // 2 + 2, py + dy + lh // 2 + 1], fill="#FAFAFA")
+        draw.text((px + dx - lw // 2, py + dy - lh // 2), text, font=font, fill=color)
+
+    label_at(pa[0], pa[1], ux * 26 + uy * 10, uy * 26 - ux * 10, mult_a)
+    label_at(pb[0], pb[1], -ux * 26 + uy * 10, -uy * 26 - ux * 10, mult_b)
+    mx, my = (pa[0] + pb[0]) / 2, (pa[1] + pb[1]) / 2
+    label_at(mx, my, uy * 14, -ux * 14, label)
+
+
+def make_class_diagram():
+    W, H = 2000, 1520
+    img = Image.new("RGB", (W, H), "#FAFAFA")
+    draw = ImageDraw.Draw(img)
+
+    f_title = load_font(FONT_BOLD, 16)
+    f_body = load_font(FONT_REGULAR, 13)
+    f_lbl = load_font(FONT_BOLD, 13)
+    f16 = load_font(FONT_BOLD, 24)
+    f11 = load_font(FONT_BOLD, 15)
+    f9 = load_font(FONT_REGULAR, 13)
+
+    title = "Diagrama de Classes (UML) — KUBUKA"
+    tw, _ = text_size(draw, title, f16)
+    draw.text(((W - tw) // 2, 16), title, font=f16, fill="#1E293B")
+
+    # --- Class definitions (name, attrs, methods) ---
+    user_attrs = [
+        "- username : String",
+        "- email : String",
+        "- password : String",
+        "- is_candidate : Boolean",
+        "- is_recruiter : Boolean",
+        "- is_admin : Boolean",
+        "- recruiter_approved : Boolean",
+        "- company : String",
+    ]
+    user_methods = ["+ has_resume() : Boolean"]
+
+    resume_attrs = [
+        "- file : File",
+        "- parsed_text : String",
+        "- summary : String",
+        "- skills : String",
+        "- experience : String",
+        "- education : String",
+        "- languages : String",
+        "- score : Float",
+        "- feedback : String",
+        "- ai_processed : Boolean",
+        "- created_at : DateTime",
+    ]
+
+    job_attrs = [
+        "- title : String",
+        "- company : String",
+        "- description : String",
+        "- requirements : String",
+        "- location : String",
+        "- salary_range : String",
+        "- is_active : Boolean",
+        "- deadline : Date",
+        "- contact_email_primary : String",
+        "- contact_email_secondary : String",
+        "- allow_candidate_unavailability : Boolean",
+        "- min_score_required : Float",
+        "- created_at : DateTime",
+    ]
+
+    application_attrs = [
+        "- similarity_score : Float",
+        "- match_feedback : String",
+        "- status : String «enum»",
+        "- awaiting_score : Boolean",
+        "- cv_file : File",
+        "- cv_parsed_text : String",
+        "- recruiter_notes : String",
+        "- interview_date : DateTime",
+        "- candidate_availability_enabled : Boolean",
+        "- candidate_unavailability_reason : String",
+        "- availability_responded : Boolean",
+        "- applied_at : DateTime",
+        "- updated_at : DateTime",
+    ]
+
+    auditlog_attrs = [
+        "- action : String «enum»",
+        "- detail : String",
+        "- ip_address : String",
+        "- timestamp : DateTime",
+    ]
+
+    notification_attrs = [
+        "- message : String",
+        "- is_read : Boolean",
+        "- created_at : DateTime",
+    ]
+
+    # --- Layout: User as central hub, satellites arranged radially ---
+    b_user = draw_uml_class(draw, 900, 740, 400, "User", user_attrs, user_methods, f_title, f_body,
+                             border="#7C3AED", header_fill="#EDE9FE")
+    b_resume = draw_uml_class(draw, 300, 240, 440, "Resume", resume_attrs, [], f_title, f_body,
+                               border="#3B82F6", header_fill="#EFF6FF")
+    b_job = draw_uml_class(draw, 1620, 240, 460, "Job", job_attrs, [], f_title, f_body,
+                            border="#10B981", header_fill="#F0FDF4")
+    b_application = draw_uml_class(draw, 1620, 780, 460, "Application", application_attrs, [], f_title, f_body,
+                                    border="#0284C7", header_fill="#E0F2FE")
+    b_auditlog = draw_uml_class(draw, 300, 1220, 420, "AuditLog", auditlog_attrs, [], f_title, f_body,
+                                 border="#F59E0B", header_fill="#FFFBEB")
+    b_notification = draw_uml_class(draw, 1620, 1300, 420, "Notification", notification_attrs, [], f_title, f_body,
+                                     border="#EC4899", header_fill="#FDF2F8")
+
+    # --- Associations (multiplicity from Django FK / OneToOne semantics) ---
+    draw_uml_association(draw, b_user, b_resume, "1", "0..1", "possui", f_lbl, color="#3B82F6")
+    draw_uml_association(draw, b_user, b_job, "1", "0..*", "cria", f_lbl, color="#10B981")
+    draw_uml_association(draw, b_user, b_application, "1", "0..*", "submete", f_lbl, color="#0284C7")
+    draw_uml_association(draw, b_job, b_application, "1", "0..*", "recebe", f_lbl, color="#0284C7")
+    draw_uml_association(draw, b_user, b_auditlog, "1", "0..*", "regista", f_lbl, color="#F59E0B")
+    draw_uml_association(draw, b_user, b_notification, "1", "0..*", "recebe", f_lbl, color="#EC4899")
+    draw_uml_association(draw, b_application, b_notification, "1", "0..*", "gera", f_lbl, color="#EC4899")
+
+    # --- Legend ---
+    LX, LY = 20, H - 150
+    rect(draw, LX, LY, LX + 430, H - 20, outline="#94A3B8", width=1, fill="#F1F5F9")
+    draw.text((LX + 10, LY + 8), "Legenda", font=f11, fill="#1E293B")
+    draw.line([(LX + 10, LY + 40), (LX + 45, LY + 40)], fill="#334155", width=2)
+    draw.text((LX + 55, LY + 32), "Associação com multiplicidade (ex: 1 → 0..*)", font=f9, fill="#1E293B")
+    draw.text((LX + 10, LY + 58), "Compartimentos: Nome / Atributos (-) / Métodos (+)", font=f9, fill="#1E293B")
+    draw.text((LX + 10, LY + 80), "«enum» — campo com conjunto fixo de valores (choices)", font=f9, fill="#1E293B")
+    draw.text((LX + 10, LY + 102), "1 = exactamente um · 0..1 = zero ou um · 0..* = zero ou muitos", font=f9, fill="#1E293B")
+
+    out = os.path.join(OUT_DIR, "diagrama_classes.png")
+    img.save(out, dpi=(150, 150))
+    print(f"Saved: {out}")
+
+
 if __name__ == "__main__":
     make_use_case_diagram()
     make_context_diagram()
+    make_class_diagram()
     print("Diagrams generated successfully.")

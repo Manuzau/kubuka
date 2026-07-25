@@ -20,7 +20,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const wh = $input.first().json;\nconst body = (wh.application_id !== undefined) ? wh : (wh.body || wh);\n\nif (!body.application_id || !body.callback_url) {\n  throw new Error('Dados em falta: application_id=' + body.application_id + ' callback_url=' + body.callback_url);\n}\n\nconst skills      = String(body.candidate_skills     || '').slice(0, 2000);\nconst summary     = String(body.candidate_summary    || '').slice(0, 1000);\nconst experience  = String(body.candidate_experience || '').slice(0, 2000);\nconst jobTitle    = String(body.job_title            || '');\nconst requirements = String(body.job_requirements   || '').slice(0, 3000);\n\nconst prompt =\n  'Es um especialista em recrutamento. Analisa a correspondencia entre o candidato e a vaga abaixo.\\n\\n' +\n  'CANDIDATO:\\n' +\n  '- Competencias: ' + skills + '\\n' +\n  '- Resumo: ' + summary + '\\n' +\n  '- Experiencia: ' + experience + '\\n\\n' +\n  'VAGA:\\n' +\n  '- Titulo: ' + jobTitle + '\\n' +\n  '- Requisitos: ' + requirements + '\\n\\n' +\n  'Responde APENAS com um objecto JSON plano com dois campos:\\n' +\n  'similarity_score: um numero inteiro entre 0 e 100 representando a percentagem de correspondencia.\\n' +\n  'match_feedback: uma frase em portugues com os pontos fortes e as lacunas do candidato em relacao aos requisitos.';\n\nreturn [{ json: {\n  application_id: body.application_id,\n  callback_url:   body.callback_url,\n  ollamaModel:    'qwen2.5:3b',\n  ollamaStream:   false,\n  ollamaFormat:   'json',\n  ollamaPrompt:   prompt,\n}}];"
+        "jsCode": "const wh = $input.first().json;\nconst body = (wh.application_id !== undefined) ? wh : (wh.body || wh);\n\nif (!body.application_id || !body.callback_url) {\n  throw new Error('Dados em falta: application_id=' + body.application_id + ' callback_url=' + body.callback_url);\n}\n\nconst skills      = String(body.candidate_skills     || '').slice(0, 2000);\nconst summary     = String(body.candidate_summary    || '').slice(0, 1000);\nconst experience  = String(body.candidate_experience || '').slice(0, 2000);\nconst jobTitle    = String(body.job_title            || '');\nconst requirements = String(body.job_requirements   || '').slice(0, 3000);\n\nconst prompt =\n  'Es um especialista em recrutamento. Analisa a correspondencia entre o candidato e a vaga abaixo.\\n\\n' +\n  'CANDIDATO:\\n' +\n  '- Competencias: ' + skills + '\\n' +\n  '- Resumo: ' + summary + '\\n' +\n  '- Experiencia: ' + experience + '\\n\\n' +\n  'VAGA:\\n' +\n  '- Titulo: ' + jobTitle + '\\n' +\n  '- Requisitos: ' + requirements + '\\n\\n' +\n  'Responde APENAS com um objecto JSON plano com dois campos:\\n' +\n  'similarity_score: um numero inteiro entre 0 e 100 representando a percentagem de correspondencia.\\n' +\n  'match_feedback: uma frase em portugues com os pontos fortes e as lacunas do candidato em relacao aos requisitos.';\n\nreturn [{ json: {\n  application_id: body.application_id,\n  callback_url:   body.callback_url,\n  ollamaModel:    'qwen2.5:3b',\n  cloudModel:     'llama-3.3-70b-versatile',\n  ollamaStream:   false,\n  ollamaFormat:   'json',\n  ollamaPrompt:   prompt,\n}}];"
       },
       "id": "code-score-01",
       "name": "Preparar Pedido Score",
@@ -29,6 +29,71 @@
       "position": [
         440,
         300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-provider-score",
+              "leftValue": "={{ $env.AI_PROVIDER }}",
+              "rightValue": "cloud",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-provider-score",
+      "name": "Escolher Motor de IA",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GROQ_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {model: $json.cloudModel, temperature: 0.3, response_format: {type: \"json_object\"}, messages: [ {role: \"user\", content: $json.ollamaPrompt} ]} }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "http-groq-score",
+      "name": "Chamar Groq Score",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        940,
+        160
       ]
     },
     {
@@ -55,21 +120,22 @@
       "name": "Chamar Ollama Score",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
+      "onError": "continueErrorOutput",
       "position": [
-        680,
-        300
+        940,
+        440
       ]
     },
     {
       "parameters": {
-        "jsCode": "const ollamaResp = $input.first().json;\nconst prev = $('Preparar Pedido Score').first().json;\n\nfunction findNumeric(obj, names) {\n  if (obj == null) return undefined;\n  if (typeof obj === 'number') return obj;\n  if (typeof obj === 'string') { const n = parseFloat(obj); return isNaN(n) ? undefined : n; }\n  if (typeof obj !== 'object') return undefined;\n  for (const k of Object.keys(obj)) {\n    if (names.includes(k.toLowerCase())) {\n      const v = obj[k];\n      if (typeof v === 'number') return v;\n      if (typeof v === 'string') { const n = parseFloat(v); if (!isNaN(n)) return n; }\n    }\n  }\n  for (const k of Object.keys(obj)) {\n    const v = obj[k];\n    if (v && typeof v === 'object') {\n      const nested = findNumeric(v, names);\n      if (nested !== undefined) return nested;\n    }\n  }\n  return undefined;\n}\n\nfunction findText(obj, names) {\n  if (obj == null) return undefined;\n  if (typeof obj !== 'object') return undefined;\n  for (const k of Object.keys(obj)) {\n    if (names.includes(k.toLowerCase())) {\n      const v = obj[k];\n      if (typeof v === 'string' && v.trim().length > 0) return v.trim();\n      if (typeof v === 'object' && v !== null) {\n        const parts = [];\n        for (const kk of Object.keys(v)) {\n          const vv = v[kk];\n          if (typeof vv === 'string') parts.push(vv);\n        }\n        if (parts.length) return parts.join(' ');\n      }\n    }\n  }\n  for (const k of Object.keys(obj)) {\n    const v = obj[k];\n    if (v && typeof v === 'object') {\n      const nested = findText(v, names);\n      if (nested !== undefined) return nested;\n    }\n  }\n  return undefined;\n}\n\nlet parsed = {};\ntry {\n  const raw = String(ollamaResp.response || '{}');\n  const cleaned = raw.replace(/```json\\s*/gi, '').replace(/```\\s*/g, '').trim();\n  parsed = JSON.parse(cleaned);\n  if (typeof parsed === 'number') parsed = { similarity_score: parsed };\n  if (typeof parsed !== 'object' || parsed === null) parsed = {};\n} catch (_) {}\n\nconst scoreRaw    = findNumeric(parsed, ['similarity_score','score','match_score','similarity','percentage','match_percentage']);\nconst feedbackRaw = findText(parsed,    ['match_feedback','feedback','explanation','analysis','comentario','analise','justification']);\n\nreturn [{ json: {\n  application_id: prev.application_id,\n  callback_url:   prev.callback_url,\n  similarity_score: Math.min(100, Math.max(0, parseFloat(scoreRaw) || 0)),\n  match_feedback:   (feedbackRaw || 'Analise concluida.').toString().slice(0, 4000),\n}}];"
+        "jsCode": "const ollamaResp = $input.first().json;\nconst prev = $('Preparar Pedido Score').first().json;\n\nfunction findNumeric(obj, names) {\n  if (obj == null) return undefined;\n  if (typeof obj === 'number') return obj;\n  if (typeof obj === 'string') { const n = parseFloat(obj); return isNaN(n) ? undefined : n; }\n  if (typeof obj !== 'object') return undefined;\n  for (const k of Object.keys(obj)) {\n    if (names.includes(k.toLowerCase())) {\n      const v = obj[k];\n      if (typeof v === 'number') return v;\n      if (typeof v === 'string') { const n = parseFloat(v); if (!isNaN(n)) return n; }\n    }\n  }\n  for (const k of Object.keys(obj)) {\n    const v = obj[k];\n    if (v && typeof v === 'object') {\n      const nested = findNumeric(v, names);\n      if (nested !== undefined) return nested;\n    }\n  }\n  return undefined;\n}\n\nfunction findText(obj, names) {\n  if (obj == null) return undefined;\n  if (typeof obj !== 'object') return undefined;\n  for (const k of Object.keys(obj)) {\n    if (names.includes(k.toLowerCase())) {\n      const v = obj[k];\n      if (typeof v === 'string' && v.trim().length > 0) return v.trim();\n      if (typeof v === 'object' && v !== null) {\n        const parts = [];\n        for (const kk of Object.keys(v)) {\n          const vv = v[kk];\n          if (typeof vv === 'string') parts.push(vv);\n        }\n        if (parts.length) return parts.join(' ');\n      }\n    }\n  }\n  for (const k of Object.keys(obj)) {\n    const v = obj[k];\n    if (v && typeof v === 'object') {\n      const nested = findText(v, names);\n      if (nested !== undefined) return nested;\n    }\n  }\n  return undefined;\n}\n\nlet parsed = {};\ntry {\n  // 'response' -> formato Ollama; 'choices[0].message.content' -> formato OpenAI-compativel (Groq)\n  const raw = String(\n    ollamaResp.response ||\n    (ollamaResp.choices && ollamaResp.choices[0] && ollamaResp.choices[0].message && ollamaResp.choices[0].message.content) ||\n    '{}'\n  );\n  const cleaned = raw.replace(/```json\\s*/gi, '').replace(/```\\s*/g, '').trim();\n  parsed = JSON.parse(cleaned);\n  if (typeof parsed === 'number') parsed = { similarity_score: parsed };\n  if (typeof parsed !== 'object' || parsed === null) parsed = {};\n} catch (_) {}\n\nconst scoreRaw    = findNumeric(parsed, ['similarity_score','score','match_score','similarity','percentage','match_percentage']);\nconst feedbackRaw = findText(parsed,    ['match_feedback','feedback','explanation','analysis','comentario','analise','justification']);\n\nreturn [{ json: {\n  application_id: prev.application_id,\n  callback_url:   prev.callback_url,\n  similarity_score: Math.min(100, Math.max(0, parseFloat(scoreRaw) || 0)),\n  match_feedback:   (feedbackRaw || 'Analise concluida.').toString().slice(0, 4000),\n}}];"
       },
       "id": "code-score-02",
       "name": "Processar Score",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        920,
+        1180,
         300
       ]
     },
@@ -100,7 +166,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
       "position": [
-        1160,
+        1420,
         300
       ]
     }
@@ -121,7 +187,36 @@
       "main": [
         [
           {
+            "node": "Escolher Motor de IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Escolher Motor de IA": {
+      "main": [
+        [
+          {
+            "node": "Chamar Groq Score",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
             "node": "Chamar Ollama Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chamar Groq Score": {
+      "main": [
+        [
+          {
+            "node": "Processar Score",
             "type": "main",
             "index": 0
           }
@@ -133,6 +228,13 @@
         [
           {
             "node": "Processar Score",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Chamar Groq Score",
             "type": "main",
             "index": 0
           }

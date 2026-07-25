@@ -16,9 +16,14 @@ SCORE_WORKFLOW_ID    = 'niPepZ38tAPvIXPr'
 CV_ACTIVE_VERSION    = '7a546d6d-c262-48f6-abc0-1b6ad8d09427'
 SCORE_ACTIVE_VERSION = '324a9c1a-a105-4817-98e0-66a8d326ef27'
 
-# Dois modelos: llama3.2:1b (rapido) para analise de CV, qwen2.5:3b (melhor) para scoring
+# Dois modelos locais: llama3.2:1b (rapido) para analise de CV, qwen2.5:3b (melhor) para scoring
 OLLAMA_MODEL_CV    = 'llama3.2:1b'
 OLLAMA_MODEL_SCORE = 'qwen2.5:3b'
+
+# Equivalentes na cloud (Groq, API compativel com OpenAI) - usados apenas se AI_PROVIDER=cloud
+# no ambiente do n8n. Ver variavel de ambiente GROQ_API_KEY.
+CLOUD_MODEL_CV    = 'llama-3.1-8b-instant'
+CLOUD_MODEL_SCORE = 'llama-3.3-70b-versatile'
 
 
 # ---------- CV Workflow ----------
@@ -48,6 +53,7 @@ CV_CODE_PREPARE = (
     "  resume_id:    body.resume_id,\n"
     "  callback_url: body.callback_url,\n"
     "  ollamaModel:  '" + OLLAMA_MODEL_CV + "',\n"
+    "  cloudModel:   '" + CLOUD_MODEL_CV + "',\n"
     "  ollamaStream: false,\n"
     "  ollamaFormat: 'json',\n"
     "  ollamaPrompt: prompt,\n"
@@ -88,7 +94,12 @@ CV_CODE_PARSE = (
     "\n"
     "let analysis = {};\n"
     "try {\n"
-    "  const raw = String(ollamaResp.response || '{}');\n"
+    "  // 'response' -> formato Ollama; 'choices[0].message.content' -> formato OpenAI-compativel (Groq)\n"
+    "  const raw = String(\n"
+    "    ollamaResp.response ||\n"
+    "    (ollamaResp.choices && ollamaResp.choices[0] && ollamaResp.choices[0].message && ollamaResp.choices[0].message.content) ||\n"
+    "    '{}'\n"
+    "  );\n"
     "  const cleaned = raw.replace(/```json\\s*/gi, '').replace(/```\\s*/g, '').trim();\n"
     "  analysis = JSON.parse(cleaned);\n"
     "  if (typeof analysis !== 'object' || analysis === null) analysis = {};\n"
@@ -131,6 +142,44 @@ CV_NODES = [
     },
     {
         "parameters": {
+            "conditions": {
+                "options": {"caseSensitive": True, "leftValue": "", "typeValidation": "strict"},
+                "conditions": [
+                    {
+                        "id": "cond-provider-cv",
+                        "leftValue": "={{ $env.AI_PROVIDER }}",
+                        "rightValue": "cloud",
+                        "operator": {"type": "string", "operation": "equals"}
+                    }
+                ],
+                "combinator": "and"
+            },
+            "options": {}
+        },
+        "id": "if-provider-cv", "name": "Escolher Motor de IA",
+        "type": "n8n-nodes-base.if", "typeVersion": 2,
+        "position": [680, 300]
+    },
+    {
+        "parameters": {
+            "method": "POST",
+            "url": "https://api.groq.com/openai/v1/chat/completions",
+            "sendHeaders": True,
+            "headerParameters": {"parameters": [
+                {"name": "Content-Type", "value": "application/json"},
+                {"name": "Authorization", "value": "=Bearer {{ $env.GROQ_API_KEY }}"}
+            ]},
+            "sendBody": True,
+            "specifyBody": "json",
+            "jsonBody": "={{ {model: $json.cloudModel, temperature: 0.3, response_format: {type: \"json_object\"}, messages: [ {role: \"user\", content: $json.ollamaPrompt} ]} }}",
+            "options": {"timeout": 60000}
+        },
+        "id": "http-groq-cv", "name": "Chamar Groq",
+        "type": "n8n-nodes-base.httpRequest", "typeVersion": 3,
+        "position": [940, 160]
+    },
+    {
+        "parameters": {
             "method": "POST",
             "url": "http://127.0.0.1:11434/api/generate",
             "sendHeaders": True,
@@ -142,13 +191,14 @@ CV_NODES = [
         },
         "id": "http-ollama-cv", "name": "Chamar Ollama",
         "type": "n8n-nodes-base.httpRequest", "typeVersion": 3,
-        "position": [680, 300]
+        "onError": "continueErrorOutput",
+        "position": [940, 440]
     },
     {
         "parameters": {"jsCode": CV_CODE_PARSE},
         "id": "code-cv-02", "name": "Processar Resposta",
         "type": "n8n-nodes-base.code", "typeVersion": 2,
-        "position": [920, 300]
+        "position": [1180, 300]
     },
     {
         "parameters": {
@@ -166,14 +216,22 @@ CV_NODES = [
         },
         "id": "http-django-cv", "name": "Callback Django",
         "type": "n8n-nodes-base.httpRequest", "typeVersion": 3,
-        "position": [1160, 300]
+        "position": [1420, 300]
     }
 ]
 
 CV_CONNECTIONS = {
     "Webhook": {"main": [[{"node": "Preparar Pedido", "type": "main", "index": 0}]]},
-    "Preparar Pedido": {"main": [[{"node": "Chamar Ollama", "type": "main", "index": 0}]]},
-    "Chamar Ollama": {"main": [[{"node": "Processar Resposta", "type": "main", "index": 0}]]},
+    "Preparar Pedido": {"main": [[{"node": "Escolher Motor de IA", "type": "main", "index": 0}]]},
+    "Escolher Motor de IA": {"main": [
+        [{"node": "Chamar Groq", "type": "main", "index": 0}],
+        [{"node": "Chamar Ollama", "type": "main", "index": 0}]
+    ]},
+    "Chamar Groq": {"main": [[{"node": "Processar Resposta", "type": "main", "index": 0}]]},
+    "Chamar Ollama": {"main": [
+        [{"node": "Processar Resposta", "type": "main", "index": 0}],
+        [{"node": "Chamar Groq", "type": "main", "index": 0}]
+    ]},
     "Processar Resposta": {"main": [[{"node": "Callback Django", "type": "main", "index": 0}]]}
 }
 
@@ -211,6 +269,7 @@ SCORE_CODE_PREPARE = (
     "  application_id: body.application_id,\n"
     "  callback_url:   body.callback_url,\n"
     "  ollamaModel:    '" + OLLAMA_MODEL_SCORE + "',\n"
+    "  cloudModel:     '" + CLOUD_MODEL_SCORE + "',\n"
     "  ollamaStream:   false,\n"
     "  ollamaFormat:   'json',\n"
     "  ollamaPrompt:   prompt,\n"
@@ -273,7 +332,12 @@ SCORE_CODE_PARSE = (
     "\n"
     "let parsed = {};\n"
     "try {\n"
-    "  const raw = String(ollamaResp.response || '{}');\n"
+    "  // 'response' -> formato Ollama; 'choices[0].message.content' -> formato OpenAI-compativel (Groq)\n"
+    "  const raw = String(\n"
+    "    ollamaResp.response ||\n"
+    "    (ollamaResp.choices && ollamaResp.choices[0] && ollamaResp.choices[0].message && ollamaResp.choices[0].message.content) ||\n"
+    "    '{}'\n"
+    "  );\n"
     "  const cleaned = raw.replace(/```json\\s*/gi, '').replace(/```\\s*/g, '').trim();\n"
     "  parsed = JSON.parse(cleaned);\n"
     "  if (typeof parsed === 'number') parsed = { similarity_score: parsed };\n"
@@ -307,6 +371,44 @@ SCORE_NODES = [
     },
     {
         "parameters": {
+            "conditions": {
+                "options": {"caseSensitive": True, "leftValue": "", "typeValidation": "strict"},
+                "conditions": [
+                    {
+                        "id": "cond-provider-score",
+                        "leftValue": "={{ $env.AI_PROVIDER }}",
+                        "rightValue": "cloud",
+                        "operator": {"type": "string", "operation": "equals"}
+                    }
+                ],
+                "combinator": "and"
+            },
+            "options": {}
+        },
+        "id": "if-provider-score", "name": "Escolher Motor de IA",
+        "type": "n8n-nodes-base.if", "typeVersion": 2,
+        "position": [680, 300]
+    },
+    {
+        "parameters": {
+            "method": "POST",
+            "url": "https://api.groq.com/openai/v1/chat/completions",
+            "sendHeaders": True,
+            "headerParameters": {"parameters": [
+                {"name": "Content-Type", "value": "application/json"},
+                {"name": "Authorization", "value": "=Bearer {{ $env.GROQ_API_KEY }}"}
+            ]},
+            "sendBody": True,
+            "specifyBody": "json",
+            "jsonBody": "={{ {model: $json.cloudModel, temperature: 0.3, response_format: {type: \"json_object\"}, messages: [ {role: \"user\", content: $json.ollamaPrompt} ]} }}",
+            "options": {"timeout": 60000}
+        },
+        "id": "http-groq-score", "name": "Chamar Groq Score",
+        "type": "n8n-nodes-base.httpRequest", "typeVersion": 3,
+        "position": [940, 160]
+    },
+    {
+        "parameters": {
             "method": "POST",
             "url": "http://127.0.0.1:11434/api/generate",
             "sendHeaders": True,
@@ -318,13 +420,14 @@ SCORE_NODES = [
         },
         "id": "http-ollama-score", "name": "Chamar Ollama Score",
         "type": "n8n-nodes-base.httpRequest", "typeVersion": 3,
-        "position": [680, 300]
+        "onError": "continueErrorOutput",
+        "position": [940, 440]
     },
     {
         "parameters": {"jsCode": SCORE_CODE_PARSE},
         "id": "code-score-02", "name": "Processar Score",
         "type": "n8n-nodes-base.code", "typeVersion": 2,
-        "position": [920, 300]
+        "position": [1180, 300]
     },
     {
         "parameters": {
@@ -342,14 +445,22 @@ SCORE_NODES = [
         },
         "id": "http-django-score", "name": "Callback Django Score",
         "type": "n8n-nodes-base.httpRequest", "typeVersion": 3,
-        "position": [1160, 300]
+        "position": [1420, 300]
     }
 ]
 
 SCORE_CONNECTIONS = {
     "Webhook Score": {"main": [[{"node": "Preparar Pedido Score", "type": "main", "index": 0}]]},
-    "Preparar Pedido Score": {"main": [[{"node": "Chamar Ollama Score", "type": "main", "index": 0}]]},
-    "Chamar Ollama Score": {"main": [[{"node": "Processar Score", "type": "main", "index": 0}]]},
+    "Preparar Pedido Score": {"main": [[{"node": "Escolher Motor de IA", "type": "main", "index": 0}]]},
+    "Escolher Motor de IA": {"main": [
+        [{"node": "Chamar Groq Score", "type": "main", "index": 0}],
+        [{"node": "Chamar Ollama Score", "type": "main", "index": 0}]
+    ]},
+    "Chamar Groq Score": {"main": [[{"node": "Processar Score", "type": "main", "index": 0}]]},
+    "Chamar Ollama Score": {"main": [
+        [{"node": "Processar Score", "type": "main", "index": 0}],
+        [{"node": "Chamar Groq Score", "type": "main", "index": 0}]
+    ]},
     "Processar Score": {"main": [[{"node": "Callback Django Score", "type": "main", "index": 0}]]}
 }
 

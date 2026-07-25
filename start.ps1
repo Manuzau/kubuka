@@ -61,6 +61,26 @@ if (Test-Port 11434) {
 # --- 3. n8n ---
 Write-Host ""
 Write-Host "--- n8n (automacao) ---" -ForegroundColor DarkGray
+
+# Le AI_PROVIDER e GROQ_API_KEY do .env para os passar ao processo do n8n
+# (o n8n corre a parte do Django, por isso nao le o .env do Django automaticamente).
+$AiProvider = "local"
+$GroqApiKey = ""
+$EnvFile = Join-Path $ProjectDir ".env"
+if (Test-Path $EnvFile) {
+    Get-Content $EnvFile | ForEach-Object {
+        if ($_ -match '^\s*AI_PROVIDER\s*=\s*(.+)$')  { $AiProvider = $Matches[1].Trim() }
+        if ($_ -match '^\s*GROQ_API_KEY\s*=\s*(.+)$')  { $GroqApiKey = $Matches[1].Trim() }
+    }
+}
+if ($AiProvider -eq "cloud" -and [string]::IsNullOrWhiteSpace($GroqApiKey)) {
+    Write-Host "[AVISO] AI_PROVIDER=cloud mas GROQ_API_KEY esta vazio no .env" -ForegroundColor DarkYellow
+}
+$env:AI_PROVIDER = $AiProvider
+$env:GROQ_API_KEY = $GroqApiKey
+$env:N8N_BLOCK_ENV_ACCESS_IN_NODE = "false"   # necessario para os workflows lerem $env.AI_PROVIDER / $env.GROQ_API_KEY
+Write-Host "    Motor de IA: $AiProvider" -ForegroundColor DarkGray
+
 if (Test-Port 5678) {
     Write-Host "[OK] n8n a correr (porta 5678)" -ForegroundColor Green
 } else {

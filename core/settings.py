@@ -83,16 +83,54 @@ WSGI_APPLICATION = "core.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME':     env('DB_NAME',     default='kubuka_db'),
-        'USER':     env('DB_USER',     default='kubuka_user'),
-        'PASSWORD': env('DB_PASSWORD', default='kubuka_pass'),
-        'HOST':     env('DB_HOST',     default='localhost'),
-        'PORT':     env('DB_PORT',     default='5432'),
+import socket
+
+_DB_HOST = env('DB_HOST', default='localhost')
+_DB_PORT = env.int('DB_PORT', default=5432)
+
+
+def _postgres_reachable(host, port, timeout=0.75):
+    """Verificação leve (apenas TCP) - não valida credenciais, só se há algo a ouvir na porta."""
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError:
+        return False
+
+
+# DB_ENGINE explícito no .env tem sempre prioridade (ex: forçar sqlite mesmo com Postgres a correr).
+# Sem essa variável, detecta automaticamente: usa PostgreSQL se estiver acessível,
+# caso contrário cai para SQLite - permite correr `manage.py runserver`/`test` num computador
+# sem PostgreSQL instalado, sem exigir configuração manual.
+DB_ENGINE = env('DB_ENGINE', default=None)
+if not DB_ENGINE:
+    if _postgres_reachable(_DB_HOST, _DB_PORT):
+        DB_ENGINE = 'django.db.backends.postgresql'
+    else:
+        DB_ENGINE = 'django.db.backends.sqlite3'
+        print(
+            f"[KUBUKA] PostgreSQL nao encontrado em {_DB_HOST}:{_DB_PORT} - "
+            f"a usar SQLite em '{BASE_DIR / 'db.sqlite3'}' (defina DB_ENGINE no .env para forcar)."
+        )
+
+if DB_ENGINE == 'django.db.backends.sqlite3':
+    DATABASES = {
+        'default': {
+            'ENGINE': DB_ENGINE,
+            'NAME': BASE_DIR / env('DB_NAME', default='db.sqlite3'),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': DB_ENGINE,
+            'NAME':     env('DB_NAME',     default='kubuka_db'),
+            'USER':     env('DB_USER',     default='kubuka_user'),
+            'PASSWORD': env('DB_PASSWORD', default='kubuka_pass'),
+            'HOST':     env('DB_HOST',     default='localhost'),
+            'PORT':     env('DB_PORT',     default='5432'),
+        }
+    }
 
 
 # Password validation
