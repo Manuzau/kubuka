@@ -3,8 +3,11 @@ venv/
 env/
 .venv/
 
-# Base de dados local
+# Base de dados local (fallback SQLite automático quando o PostgreSQL não
+# está acessível — ver _postgres_reachable em core/settings.py; o nome exacto
+# vem de DB_NAME no .env, por omissão "kubuka_db")
 db.sqlite3
+kubuka_db
 
 # Ficheiros de configuração sensíveis
 .env
