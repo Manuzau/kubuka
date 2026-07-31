@@ -21,6 +21,7 @@ O KUBUKA é um sistema web que automatiza a triagem de candidatos em empresas an
 - [Deploy em produção](#deploy-em-produção)
 - [Estrutura do projecto](#estrutura-do-projecto)
 - [Problemas frequentes](#problemas-frequentes)
+- [Reset do sistema (estado limpo)](#reset-do-sistema-estado-limpo)
 
 ---
 
@@ -602,3 +603,39 @@ Verifica que o header `X-Kubuka-Secret` nos nós HTTP dos workflows corresponde 
 | `/admin/` | Django Admin — gestão completa |
 
 Para aprovar um recrutador: **Django Admin → Users → seleccionar o utilizador → activar `is_recruiter` e `recruiter_approved`**.
+
+---
+
+## Reset do sistema (estado limpo)
+
+Para apagar todos os dados de teste e voltar a um estado limpo — útil antes de validar a
+solução com CVs reais/anonimizados, sem ruído de dados simulados:
+
+```bash
+python manage.py reset_sistema
+```
+
+O comando:
+1. Recusa-se a correr se `DEBUG=False` ou se a base de dados não for local (protecção
+   contra execução acidental em produção).
+2. Pede confirmação (escrever o nome da base de dados) antes de apagar seja o que for.
+3. Cria um backup (`pg_dump`, ou cópia do ficheiro em SQLite) em `backups/` com timestamp.
+4. Faz `DROP`/`CREATE` da base de dados e corre `migrate` de raiz (as migrações em si
+   não são alteradas nem apagadas).
+5. Apaga os CVs em `media/resumes/` (mantém a pasta).
+6. Cria um superutilizador único, para poderes entrar no `/admin/` e aprovar recrutadores
+   a partir do zero.
+
+**Flags:**
+
+| Flag | Efeito |
+|---|---|
+| `--no-input` | Sem confirmação interactiva (scripts/CI) |
+| `--keep-media` | Não apaga os CVs em `media/resumes/` |
+| `--no-superuser` | Não cria o superutilizador no final |
+
+**Credenciais do superutilizador** (variáveis de ambiente, com omissões sensatas se não
+definidas): `DJANGO_SUPERUSER_USERNAME` (omissão `admin`), `DJANGO_SUPERUSER_EMAIL`
+(omissão `admin@kubuka.local`), `DJANGO_SUPERUSER_PASSWORD` (omissão `Kubuka#Demo2026`).
+
+Não mexe nos workflows do n8n nem no histórico de execuções, nem em `static/`/`staticfiles/`.

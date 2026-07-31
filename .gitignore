@@ -15,6 +15,9 @@ kubuka_db
 # Ficheiros de CV submetidos pelos candidatos
 media/resumes/
 
+# Dumps de segurança criados por `python manage.py reset_sistema`
+backups/
+
 # Logs da aplicação (gerados em runtime — ver LOGGING em core/settings.py)
 logs/*.log
 !logs/.gitkeep
