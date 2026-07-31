@@ -1,0 +1,34 @@
+[tool.ruff]
+line-length = 119
+target-version = "py310"
+exclude = [
+    "migrations",
+    ".venv",
+    "venv",
+    # Scripts avulsos (geração de diagramas, instalador de OCR, testes manuais
+    # end-to-end) - fora do âmbito da limpeza de qualidade de código, mantidos
+    # tal como estão.
+    "generate_diagrams.py",
+    "install_ocr_dependencies.py",
+    "scripts",
+]
+
+[tool.ruff.lint]
+# I (isort) fica de fora por omissão - o projecto nunca seguiu uma ordem de
+# imports estrita e activá-la agora obrigaria a reescrever ficheiros de lógica
+# de negócio fora do âmbito desta limpeza. E/F/W já apanham os erros reais.
+select = ["E", "F", "W"]
+ignore = [
+    "E501",  # linha longa - deixado ao critério do autor em templates de strings/prompts
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/migrations/*.py" = ["E", "F"]
+# Ficheiros de lógica de negócio: apenas alertas cosméticos pré-existentes
+# (import/variável não utilizados, newline em falta), sem impacto funcional.
+# Não foram alterados nesta limpeza para preservar o comportamento testado.
+"recruitment/views.py" = ["F401", "F841"]
+"recruitment/api_views.py" = ["F401"]
+"recruitment/tests.py" = ["F841"]
+"recruitment/cv_processor.py" = ["W292"]
+"core/settings.py" = ["E402"]

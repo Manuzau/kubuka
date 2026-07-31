@@ -7,6 +7,10 @@ pdfplumber
 requests
 psycopg2-binary
 
+# Servidor de produção (ver Dockerfile / README secção "Deploy em produção")
+gunicorn
+whitenoise
+
 # OCR (opcional — apenas necessário para PDFs digitalizados/scaneados)
 # Requer também Tesseract e Poppler instalados no sistema operativo:
 # choco install tesseract poppler   (Windows)

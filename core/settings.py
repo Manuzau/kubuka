@@ -50,6 +50,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "axes.middleware.AxesMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -170,6 +171,22 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# WhiteNoise: serve estáticos comprimidos directamente pelo Django/gunicorn em
+# produção, sem depender de um servidor web separado (nginx) só para isso.
+# Em desenvolvimento (DEBUG=True) mantém-se o storage padrão do Django, para não
+# exigir `collectstatic` antes de correr `runserver`.
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": (
+            "django.contrib.staticfiles.storage.StaticFilesStorage" if DEBUG
+            else "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        ),
+    },
+}
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -217,12 +234,24 @@ SECURE_CONTENT_TYPE_NOSNIFF = True    # X-Content-Type-Options: nosniff
 SECURE_BROWSER_XSS_FILTER = True      # X-XSS-Protection (browsers antigos)
 X_FRAME_OPTIONS = 'DENY'              # Proíbe iframes (clickjacking)
 
-# Em produção (HTTPS), activar também:
-# SECURE_SSL_REDIRECT = True
-# SESSION_COOKIE_SECURE = True
-# CSRF_COOKIE_SECURE = True
-# SECURE_HSTS_SECONDS = 31536000
-# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+# Reforço de HTTPS/cookies: activado automaticamente sempre que DEBUG=False,
+# sem exigir alterações manuais a este ficheiro antes de um deploy. Cada um
+# pode ser desligado individualmente via .env (ex: 1º deploy ainda sem HTTPS).
+SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=not DEBUG)
+SESSION_COOKIE_SECURE = env.bool('SESSION_COOKIE_SECURE', default=not DEBUG)
+CSRF_COOKIE_SECURE = env.bool('CSRF_COOKIE_SECURE', default=not DEBUG)
+SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=31536000 if not DEBUG else 0)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=not DEBUG)
+SECURE_HSTS_PRELOAD = env.bool('SECURE_HSTS_PRELOAD', default=not DEBUG)
+
+# Necessário quando o Django corre atrás de um proxy/load balancer que termina o
+# TLS (Render, Railway, nginx) - sem isto, SECURE_SSL_REDIRECT causa loop de redirect.
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Domínios confiáveis para POST com CSRF em produção (ex: https://kubuka.ao).
+# Vazio por omissão - não afecta o desenvolvimento local.
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
 
 # ---------------------------------------------------------------------------
 # django-axes — protecção contra força bruta no login
@@ -243,5 +272,56 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'anon': '20/hour',
         'user': '200/hour',
+    },
+}
+
+# ---------------------------------------------------------------------------
+# Logging — consola sempre; ficheiro rotativo em logs/kubuka.log
+# ---------------------------------------------------------------------------
+LOGS_DIR = BASE_DIR / 'logs'
+LOGS_DIR.mkdir(exist_ok=True)
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{asctime} [{levelname}] {name}: {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOGS_DIR / 'kubuka.log',
+            'maxBytes': 5 * 1024 * 1024,   # 5 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': env('DJANGO_LOG_LEVEL', default='INFO'),
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console', 'file'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'recruitment': {
+            'handlers': ['console', 'file'],
+            'level': env('DJANGO_LOG_LEVEL', default='INFO'),
+            'propagate': False,
+        },
     },
 }

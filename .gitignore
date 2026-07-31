@@ -12,6 +12,14 @@ db.sqlite3
 # Ficheiros de CV submetidos pelos candidatos
 media/resumes/
 
+# Logs da aplicação (gerados em runtime — ver LOGGING em core/settings.py)
+logs/*.log
+!logs/.gitkeep
+
+# Estáticos gerados por `collectstatic` (ver STORAGES/WhiteNoise em core/settings.py)
+staticfiles/*
+!staticfiles/.gitkeep
+
 # Ficheiros Python compilados
 __pycache__/
 *.pyc

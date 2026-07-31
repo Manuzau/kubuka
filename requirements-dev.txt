@@ -1,0 +1,5 @@
+# Ferramentas de desenvolvimento (não necessárias em produção)
+-r requirements.txt
+
+ruff
+pre-commit

@@ -1,5 +1,7 @@
 # KUBUKA — Sistema de Pré-Selecção Inteligente de Candidatos
 
+[![CI](https://github.com/Manuzau/kubuka/actions/workflows/ci.yml/badge.svg)](https://github.com/Manuzau/kubuka/actions/workflows/ci.yml)
+
 O KUBUKA é um sistema web que automatiza a triagem de candidatos em empresas angolanas. A ideia surgiu da necessidade de reduzir o tempo que os recrutadores passam a analisar currículos manualmente — o sistema usa IA local (Ollama) para ler cada CV, atribuir uma pontuação e comparar o perfil do candidato com os requisitos da vaga.
 
 > Trabalho de Fim de Curso — Licenciatura em Informática, 2025/2026
@@ -14,6 +16,7 @@ O KUBUKA é um sistema web que automatiza a triagem de candidatos em empresas an
 - [Arranque rápido (dia-a-dia)](#arranque-rápido-dia-a-dia)
 - [Instalação de raiz num computador novo](#instalação-de-raiz-num-computador-novo)
 - [Testes automatizados](#testes-automatizados)
+- [Deploy em produção](#deploy-em-produção)
 - [Estrutura do projecto](#estrutura-do-projecto)
 - [Problemas frequentes](#problemas-frequentes)
 
@@ -56,6 +59,7 @@ O KUBUKA é um sistema web que automatiza a triagem de candidatos em empresas an
 | Base de dados | PostgreSQL |
 | Configuração | django-environ (.env) |
 | Segurança | django-axes |
+| Produção | gunicorn + WhiteNoise, Docker, CI (GitHub Actions) |
 
 ---
 
@@ -343,6 +347,58 @@ Este script escreve directamente na SQLite do n8n (`~\.n8n\database.sqlite`) —
 
 ---
 
+## Deploy em produção
+
+O KUBUKA está preparado para correr atrás de **gunicorn** com estáticos servidos
+por **WhiteNoise** (sem precisar de nginx só para isso), num container Docker.
+
+### Com Docker (recomendado)
+
+```bash
+cp .env.example .env
+# edita o .env: DEBUG=False, SECRET_KEY forte, ALLOWED_HOSTS e
+# CSRF_TRUSTED_ORIGINS com o domínio real, N8N_*/DJANGO_BASE_URL a apontar
+# para onde o n8n estiver acessível a partir do container.
+
+docker compose up --build -d
+```
+
+O `docker-compose.yml` sobe o Django (gunicorn) e uma base PostgreSQL. O
+`entrypoint.sh` aplica `migrate` e `collectstatic` automaticamente a cada
+arranque. O n8n e o Ollama continuam self-hosted fora do compose, tal como no
+desenvolvimento local — só é preciso garantir que o container consegue
+alcançar os URLs definidos em `N8N_WEBHOOK_CV_URL` / `N8N_WEBHOOK_SCORE_URL`.
+
+### Sem Docker (gunicorn directo)
+
+```bash
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py collectstatic --noinput
+gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 3
+```
+
+### O que muda automaticamente com `DEBUG=False`
+
+Definir `DEBUG=False` no `.env` liga sozinho, sem tocar em código: redireccionamento
+para HTTPS, cookies de sessão/CSRF marcados `Secure`, HSTS, e o storage de
+estáticos comprimidos do WhiteNoise. Ver o bloco "Checklist de produção" no
+`.env.example` para a lista completa e como desligar algum item individualmente
+(por exemplo, no primeiro deploy antes de haver certificado HTTPS válido).
+
+### Observabilidade
+
+- `GET /healthz/` — verifica a ligação à base de dados, devolve `200`/`503` em JSON.
+- Logs em `logs/kubuka.log` (rotação automática a cada 5 MB, 5 ficheiros).
+  Nível controlado por `DJANGO_LOG_LEVEL` no `.env` (por omissão `INFO`).
+
+### Integração contínua
+
+Cada push/PR para `main` corre lint (`ruff`) e a suite de 44 testes via GitHub
+Actions (`.github/workflows/ci.yml`) — ver badge no topo deste README.
+
+---
+
 ## Estrutura do projecto
 
 ```
@@ -372,11 +428,16 @@ kubuka/
 ├── start.ps1                         — script de arranque (Windows)
 ├── run_project.bat                   — duplo clique para arrancar
 ├── install_ocr_dependencies.py       — helper para instalar Tesseract/Poppler
+├── .github/workflows/ci.yml          — lint + testes em cada push/PR
+├── Dockerfile / docker-compose.yml   — imagem e stack de produção
+├── entrypoint.sh                     — migrate + collectstatic + gunicorn
 ├── manage.py
-├── requirements.txt
+├── requirements.txt / requirements-dev.txt
+├── pyproject.toml                    — configuração do ruff (lint)
 ├── .env.example
 ├── CLAUDE.md                         — contexto do projecto (para IA)
 ├── SECURITY_REPORT.md                — relatório de segurança
+├── CHANGELOG.md
 └── README.md
 ```
 

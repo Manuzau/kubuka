@@ -1,0 +1,41 @@
+# Stack de produção/staging: Django + PostgreSQL.
+# n8n e Ollama continuam self-hosted fora deste compose (ver README) - o Django
+# fala com eles via N8N_WEBHOOK_*_URL / DJANGO_BASE_URL no .env.
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-kubuka_db}
+      POSTGRES_USER: ${DB_USER:-kubuka_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-kubuka_pass}
+    volumes:
+      - kubuka_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-kubuka_user}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - kubuka_media:/app/media
+      - kubuka_static:/app/staticfiles
+      - kubuka_logs:/app/logs
+
+volumes:
+  kubuka_postgres_data:
+  kubuka_media:
+  kubuka_static:
+  kubuka_logs:
