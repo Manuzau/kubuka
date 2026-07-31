@@ -20,7 +20,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const wh = $input.first().json;\nconst body = (wh.resume_id !== undefined) ? wh : (wh.body || wh);\n\nif (!body.resume_id || !body.callback_url) {\n  throw new Error('Dados em falta: resume_id=' + body.resume_id + ' callback_url=' + body.callback_url);\n}\n\nconst cvText = String(body.cv_text || '').slice(0, 6000);\nconst prompt =\n  'Es um especialista em recrutamento. Analisa o seguinte curriculo e extrai a informacao.\\n\\n' +\n  'CURRICULO:\\n' + cvText + '\\n\\n' +\n  'Responde APENAS com um objecto JSON plano contendo:\\n' +\n  'score: numero inteiro 0-100 (qualidade global do CV).\\n' +\n  'skills: array de strings com as competencias identificadas.\\n' +\n  'summary: resumo profissional em portugues.\\n' +\n  'experience: descricao da experiencia profissional em portugues.\\n' +\n  'education: formacao academica em portugues.\\n' +\n  'languages: idiomas em portugues.\\n' +\n  'feedback: analise em portugues com pontos fortes e sugestoes de melhoria.';\n\nreturn [{ json: {\n  resume_id:    body.resume_id,\n  callback_url: body.callback_url,\n  ollamaModel:  'qwen2.5:3b',\n  cloudModel:   'llama-3.1-8b-instant',\n  ollamaStream: false,\n  ollamaFormat: 'json',\n  ollamaPrompt: prompt,\n}}];"
+        "jsCode": "const wh = $input.first().json;\nconst body = (wh.resume_id !== undefined) ? wh : (wh.body || wh);\n\nif (!body.resume_id || !body.callback_url) {\n  throw new Error('Dados em falta: resume_id=' + body.resume_id + ' callback_url=' + body.callback_url);\n}\n\nconst cvText = String(body.cv_text || '').slice(0, 6000);\nconst prompt =\n  'Es um especialista em recrutamento. Analisa o seguinte curriculo e extrai a informacao.\\n\\n' +\n  'CURRICULO:\\n' + cvText + '\\n\\n' +\n  'Responde APENAS com um objecto JSON plano contendo:\\n' +\n  'score: numero inteiro 0-100 (qualidade global do CV).\\n' +\n  'skills: array de strings com as competencias identificadas.\\n' +\n  'summary: resumo profissional em portugues.\\n' +\n  'experience: descricao da experiencia profissional em portugues.\\n' +\n  'education: formacao academica em portugues.\\n' +\n  'languages: idiomas em portugues.\\n' +\n  'feedback: analise em portugues com pontos fortes e sugestoes de melhoria.';\n\nreturn [{ json: {\n  resume_id:    body.resume_id,\n  callback_url: body.callback_url,\n  ollamaModel:  'llama3.2:1b',\n  cloudModel:   'llama-3.1-8b-instant',\n  ollamaStream: false,\n  ollamaFormat: 'json',\n  ollamaPrompt: prompt,\n}}];"
       },
       "id": "code-cv-01",
       "name": "Preparar Pedido",
@@ -91,6 +91,7 @@
       "name": "Chamar Groq",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
+      "onError": "continueErrorOutput",
       "position": [
         940,
         160
@@ -113,7 +114,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ {model: $json.ollamaModel, stream: $json.ollamaStream, format: $json.ollamaFormat, prompt: $json.ollamaPrompt} }}",
         "options": {
-          "timeout": 180000
+          "timeout": 600000
         }
       },
       "id": "http-ollama-cv",
@@ -124,6 +125,35 @@
       "position": [
         940,
         440
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:11434/api/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {model: $json.ollamaModel, stream: $json.ollamaStream, format: $json.ollamaFormat, prompt: $json.ollamaPrompt} }}",
+        "options": {
+          "timeout": 600000
+        }
+      },
+      "id": "http-ollama-cv-fallback",
+      "name": "Chamar Ollama (fallback da Groq)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        940,
+        60
       ]
     },
     {
@@ -220,6 +250,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Chamar Ollama (fallback da Groq)",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -235,6 +272,17 @@
         [
           {
             "node": "Chamar Groq",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chamar Ollama (fallback da Groq)": {
+      "main": [
+        [
+          {
+            "node": "Processar Resposta",
             "type": "main",
             "index": 0
           }

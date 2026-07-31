@@ -6,15 +6,26 @@ Estrutura de 5 nos por workflow:
 
 Modelo: qwen2.5:3b (melhor a produzir JSON estruturado que o llama3.2:1b)
 Parsers: busca recursiva pelos campos em qualquer estrutura devolvida pelo LLM
+
+Uso:
+    python scripts/update_n8n_workflows.py                  # BD do n8n do utilizador actual
+    python scripts/update_n8n_workflows.py --db-path CAMINHO # BD noutro sítio (ex: outra máquina)
+
+Os workflows são identificados pelo NOME (não por um ID fixo) - o ID que o n8n atribui
+depende de cada importação/máquina, por isso não pode ser hardcoded. É preciso tê-los
+importado pelo menos uma vez (Workflows -> Import from File, ver README) antes de correr
+este script - ele só actualiza nós/conexões de workflows já existentes, não os cria.
 """
-import sqlite3, json
+import argparse
+import json
+import sqlite3
+import sys
+from pathlib import Path
 
-DB_PATH = r'C:\Users\manue\.n8n\database.sqlite'
+DEFAULT_DB_PATH = Path.home() / '.n8n' / 'database.sqlite'
 
-CV_WORKFLOW_ID       = 'XgXXXZxjLwPAzjGz'
-SCORE_WORKFLOW_ID    = 'niPepZ38tAPvIXPr'
-CV_ACTIVE_VERSION    = '7a546d6d-c262-48f6-abc0-1b6ad8d09427'
-SCORE_ACTIVE_VERSION = '324a9c1a-a105-4817-98e0-66a8d326ef27'
+CV_WORKFLOW_NAME    = 'KUBUKA — Análise de CV'
+SCORE_WORKFLOW_NAME = 'KUBUKA — Scoring de Candidatura'
 
 # Dois modelos locais: llama3.2:1b (rapido) para analise de CV, qwen2.5:3b (melhor) para scoring
 OLLAMA_MODEL_CV    = 'llama3.2:1b'
@@ -176,6 +187,7 @@ CV_NODES = [
         },
         "id": "http-groq-cv", "name": "Chamar Groq",
         "type": "n8n-nodes-base.httpRequest", "typeVersion": 3,
+        "onError": "continueErrorOutput",
         "position": [940, 160]
     },
     {
@@ -193,6 +205,25 @@ CV_NODES = [
         "type": "n8n-nodes-base.httpRequest", "typeVersion": 3,
         "onError": "continueErrorOutput",
         "position": [940, 440]
+    },
+    {
+        # Rede de seguranca inversa: se AI_PROVIDER=cloud e a Groq falhar (ex: quota
+        # esgotada), tenta o Ollama local antes de desistir. Nó separado do "Chamar
+        # Ollama" de cima para não criar um ciclo Groq<->Ollama no grafo do n8n - este
+        # não tem saída de erro própria, se também falhar a execução termina aqui.
+        "parameters": {
+            "method": "POST",
+            "url": "http://127.0.0.1:11434/api/generate",
+            "sendHeaders": True,
+            "headerParameters": {"parameters": [{"name": "Content-Type", "value": "application/json"}]},
+            "sendBody": True,
+            "specifyBody": "json",
+            "jsonBody": "={{ {model: $json.ollamaModel, stream: $json.ollamaStream, format: $json.ollamaFormat, prompt: $json.ollamaPrompt} }}",
+            "options": {"timeout": 600000}
+        },
+        "id": "http-ollama-cv-fallback", "name": "Chamar Ollama (fallback da Groq)",
+        "type": "n8n-nodes-base.httpRequest", "typeVersion": 3,
+        "position": [940, 60]
     },
     {
         "parameters": {"jsCode": CV_CODE_PARSE},
@@ -227,11 +258,15 @@ CV_CONNECTIONS = {
         [{"node": "Chamar Groq", "type": "main", "index": 0}],
         [{"node": "Chamar Ollama", "type": "main", "index": 0}]
     ]},
-    "Chamar Groq": {"main": [[{"node": "Processar Resposta", "type": "main", "index": 0}]]},
+    "Chamar Groq": {"main": [
+        [{"node": "Processar Resposta", "type": "main", "index": 0}],
+        [{"node": "Chamar Ollama (fallback da Groq)", "type": "main", "index": 0}]
+    ]},
     "Chamar Ollama": {"main": [
         [{"node": "Processar Resposta", "type": "main", "index": 0}],
         [{"node": "Chamar Groq", "type": "main", "index": 0}]
     ]},
+    "Chamar Ollama (fallback da Groq)": {"main": [[{"node": "Processar Resposta", "type": "main", "index": 0}]]},
     "Processar Resposta": {"main": [[{"node": "Callback Django", "type": "main", "index": 0}]]}
 }
 
@@ -405,6 +440,7 @@ SCORE_NODES = [
         },
         "id": "http-groq-score", "name": "Chamar Groq Score",
         "type": "n8n-nodes-base.httpRequest", "typeVersion": 3,
+        "onError": "continueErrorOutput",
         "position": [940, 160]
     },
     {
@@ -422,6 +458,22 @@ SCORE_NODES = [
         "type": "n8n-nodes-base.httpRequest", "typeVersion": 3,
         "onError": "continueErrorOutput",
         "position": [940, 440]
+    },
+    {
+        # Rede de seguranca inversa (ver comentario equivalente no workflow de CV).
+        "parameters": {
+            "method": "POST",
+            "url": "http://127.0.0.1:11434/api/generate",
+            "sendHeaders": True,
+            "headerParameters": {"parameters": [{"name": "Content-Type", "value": "application/json"}]},
+            "sendBody": True,
+            "specifyBody": "json",
+            "jsonBody": "={{ {model: $json.ollamaModel, stream: $json.ollamaStream, format: $json.ollamaFormat, prompt: $json.ollamaPrompt} }}",
+            "options": {"timeout": 600000}
+        },
+        "id": "http-ollama-score-fallback", "name": "Chamar Ollama Score (fallback da Groq)",
+        "type": "n8n-nodes-base.httpRequest", "typeVersion": 3,
+        "position": [940, 60]
     },
     {
         "parameters": {"jsCode": SCORE_CODE_PARSE},
@@ -456,32 +508,81 @@ SCORE_CONNECTIONS = {
         [{"node": "Chamar Groq Score", "type": "main", "index": 0}],
         [{"node": "Chamar Ollama Score", "type": "main", "index": 0}]
     ]},
-    "Chamar Groq Score": {"main": [[{"node": "Processar Score", "type": "main", "index": 0}]]},
+    "Chamar Groq Score": {"main": [
+        [{"node": "Processar Score", "type": "main", "index": 0}],
+        [{"node": "Chamar Ollama Score (fallback da Groq)", "type": "main", "index": 0}]
+    ]},
     "Chamar Ollama Score": {"main": [
         [{"node": "Processar Score", "type": "main", "index": 0}],
         [{"node": "Chamar Groq Score", "type": "main", "index": 0}]
     ]},
+    "Chamar Ollama Score (fallback da Groq)": {"main": [[{"node": "Processar Score", "type": "main", "index": 0}]]},
     "Processar Score": {"main": [[{"node": "Callback Django Score", "type": "main", "index": 0}]]}
 }
 
 
-def update_workflow(conn, wf_id, version_id, nodes, connections, label):
+def update_workflow(conn, name, nodes, connections, label):
+    """Actualiza nodes/connections do workflow com este nome. Devolve True se encontrou
+    e actualizou, False se o workflow ainda não existe (precisa de ser importado primeiro)."""
+    cur = conn.execute('SELECT id, activeVersionId FROM workflow_entity WHERE name=?', (name,))
+    row = cur.fetchone()
+    if row is None:
+        print(f'  [{label}] AVISO: workflow "{name}" não encontrado na BD do n8n.')
+        print(f'           Importa-o primeiro: n8n -> Workflows -> Import from File.')
+        return False
+
+    wf_id, active_version_id = row
     nj = json.dumps(nodes, ensure_ascii=False)
     cj = json.dumps(connections, ensure_ascii=False)
-    conn.execute('UPDATE workflow_entity SET nodes=?, connections=? WHERE id=?', (nj, cj, wf_id))
-    conn.execute('UPDATE workflow_history SET nodes=?, connections=? WHERE versionId=?', (nj, cj, version_id))
-    print(f'  [{label}] actualizado - {len(nodes)} nos')
+
+    entity_updated = conn.execute(
+        "UPDATE workflow_entity SET nodes=?, connections=?, updatedAt=STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW') WHERE id=?",
+        (nj, cj, wf_id),
+    ).rowcount
+
+    history_updated = 0
+    if active_version_id:
+        history_updated = conn.execute(
+            "UPDATE workflow_history SET nodes=?, connections=?, updatedAt=STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW') WHERE versionId=?",
+            (nj, cj, active_version_id),
+        ).rowcount
+
+    if entity_updated == 0:
+        print(f'  [{label}] ERRO: UPDATE não afectou nenhuma linha (id={wf_id}).')
+        return False
+
+    if history_updated == 0:
+        print(f'  [{label}] actualizado ({len(nodes)} nós) - aviso: sem versionId activo, histórico não sincronizado.')
+    else:
+        print(f'  [{label}] actualizado - {len(nodes)} nós')
+    return True
 
 
 def main():
-    conn = sqlite3.connect(DB_PATH)
+    parser = argparse.ArgumentParser(description=__doc__.split('Uso:')[0].strip())
+    parser.add_argument('--db-path', default=str(DEFAULT_DB_PATH),
+                         help=f'Caminho para a database.sqlite do n8n (por omissão: {DEFAULT_DB_PATH})')
+    args = parser.parse_args()
+
+    db_path = Path(args.db_path)
+    if not db_path.exists():
+        print(f'ERRO: base de dados do n8n não encontrada em: {db_path}')
+        print('       Confirma que já correste o n8n pelo menos uma vez (n8n start).')
+        sys.exit(1)
+
+    conn = sqlite3.connect(str(db_path))
     print('CV Workflow:')
-    update_workflow(conn, CV_WORKFLOW_ID, CV_ACTIVE_VERSION, CV_NODES, CV_CONNECTIONS, 'CV')
+    ok_cv = update_workflow(conn, CV_WORKFLOW_NAME, CV_NODES, CV_CONNECTIONS, 'CV')
     print('Score Workflow:')
-    update_workflow(conn, SCORE_WORKFLOW_ID, SCORE_ACTIVE_VERSION, SCORE_NODES, SCORE_CONNECTIONS, 'Score')
+    ok_score = update_workflow(conn, SCORE_WORKFLOW_NAME, SCORE_NODES, SCORE_CONNECTIONS, 'Score')
     conn.commit()
     conn.close()
-    print('Feito.')
+
+    if ok_cv and ok_score:
+        print('Feito.')
+    else:
+        print('Concluído com avisos - ver mensagens acima.')
+        sys.exit(1)
 
 
 if __name__ == '__main__':

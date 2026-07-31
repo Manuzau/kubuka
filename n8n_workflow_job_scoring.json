@@ -91,6 +91,7 @@
       "name": "Chamar Groq Score",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
+      "onError": "continueErrorOutput",
       "position": [
         940,
         160
@@ -113,7 +114,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ {model: $json.ollamaModel, stream: $json.ollamaStream, format: $json.ollamaFormat, prompt: $json.ollamaPrompt} }}",
         "options": {
-          "timeout": 180000
+          "timeout": 600000
         }
       },
       "id": "http-ollama-score",
@@ -124,6 +125,35 @@
       "position": [
         940,
         440
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:11434/api/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {model: $json.ollamaModel, stream: $json.ollamaStream, format: $json.ollamaFormat, prompt: $json.ollamaPrompt} }}",
+        "options": {
+          "timeout": 600000
+        }
+      },
+      "id": "http-ollama-score-fallback",
+      "name": "Chamar Ollama Score (fallback da Groq)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        940,
+        60
       ]
     },
     {
@@ -220,6 +250,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Chamar Ollama Score (fallback da Groq)",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -235,6 +272,17 @@
         [
           {
             "node": "Chamar Groq Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chamar Ollama Score (fallback da Groq)": {
+      "main": [
+        [
+          {
+            "node": "Processar Score",
             "type": "main",
             "index": 0
           }
