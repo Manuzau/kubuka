@@ -8,11 +8,23 @@ class CandidateSignupForm(UserCreationForm):
         model = User
         fields = ('username', 'email')
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Hooks para o JS de mostrar/ocultar senha e checklist de requisitos
+        # (ver recruitment/static/recruitment/js/password-ui.js)
+        self.fields['password1'].widget.attrs['data-password-strength'] = 'true'
+        self.fields['password2'].widget.attrs['data-password-confirm'] = 'true'
+
 
 class RecruiterSignupForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = User
         fields = ('username', 'email')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['password1'].widget.attrs['data-password-strength'] = 'true'
+        self.fields['password2'].widget.attrs['data-password-confirm'] = 'true'
 
 
 class ResumeUploadForm(forms.ModelForm):

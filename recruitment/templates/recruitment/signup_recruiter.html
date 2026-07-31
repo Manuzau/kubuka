@@ -1,4 +1,5 @@
 {% extends 'recruitment/base.html' %}
+{% load static %}
 
 {% block title %}Registo de Recrutador — KUBUKA{% endblock %}
 
@@ -97,4 +98,5 @@ form input::placeholder, form textarea::placeholder {
     color: rgba(241,245,249,0.28) !important;
 }
 </style>
+<script src="{% static 'recruitment/js/password-ui.js' %}"></script>
 {% endblock %}
