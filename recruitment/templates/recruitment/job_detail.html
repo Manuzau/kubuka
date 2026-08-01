@@ -11,7 +11,7 @@
     </div>
     {% endif %}
 
-    <a href="{% url 'job_list' %}" class="inline-flex items-center gap-1.5 text-sm font-semibold mb-6 hover:underline animate-fadeInUp" style="color:#A78BFA;">
+    <a href="{% url 'job_list' %}" class="inline-flex items-center gap-1.5 text-sm font-semibold mb-6 hover:underline animate-fadeInUp" style="color:var(--clr-purple);">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
         Voltar às vagas
     </a>
@@ -25,13 +25,13 @@
             <!-- Header -->
             <div class="flex items-start gap-4 mb-6">
                 <div class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,rgba(124,58,237,0.4),rgba(6,182,212,0.3));border:1px solid rgba(124,58,237,0.2);">
-                    <svg class="h-6 w-6" style="color:#A78BFA;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg class="h-6 w-6" style="color:var(--clr-purple);" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold text-white">{{ job.title }}</h1>
-                    <p class="font-medium mt-0.5" style="color:rgba(241,245,249,0.5);">{{ job.company }}</p>
+                    <h1 class="text-xl font-bold">{{ job.title }}</h1>
+                    <p class="font-medium mt-0.5" style="color:rgba(var(--text-rgb),0.5);">{{ job.company }}</p>
                 </div>
             </div>
 
@@ -58,41 +58,41 @@
             <!-- Contacto -->
             {% if job.contact_email_primary %}
             <div class="flex items-center gap-2 mb-6 p-3 rounded-xl" style="background:rgba(124,58,237,0.07);border:1px solid rgba(124,58,237,0.15);">
-                <svg class="w-4 h-4 flex-shrink-0" style="color:#A78BFA;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                <span class="text-xs" style="color:rgba(241,245,249,0.4);">Contacto:</span>
-                <a href="mailto:{{ job.contact_email_primary }}" class="text-xs font-semibold hover:underline" style="color:#A78BFA;">{{ job.contact_email_primary }}</a>
+                <svg class="w-4 h-4 flex-shrink-0" style="color:var(--clr-purple);" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                <span class="text-xs" style="color:rgba(var(--text-rgb),0.4);">Contacto:</span>
+                <a href="mailto:{{ job.contact_email_primary }}" class="text-xs font-semibold hover:underline" style="color:var(--clr-purple);">{{ job.contact_email_primary }}</a>
                 {% if job.contact_email_secondary %}
-                <span style="color:rgba(241,245,249,0.2);">·</span>
-                <a href="mailto:{{ job.contact_email_secondary }}" class="text-xs font-semibold hover:underline" style="color:#A78BFA;">{{ job.contact_email_secondary }}</a>
+                <span style="color:rgba(var(--text-rgb),0.2);">·</span>
+                <a href="mailto:{{ job.contact_email_secondary }}" class="text-xs font-semibold hover:underline" style="color:var(--clr-purple);">{{ job.contact_email_secondary }}</a>
                 {% endif %}
             </div>
             {% endif %}
 
             <!-- Descrição -->
             <div class="mb-6">
-                <h2 class="text-xs font-bold uppercase tracking-widest mb-3" style="color:rgba(241,245,249,0.35);">Descrição</h2>
-                <div class="text-sm leading-relaxed whitespace-pre-line" style="color:rgba(241,245,249,0.7);">{{ job.description }}</div>
+                <h2 class="text-xs font-bold uppercase tracking-widest mb-3" style="color:rgba(var(--text-rgb),0.35);">Descrição</h2>
+                <div class="text-sm leading-relaxed whitespace-pre-line" style="color:rgba(var(--text-rgb),0.7);">{{ job.description }}</div>
             </div>
 
             <!-- Requisitos -->
             <div class="mb-8">
-                <h2 class="text-xs font-bold uppercase tracking-widest mb-3" style="color:rgba(241,245,249,0.35);">Requisitos</h2>
-                <div class="text-sm leading-relaxed whitespace-pre-line" style="color:rgba(241,245,249,0.7);">{{ job.requirements }}</div>
+                <h2 class="text-xs font-bold uppercase tracking-widest mb-3" style="color:rgba(var(--text-rgb),0.35);">Requisitos</h2>
+                <div class="text-sm leading-relaxed whitespace-pre-line" style="color:rgba(var(--text-rgb),0.7);">{{ job.requirements }}</div>
             </div>
 
             <!-- Acção de candidatura -->
             {% if user.is_candidate %}
-            <div class="pt-6" style="border-top:1px solid rgba(255,255,255,0.06);">
+            <div class="pt-6" style="border-top:1px solid rgba(var(--surface-rgb),0.06);">
                 {% with app=user_application %}
                 {% if app %}
                     {% if app.status == 'pending' %}
                     <div class="flex items-center gap-3 p-4 rounded-xl mb-3" style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);">
-                        <svg class="w-5 h-5 flex-shrink-0" style="color:#6EE7B7;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        <p class="text-sm font-semibold" style="color:#6EE7B7;">Candidatura submetida a {{ app.applied_at|date:"d/m/Y" }}</p>
+                        <svg class="w-5 h-5 flex-shrink-0" style="color:var(--clr-emerald);" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <p class="text-sm font-semibold" style="color:var(--clr-emerald);">Candidatura submetida a {{ app.applied_at|date:"d/m/Y" }}</p>
                     </div>
                     <button type="button"
                         onclick="openConfirmModal('{{ app.pk }}', '{{ job.title|escapejs }}')"
-                        class="text-sm font-medium hover:underline" style="color:#FCA5A5;">
+                        class="text-sm font-medium hover:underline" style="color:var(--clr-red);">
                         Retirar candidatura
                     </button>
                     {% elif app.status == 'withdrawn' %}
@@ -102,19 +102,19 @@
                     </a>
                     {% elif app.status == 'pre_selected' %}
                     <div class="p-4 rounded-xl" style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);">
-                        <p class="text-sm font-semibold" style="color:#6EE7B7;">Parabéns! A sua candidatura foi pré-seleccionada.</p>
+                        <p class="text-sm font-semibold" style="color:var(--clr-emerald);">Parabéns! A sua candidatura foi pré-seleccionada.</p>
                     </div>
                     {% elif app.status == 'interview_scheduled' %}
                     <div class="p-4 rounded-xl" style="background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.2);">
-                        <p class="text-sm font-semibold" style="color:#67E8F9;">Entrevista agendada{% if app.interview_date %} para {{ app.interview_date|date:"d/m/Y às H:i" }}{% endif %}.</p>
+                        <p class="text-sm font-semibold" style="color:var(--clr-cyan);">Entrevista agendada{% if app.interview_date %} para {{ app.interview_date|date:"d/m/Y às H:i" }}{% endif %}.</p>
                     </div>
                     {% elif app.status == 'rejected' %}
                     <div class="p-4 rounded-xl" style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);">
-                        <p class="text-sm font-semibold" style="color:#FCA5A5;">A sua candidatura não foi seleccionada nesta fase.</p>
+                        <p class="text-sm font-semibold" style="color:var(--clr-red);">A sua candidatura não foi seleccionada nesta fase.</p>
                     </div>
                     {% else %}
-                    <div class="p-4 rounded-xl" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);">
-                        <p class="text-sm" style="color:rgba(241,245,249,0.6);">Estado: {{ app.get_status_display }}</p>
+                    <div class="p-4 rounded-xl" style="background:rgba(var(--surface-rgb),0.04);border:1px solid rgba(var(--surface-rgb),0.08);">
+                        <p class="text-sm" style="color:rgba(var(--text-rgb),0.6);">Estado: {{ app.get_status_display }}</p>
                     </div>
                     {% endif %}
                 {% else %}
@@ -125,8 +125,8 @@
                     </a>
                     {% else %}
                     <div class="p-4 rounded-xl" style="background:rgba(252,211,77,0.07);border:1px solid rgba(252,211,77,0.15);">
-                        <p class="text-sm font-medium mb-2" style="color:#FCD34D;">Precisa de submeter um currículo antes de se candidatar.</p>
-                        <a href="{% url 'upload_resume' %}" class="text-sm font-bold hover:underline" style="color:#A78BFA;">Submeter CV agora →</a>
+                        <p class="text-sm font-medium mb-2" style="color:var(--clr-amber);">Precisa de submeter um currículo antes de se candidatar.</p>
+                        <a href="{% url 'upload_resume' %}" class="text-sm font-bold hover:underline" style="color:var(--clr-purple);">Submeter CV agora →</a>
                     </div>
                     {% endif %}
                 {% endif %}
@@ -143,12 +143,12 @@
     <div class="modal-box p-7 w-full max-w-sm mx-4 text-center">
         <div class="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4"
             style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.25);">
-            <svg class="w-6 h-6" style="color:#FCA5A5;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-6 h-6" style="color:var(--clr-red);" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
         </div>
-        <h3 class="text-base font-bold text-white mb-2">Retirar candidatura?</h3>
-        <p class="text-sm mb-6" style="color:rgba(241,245,249,0.5);" id="confirmModalText"></p>
+        <h3 class="text-base font-bold mb-2">Retirar candidatura?</h3>
+        <p class="text-sm mb-6" style="color:rgba(var(--text-rgb),0.5);" id="confirmModalText"></p>
         <div class="flex gap-3">
             <button onclick="closeConfirmModal()" class="btn-ghost flex-1 py-2.5 rounded-xl text-sm font-semibold">Cancelar</button>
             <form id="confirmForm" method="post" class="flex-1">

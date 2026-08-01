@@ -14,9 +14,9 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-7 gap-4 max-w-7xl mx-auto animate-fadeInUp">
         <div>
-            <p class="text-xs font-bold uppercase tracking-widest mb-1.5" style="color:rgba(241,245,249,0.35);">Recrutador</p>
-            <h1 class="text-2xl font-extrabold text-white">Pipeline de Candidatos</h1>
-            <p class="text-sm mt-1" style="color:rgba(241,245,249,0.45);">Arraste os cartões entre colunas para actualizar o estado</p>
+            <p class="text-xs font-bold uppercase tracking-widest mb-1.5" style="color:rgba(var(--text-rgb),0.35);">Recrutador</p>
+            <h1 class="text-2xl font-extrabold">Pipeline de Candidatos</h1>
+            <p class="text-sm mt-1" style="color:rgba(var(--text-rgb),0.45);">Arraste os cartões entre colunas para actualizar o estado</p>
         </div>
         <div class="flex gap-3 flex-wrap">
             <a href="{% url 'admin_dashboard' %}" class="btn-ghost px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-1.5">
@@ -31,20 +31,20 @@
     <!-- Métricas -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-7 max-w-7xl mx-auto animate-fadeInUp delay-1">
         <div class="glass-card p-4">
-            <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:rgba(241,245,249,0.35);">Total</p>
-            <p class="text-2xl font-extrabold text-white">{{ total }}</p>
+            <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:rgba(var(--text-rgb),0.35);">Total</p>
+            <p class="text-2xl font-extrabold">{{ total }}</p>
         </div>
         <div class="glass-card p-4">
-            <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:rgba(241,245,249,0.35);">Pré-seleccionados</p>
-            <p class="text-2xl font-extrabold" style="color:#6EE7B7;">{{ pre_selected }}</p>
+            <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:rgba(var(--text-rgb),0.35);">Pré-seleccionados</p>
+            <p class="text-2xl font-extrabold" style="color:var(--clr-emerald);">{{ pre_selected }}</p>
         </div>
         <div class="glass-card p-4">
-            <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:rgba(241,245,249,0.35);">Entrevistas</p>
-            <p class="text-2xl font-extrabold" style="color:#67E8F9;">{{ interviews }}</p>
+            <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:rgba(var(--text-rgb),0.35);">Entrevistas</p>
+            <p class="text-2xl font-extrabold" style="color:var(--clr-cyan);">{{ interviews }}</p>
         </div>
         <div class="glass-card p-4">
-            <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:rgba(241,245,249,0.35);">Score Médio</p>
-            <p class="text-2xl font-extrabold" style="color:#A78BFA;">{{ avg_score }}%</p>
+            <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:rgba(var(--text-rgb),0.35);">Score Médio</p>
+            <p class="text-2xl font-extrabold" style="color:var(--clr-purple);">{{ avg_score }}%</p>
         </div>
     </div>
 
@@ -62,10 +62,10 @@
             <div class="px-4 py-3 flex items-center justify-between" style="background:rgba(252,211,77,0.08);">
                 <div class="flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#FCD34D;box-shadow:0 0 6px rgba(252,211,77,0.5);"></span>
-                    <span class="text-sm font-bold" style="color:#FCD34D;">Pendente</span>
+                    <span class="text-sm font-bold" style="color:var(--clr-amber);">Pendente</span>
                 </div>
                 <span class="text-xs font-bold px-2 py-0.5 rounded-full col-count" data-col="pending"
-                    style="background:rgba(252,211,77,0.15);color:#FCD34D;">{{ kanban.pending|length }}</span>
+                    style="background:rgba(252,211,77,0.15);color:var(--clr-amber);">{{ kanban.pending|length }}</span>
             </div>
             <div class="kanban-cards flex-1 p-3 space-y-3 overflow-y-auto" style="min-height:200px;max-height:65vh;background:rgba(252,211,77,0.03);"
                  id="col-pending">
@@ -85,10 +85,10 @@
             <div class="px-4 py-3 flex items-center justify-between" style="background:rgba(16,185,129,0.08);">
                 <div class="flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#6EE7B7;box-shadow:0 0 6px rgba(16,185,129,0.5);"></span>
-                    <span class="text-sm font-bold" style="color:#6EE7B7;">Pré-seleccionado</span>
+                    <span class="text-sm font-bold" style="color:var(--clr-emerald);">Pré-seleccionado</span>
                 </div>
                 <span class="text-xs font-bold px-2 py-0.5 rounded-full col-count" data-col="pre_selected"
-                    style="background:rgba(16,185,129,0.15);color:#6EE7B7;">{{ kanban.pre_selected|length }}</span>
+                    style="background:rgba(16,185,129,0.15);color:var(--clr-emerald);">{{ kanban.pre_selected|length }}</span>
             </div>
             <div class="kanban-cards flex-1 p-3 space-y-3 overflow-y-auto" style="min-height:200px;max-height:65vh;background:rgba(16,185,129,0.03);"
                  id="col-pre_selected">
@@ -108,10 +108,10 @@
             <div class="px-4 py-3 flex items-center justify-between" style="background:rgba(6,182,212,0.08);">
                 <div class="flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#67E8F9;box-shadow:0 0 6px rgba(6,182,212,0.5);"></span>
-                    <span class="text-sm font-bold" style="color:#67E8F9;">Entrevista</span>
+                    <span class="text-sm font-bold" style="color:var(--clr-cyan);">Entrevista</span>
                 </div>
                 <span class="text-xs font-bold px-2 py-0.5 rounded-full col-count" data-col="interview_scheduled"
-                    style="background:rgba(6,182,212,0.15);color:#67E8F9;">{{ kanban.interview_scheduled|length }}</span>
+                    style="background:rgba(6,182,212,0.15);color:var(--clr-cyan);">{{ kanban.interview_scheduled|length }}</span>
             </div>
             <div class="kanban-cards flex-1 p-3 space-y-3 overflow-y-auto" style="min-height:200px;max-height:65vh;background:rgba(6,182,212,0.03);"
                  id="col-interview_scheduled">
@@ -131,10 +131,10 @@
             <div class="px-4 py-3 flex items-center justify-between" style="background:rgba(239,68,68,0.08);">
                 <div class="flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#FCA5A5;box-shadow:0 0 6px rgba(239,68,68,0.5);"></span>
-                    <span class="text-sm font-bold" style="color:#FCA5A5;">Rejeitado</span>
+                    <span class="text-sm font-bold" style="color:var(--clr-red);">Rejeitado</span>
                 </div>
                 <span class="text-xs font-bold px-2 py-0.5 rounded-full col-count" data-col="rejected"
-                    style="background:rgba(239,68,68,0.15);color:#FCA5A5;">{{ kanban.rejected|length }}</span>
+                    style="background:rgba(239,68,68,0.15);color:var(--clr-red);">{{ kanban.rejected|length }}</span>
             </div>
             <div class="kanban-cards flex-1 p-3 space-y-3 overflow-y-auto" style="min-height:200px;max-height:65vh;background:rgba(239,68,68,0.03);"
                  id="col-rejected">
@@ -211,7 +211,7 @@ async function onDrop(e, newStatus) {
     if (!srcCards.querySelector('.kanban-card')) {
         const empty = document.createElement('p');
         empty.className = 'text-xs text-center py-6 col-empty';
-        empty.style.color = 'rgba(241,245,249,0.3)';
+        empty.style.color = 'rgba(var(--text-rgb),0.3)';
         empty.textContent = 'Sem candidatos';
         srcCards.appendChild(empty);
     }
@@ -256,7 +256,7 @@ async function onDrop(e, newStatus) {
         if (!targetCards.querySelector('.kanban-card')) {
             const empty2 = document.createElement('p');
             empty2.className = 'text-xs text-center py-6 col-empty';
-            empty2.style.color = 'rgba(241,245,249,0.3)';
+            empty2.style.color = 'rgba(var(--text-rgb),0.3)';
             empty2.textContent = 'Sem candidatos';
             targetCards.appendChild(empty2);
         }

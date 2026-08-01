@@ -24,7 +24,7 @@
                     </svg>
                 </div>
                 <span class="text-2xl font-extrabold tracking-tight">
-                    <span class="gradient-text">KU</span><span class="text-white">BUKA</span>
+                    <span class="gradient-text">KU</span><span>BUKA</span>
                 </span>
             </a>
         </div>
@@ -34,8 +34,8 @@
             <div class="gradient-border-inner p-8">
 
                 <div class="mb-7">
-                    <h1 class="text-xl font-extrabold text-white mb-1">Bem-vindo de volta</h1>
-                    <p class="text-sm" style="color:rgba(241,245,249,0.45);">Inicie sessão na sua conta KUBUKA</p>
+                    <h1 class="text-xl font-extrabold mb-1">Bem-vindo de volta</h1>
+                    <p class="text-sm" style="color:rgba(var(--text-rgb),0.45);">Inicie sessão na sua conta KUBUKA</p>
                 </div>
 
                 {% if form.errors %}
@@ -59,12 +59,12 @@
                     {% csrf_token %}
 
                     <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.5);">Utilizador ou email</label>
+                        <label class="block text-xs font-semibold uppercase tracking-wider mb-2" style="color:rgba(var(--text-rgb),0.5);">Utilizador ou email</label>
                         <input type="text" name="username" required autocomplete="username" placeholder="username ou email@exemplo.com">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.5);">Palavra-passe</label>
+                        <label class="block text-xs font-semibold uppercase tracking-wider mb-2" style="color:rgba(var(--text-rgb),0.5);">Palavra-passe</label>
                         <input type="password" name="password" required autocomplete="current-password" placeholder="••••••••">
                     </div>
 
@@ -75,13 +75,13 @@
                 </form>
 
                 <div class="text-center mt-4">
-                    <a href="{% url 'password_reset' %}" class="text-xs hover:underline" style="color:rgba(241,245,249,0.35);">Esqueceu a palavra-passe?</a>
+                    <a href="{% url 'password_reset' %}" class="text-xs hover:underline" style="color:rgba(var(--text-rgb),0.35);">Esqueceu a palavra-passe?</a>
                 </div>
 
                 <hr class="section-divider my-6">
 
                 <div class="text-center space-y-3">
-                    <p class="text-xs" style="color:rgba(241,245,249,0.4);">Ainda não tem conta?</p>
+                    <p class="text-xs" style="color:rgba(var(--text-rgb),0.4);">Ainda não tem conta?</p>
                     <div class="grid grid-cols-2 gap-3">
                         <a href="{% url 'signup' %}" class="btn-ghost py-2.5 rounded-xl text-sm font-semibold text-center">
                             Candidato

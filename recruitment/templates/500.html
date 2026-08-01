@@ -4,29 +4,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Erro interno — KUBUKA</title>
+    <script>
+        (function () {
+            var saved = localStorage.getItem('kubuka-theme');
+            var theme = saved || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        :root {
+            --bg-base: #080B14;
+            --text-primary: #F1F5F9;
+            --text-rgb: 241,245,249;
+            --surface-rgb: 255,255,255;
+        }
+        :root[data-theme="light"] {
+            --bg-base: #F3F2FA;
+            --text-primary: #14172A;
+            --text-rgb: 20,23,42;
+            --surface-rgb: 20,23,42;
+        }
         body {
-            background-color: #080B14;
+            background-color: var(--bg-base);
             background-image:
                 radial-gradient(ellipse 80% 50% at 10% -10%, rgba(239,68,68,0.12) 0%, transparent 60%),
                 radial-gradient(ellipse 60% 40% at 90% 5%, rgba(124,58,237,0.10) 0%, transparent 55%);
             background-attachment: fixed;
-            color: #F1F5F9;
+            color: var(--text-primary);
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
         }
+        .theme-toggle {
+            position: fixed; top: 1rem; right: 1rem;
+            width: 2.25rem; height: 2.25rem; border-radius: 10px;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: rgba(var(--surface-rgb),0.06);
+            border: 1px solid rgba(var(--surface-rgb),0.12);
+            color: rgba(var(--text-rgb),0.75);
+            cursor: pointer;
+        }
+        .theme-toggle svg { width: 1.1rem; height: 1.1rem; }
+        .theme-toggle .icon-sun { display: none; }
+        :root[data-theme="light"] .theme-toggle .icon-moon { display: none; }
+        :root[data-theme="light"] .theme-toggle .icon-sun { display: block; }
     </style>
 </head>
 <body>
+    <button type="button" id="theme-toggle-btn" class="theme-toggle" title="Alternar tema claro/escuro" aria-label="Alternar tema claro/escuro">
+        <svg class="icon-moon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        <svg class="icon-sun" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+    </button>
     <div class="text-center px-6">
         <p class="text-xs font-bold uppercase tracking-widest mb-4" style="color:rgba(252,165,165,0.6);">Erro 500</p>
         <h1 class="text-8xl font-black mb-4" style="background:linear-gradient(135deg,#EF4444,#7C3AED);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">500</h1>
-        <h2 class="text-2xl font-bold text-white mb-3">Erro interno do servidor</h2>
-        <p class="text-sm mb-8" style="color:rgba(241,245,249,0.5);">
+        <h2 class="text-2xl font-bold mb-3">Erro interno do servidor</h2>
+        <p class="text-sm mb-8" style="color:rgba(var(--text-rgb),0.5);">
             Algo correu mal do nosso lado. O problema foi registado e será corrigido em breve.
         </p>
         <div class="flex flex-col sm:flex-row gap-3 justify-center">
@@ -36,7 +72,15 @@
                 ← Voltar ao início
             </a>
         </div>
-        <p class="mt-12 text-xs" style="color:rgba(241,245,249,0.2);">KUBUKA — Sistema de Pré-Selecção Inteligente de Candidatos</p>
+        <p class="mt-12 text-xs" style="color:rgba(var(--text-rgb),0.2);">KUBUKA — Sistema de Pré-Selecção Inteligente de Candidatos</p>
     </div>
+    <script>
+        document.getElementById('theme-toggle-btn').addEventListener('click', function () {
+            var current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+            var next = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('kubuka-theme', next);
+        });
+    </script>
 </body>
 </html>

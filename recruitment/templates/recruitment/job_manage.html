@@ -13,9 +13,9 @@
 
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4 animate-fadeInUp">
         <div>
-            <p class="text-xs font-bold uppercase tracking-widest mb-1.5" style="color:rgba(241,245,249,0.35);">Recrutador</p>
-            <h1 class="text-2xl font-extrabold text-white">Gestão de Vagas</h1>
-            <p class="text-sm mt-1" style="color:rgba(241,245,249,0.45);">Cria, edita e controla a visibilidade das tuas vagas</p>
+            <p class="text-xs font-bold uppercase tracking-widest mb-1.5" style="color:rgba(var(--text-rgb),0.35);">Recrutador</p>
+            <h1 class="text-2xl font-extrabold">Gestão de Vagas</h1>
+            <p class="text-sm mt-1" style="color:rgba(var(--text-rgb),0.45);">Cria, edita e controla a visibilidade das tuas vagas</p>
         </div>
         <div class="flex gap-3">
             <a href="{% url 'admin_dashboard' %}" class="btn-ghost px-4 py-2 rounded-xl text-sm font-semibold">Ver Candidatos</a>
@@ -41,27 +41,27 @@
                 <tbody>
                     {% for job in jobs %}
                     <tr>
-                        <td class="font-semibold text-white">{{ job.title }}</td>
-                        <td style="color:rgba(241,245,249,0.6);">{{ job.company }}</td>
-                        <td style="color:rgba(241,245,249,0.5);">{{ job.location }}</td>
-                        <td class="text-xs" style="color:rgba(241,245,249,0.5);">
+                        <td class="font-semibold">{{ job.title }}</td>
+                        <td style="color:rgba(var(--text-rgb),0.6);">{{ job.company }}</td>
+                        <td style="color:rgba(var(--text-rgb),0.5);">{{ job.location }}</td>
+                        <td class="text-xs" style="color:rgba(var(--text-rgb),0.5);">
                             {% if job.deadline %}{{ job.deadline|date:"d/m/Y" }}{% else %}—{% endif %}
                         </td>
                         <td>
-                            <span class="font-bold" style="color:#A78BFA;">{{ job.application_count }}</span>
+                            <span class="font-bold" style="color:var(--clr-purple);">{{ job.application_count }}</span>
                         </td>
                         <td>
                             {% if job.min_score_required > 0 %}
                                 <span class="badge badge-warning">≥ {{ job.min_score_required|floatformat:0 }}%</span>
                             {% else %}
-                                <span style="color:rgba(241,245,249,0.3);">—</span>
+                                <span style="color:rgba(var(--text-rgb),0.3);">—</span>
                             {% endif %}
                         </td>
                         <td>
                             {% if job.is_active %}
                                 <span class="badge badge-success">Activa</span>
                             {% else %}
-                                <span class="badge" style="background:rgba(255,255,255,0.06);color:rgba(241,245,249,0.4);border:1px solid rgba(255,255,255,0.08);">Inactiva</span>
+                                <span class="badge" style="background:rgba(var(--surface-rgb),0.06);color:rgba(var(--text-rgb),0.4);border:1px solid rgba(var(--surface-rgb),0.08);">Inactiva</span>
                             {% endif %}
                         </td>
                         <td>
@@ -71,9 +71,9 @@
                                     onclick="openToggleModal('{{ job.pk }}', '{{ job.title|escapejs }}', {% if job.is_active %}true{% else %}false{% endif %})"
                                     class="px-2.5 py-1 text-xs font-medium rounded-lg transition-colors hover:opacity-80
                                         {% if job.is_active %}
-                                            " style="background:rgba(245,158,11,0.15);color:#FCD34D;border:1px solid rgba(245,158,11,0.25);"
+                                            " style="background:rgba(245,158,11,0.15);color:var(--clr-amber);border:1px solid rgba(245,158,11,0.25);"
                                         {% else %}
-                                            " style="background:rgba(16,185,129,0.15);color:#6EE7B7;border:1px solid rgba(16,185,129,0.25);"
+                                            " style="background:rgba(16,185,129,0.15);color:var(--clr-emerald);border:1px solid rgba(16,185,129,0.25);"
                                         {% endif %}>
                                     {% if job.is_active %}Desactivar{% else %}Activar{% endif %}
                                 </button>
@@ -83,11 +83,11 @@
                     {% empty %}
                     <tr>
                         <td colspan="8" class="px-4 py-16 text-center">
-                            <svg class="mx-auto h-12 w-12 mb-4 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color:#A78BFA;">
+                            <svg class="mx-auto h-12 w-12 mb-4 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color:var(--clr-purple);">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                             </svg>
-                            <p class="text-sm font-medium text-white mb-1">Ainda não criou nenhuma vaga</p>
-                            <a href="{% url 'job_create' %}" class="text-sm font-semibold hover:underline" style="color:#A78BFA;">Criar agora →</a>
+                            <p class="text-sm font-medium mb-1">Ainda não criou nenhuma vaga</p>
+                            <a href="{% url 'job_create' %}" class="text-sm font-semibold hover:underline" style="color:var(--clr-purple);">Criar agora →</a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -102,12 +102,12 @@
     <div class="modal-box p-7 w-full max-w-sm mx-4 text-center">
         <div class="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4"
             style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.25);">
-            <svg class="w-6 h-6" style="color:#FCD34D;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-6 h-6" style="color:var(--clr-amber);" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
         </div>
-        <h3 class="text-base font-bold text-white mb-2" id="toggleModalTitle"></h3>
-        <p class="text-sm mb-6" style="color:rgba(241,245,249,0.5);" id="toggleModalText"></p>
+        <h3 class="text-base font-bold mb-2" id="toggleModalTitle"></h3>
+        <p class="text-sm mb-6" style="color:rgba(var(--text-rgb),0.5);" id="toggleModalText"></p>
         <div class="flex gap-3">
             <button onclick="closeToggleModal()" class="btn-ghost flex-1 py-2.5 rounded-xl text-sm font-semibold">Cancelar</button>
             <form id="toggleForm" method="post" class="flex-1">

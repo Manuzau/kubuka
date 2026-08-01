@@ -14,9 +14,9 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-7 gap-4 animate-fadeInUp">
         <div>
-            <p class="text-xs font-bold uppercase tracking-widest mb-1.5" style="color:rgba(241,245,249,0.35);">Recrutador</p>
-            <h1 class="text-2xl font-extrabold text-white">Analytics</h1>
-            <p class="text-sm mt-1" style="color:rgba(241,245,249,0.45);">Visão geral do funil de recrutamento</p>
+            <p class="text-xs font-bold uppercase tracking-widest mb-1.5" style="color:rgba(var(--text-rgb),0.35);">Recrutador</p>
+            <h1 class="text-2xl font-extrabold">Analytics</h1>
+            <p class="text-sm mt-1" style="color:rgba(var(--text-rgb),0.45);">Visão geral do funil de recrutamento</p>
         </div>
         <div class="flex gap-3 flex-wrap">
             <a href="{% url 'admin_dashboard' %}" class="btn-ghost px-4 py-2 rounded-xl text-sm font-semibold">Vista Tabela</a>
@@ -28,7 +28,7 @@
     <!-- Filtros -->
     <form method="get" class="glass-card p-4 mb-7 grid grid-cols-1 sm:grid-cols-3 gap-4 animate-fadeInUp">
         <div>
-            <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.4);">Filtrar por Vaga</label>
+            <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(var(--text-rgb),0.4);">Filtrar por Vaga</label>
             <select name="job_id">
                 <option value="">Todas as vagas</option>
                 {% for job in jobs_for_filter %}
@@ -37,7 +37,7 @@
             </select>
         </div>
         <div>
-            <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.4);">Filtrar por Candidato</label>
+            <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(var(--text-rgb),0.4);">Filtrar por Candidato</label>
             <input type="text" name="candidate" value="{{ current_candidate }}" placeholder="Nome ou email...">
         </div>
         <div class="flex items-end gap-3">
@@ -49,20 +49,20 @@
     <!-- KPIs -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-7 animate-fadeInUp delay-1">
         <div class="glass-card p-5">
-            <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:rgba(241,245,249,0.35);">Total Candidaturas</p>
-            <p class="text-3xl font-extrabold text-white">{{ total }}</p>
+            <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:rgba(var(--text-rgb),0.35);">Total Candidaturas</p>
+            <p class="text-3xl font-extrabold">{{ total }}</p>
         </div>
         <div class="glass-card p-5">
-            <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:rgba(241,245,249,0.35);">Score Médio</p>
-            <p class="text-3xl font-extrabold" style="color:#A78BFA;">{{ avg_score }}%</p>
+            <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:rgba(var(--text-rgb),0.35);">Score Médio</p>
+            <p class="text-3xl font-extrabold" style="color:var(--clr-purple);">{{ avg_score }}%</p>
         </div>
         <div class="glass-card p-5">
-            <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:rgba(241,245,249,0.35);">Taxa Pré-selecção</p>
-            <p class="text-3xl font-extrabold" style="color:#6EE7B7;">{{ conversion }}%</p>
+            <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:rgba(var(--text-rgb),0.35);">Taxa Pré-selecção</p>
+            <p class="text-3xl font-extrabold" style="color:var(--clr-emerald);">{{ conversion }}%</p>
         </div>
         <div class="glass-card p-5">
-            <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:rgba(241,245,249,0.35);">Entrevistas</p>
-            <p class="text-3xl font-extrabold" style="color:#67E8F9;">{{ interviews }}</p>
+            <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:rgba(var(--text-rgb),0.35);">Entrevistas</p>
+            <p class="text-3xl font-extrabold" style="color:var(--clr-cyan);">{{ interviews }}</p>
         </div>
     </div>
 
@@ -70,14 +70,14 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 animate-fadeInUp delay-2">
 
         <div class="glass-card p-5">
-            <h3 class="text-sm font-bold text-white mb-4">Candidaturas por Estado</h3>
+            <h3 class="text-sm font-bold mb-4">Candidaturas por Estado</h3>
             <div class="relative" style="height:280px;">
                 <canvas id="chartStatus"></canvas>
             </div>
         </div>
 
         <div class="glass-card p-5">
-            <h3 class="text-sm font-bold text-white mb-4">Vagas com Mais Candidatos</h3>
+            <h3 class="text-sm font-bold mb-4">Vagas com Mais Candidatos</h3>
             <div class="relative" style="height:280px;">
                 <canvas id="chartJobs"></canvas>
             </div>
@@ -89,14 +89,14 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fadeInUp delay-3">
 
         <div class="glass-card p-5">
-            <h3 class="text-sm font-bold text-white mb-4">Distribuição de Scores de Compatibilidade</h3>
+            <h3 class="text-sm font-bold mb-4">Distribuição de Scores de Compatibilidade</h3>
             <div class="relative" style="height:280px;">
                 <canvas id="chartScores"></canvas>
             </div>
         </div>
 
         <div class="glass-card p-5">
-            <h3 class="text-sm font-bold text-white mb-4">Candidaturas por Semana (últimas 8 semanas)</h3>
+            <h3 class="text-sm font-bold mb-4">Candidaturas por Semana (últimas 8 semanas)</h3>
             <div class="relative" style="height:280px;">
                 <canvas id="chartWeekly"></canvas>
             </div>
@@ -108,11 +108,20 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
+// Canvas não resolve custom properties CSS — lemos os valores calculados do tema actual.
+const rootStyle = getComputedStyle(document.documentElement);
+const textRgb = rootStyle.getPropertyValue('--text-rgb').trim();
+const surfaceRgb = rootStyle.getPropertyValue('--surface-rgb').trim();
+const solidRgb = rootStyle.getPropertyValue('--solid-rgb').trim();
+
+// Recarrega a página ao alternar o tema para que os gráficos sejam redesenhados com as cores correctas.
+window.addEventListener('kubuka-theme-change', () => location.reload());
+
 Chart.defaults.font.family = "'Inter', 'Segoe UI', sans-serif";
 Chart.defaults.font.size = 12;
-Chart.defaults.color = 'rgba(241,245,249,0.5)';
+Chart.defaults.color = `rgba(${textRgb},0.5)`;
 
-const gridColor = 'rgba(255,255,255,0.06)';
+const gridColor = `rgba(${surfaceRgb},0.06)`;
 
 new Chart(document.getElementById('chartStatus'), {
     type: 'doughnut',
@@ -122,14 +131,14 @@ new Chart(document.getElementById('chartStatus'), {
             data: {{ status_data|safe }},
             backgroundColor: {{ status_colors|safe }},
             borderWidth: 2,
-            borderColor: 'rgba(8,11,20,0.8)',
+            borderColor: `rgba(${solidRgb},0.8)`,
         }]
     },
     options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-            legend: { position: 'bottom', labels: { padding: 16, boxWidth: 12, color: 'rgba(241,245,249,0.6)' } },
+            legend: { position: 'bottom', labels: { padding: 16, boxWidth: 12, color: `rgba(${textRgb},0.6)` } },
         },
         cutout: '60%',
     }
@@ -198,7 +207,7 @@ new Chart(document.getElementById('chartWeekly'), {
             fill: true,
             tension: 0.4,
             pointBackgroundColor: '#A78BFA',
-            pointBorderColor: 'rgba(8,11,20,0.8)',
+            pointBorderColor: `rgba(${solidRgb},0.8)`,
             pointBorderWidth: 2,
             pointRadius: 4,
         }]

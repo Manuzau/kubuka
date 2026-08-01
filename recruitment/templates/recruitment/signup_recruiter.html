@@ -24,19 +24,19 @@
                     </svg>
                 </div>
                 <span class="text-2xl font-extrabold tracking-tight">
-                    <span class="gradient-text">KU</span><span class="text-white">BUKA</span>
+                    <span class="gradient-text">KU</span><span>BUKA</span>
                 </span>
             </a>
         </div>
 
         <!-- Card -->
         <div style="position:relative;border-radius:16px;padding:1px;background:linear-gradient(135deg,rgba(6,182,212,0.5),rgba(124,58,237,0.5));">
-            <div style="background:#0D1020;border-radius:15px;" class="p-8">
+            <div style="background:rgb(var(--solid-rgb));border-radius:15px;" class="p-8">
 
                 <div class="mb-7">
                     <span class="badge badge-info mb-3 inline-flex">Recrutador</span>
-                    <h1 class="text-xl font-extrabold text-white mb-1">Criar conta de recrutador</h1>
-                    <p class="text-sm" style="color:rgba(241,245,249,0.45);">Publique vagas e receba candidaturas pré-avaliadas por IA</p>
+                    <h1 class="text-xl font-extrabold mb-1">Criar conta de recrutador</h1>
+                    <p class="text-sm" style="color:rgba(var(--text-rgb),0.45);">Publique vagas e receba candidaturas pré-avaliadas por IA</p>
                 </div>
 
                 {% if form.non_field_errors %}
@@ -58,13 +58,13 @@
                     {% csrf_token %}
                     {% for field in form %}
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(241,245,249,0.5);">{{ field.label }}</label>
+                        <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(var(--text-rgb),0.5);">{{ field.label }}</label>
                         {{ field }}
                         {% if field.help_text %}
-                            <p class="text-xs mt-1.5" style="color:rgba(241,245,249,0.3);">{{ field.help_text|safe }}</p>
+                            <p class="text-xs mt-1.5" style="color:rgba(var(--text-rgb),0.3);">{{ field.help_text|safe }}</p>
                         {% endif %}
                         {% if field.errors %}
-                            <p class="text-xs mt-1.5" style="color:#FCA5A5;">{{ field.errors.0 }}</p>
+                            <p class="text-xs mt-1.5" style="color:var(--clr-red);">{{ field.errors.0 }}</p>
                         {% endif %}
                     </div>
                     {% endfor %}
@@ -78,8 +78,8 @@
                 <hr class="section-divider my-6">
 
                 <div class="text-center space-y-2">
-                    <p class="text-sm" style="color:rgba(241,245,249,0.4);">Já tem conta? <a href="{% url 'login' %}" class="font-semibold hover:underline" style="color:#A78BFA;">Iniciar Sessão</a></p>
-                    <p class="text-sm" style="color:rgba(241,245,249,0.35);">É candidato? <a href="{% url 'signup' %}" class="font-semibold hover:underline" style="color:#67E8F9;">Registe-se aqui</a></p>
+                    <p class="text-sm" style="color:rgba(var(--text-rgb),0.4);">Já tem conta? <a href="{% url 'login' %}" class="font-semibold hover:underline" style="color:var(--clr-purple);">Iniciar Sessão</a></p>
+                    <p class="text-sm" style="color:rgba(var(--text-rgb),0.35);">É candidato? <a href="{% url 'signup' %}" class="font-semibold hover:underline" style="color:var(--clr-cyan);">Registe-se aqui</a></p>
                 </div>
 
             </div>
@@ -90,12 +90,12 @@
 <style>
 /* Garante visibilidade dos campos em qualquer browser */
 form input, form textarea, form select {
-    background: rgba(20, 24, 48, 0.8) !important;
-    color: #F1F5F9 !important;
-    border-color: rgba(255,255,255,0.1) !important;
+    background: rgba(var(--solid-rgb), 0.8) !important;
+    color: var(--text-primary) !important;
+    border-color: rgba(var(--surface-rgb),0.1) !important;
 }
 form input::placeholder, form textarea::placeholder {
-    color: rgba(241,245,249,0.28) !important;
+    color: rgba(var(--text-rgb),0.28) !important;
 }
 </style>
 <script src="{% static 'recruitment/js/password-ui.js' %}"></script>

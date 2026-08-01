@@ -13,9 +13,9 @@
 
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-3 animate-fadeInUp">
         <div>
-            <p class="text-xs font-bold uppercase tracking-widest mb-1.5" style="color:rgba(241,245,249,0.35);">Candidato</p>
-            <h1 class="text-2xl font-extrabold text-white">As Minhas Candidaturas</h1>
-            <p class="text-sm mt-1" style="color:rgba(241,245,249,0.45);">Acompanhe o estado de cada candidatura</p>
+            <p class="text-xs font-bold uppercase tracking-widest mb-1.5" style="color:rgba(var(--text-rgb),0.35);">Candidato</p>
+            <h1 class="text-2xl font-extrabold">As Minhas Candidaturas</h1>
+            <p class="text-sm mt-1" style="color:rgba(var(--text-rgb),0.45);">Acompanhe o estado de cada candidatura</p>
         </div>
         <a href="{% url 'job_list' %}" class="btn-primary px-4 py-2 rounded-xl text-sm font-semibold">Ver Vagas →</a>
     </div>
@@ -36,9 +36,9 @@
             <div class="p-5">
                 <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                     <div>
-                        <h3 class="text-base font-bold text-white">{{ app.job.title }}</h3>
-                        <p class="text-sm mt-0.5" style="color:rgba(241,245,249,0.5);">{{ app.job.company }} · {{ app.job.location }}</p>
-                        <p class="text-xs mt-1" style="color:rgba(241,245,249,0.35);">Candidatura enviada em {{ app.applied_at|date:"d/m/Y" }}</p>
+                        <h3 class="text-base font-bold">{{ app.job.title }}</h3>
+                        <p class="text-sm mt-0.5" style="color:rgba(var(--text-rgb),0.5);">{{ app.job.company }} · {{ app.job.location }}</p>
+                        <p class="text-xs mt-1" style="color:rgba(var(--text-rgb),0.35);">Candidatura enviada em {{ app.applied_at|date:"d/m/Y" }}</p>
                     </div>
 
                     <div class="flex-shrink-0">
@@ -54,7 +54,7 @@
                                     Entrevista Agendada
                                 </span>
                                 {% if app.interview_date %}
-                                <p class="text-xs mt-1" style="color:#67E8F9;">{{ app.interview_date|date:"d/m/Y \à\s H:i" }}</p>
+                                <p class="text-xs mt-1" style="color:var(--clr-cyan);">{{ app.interview_date|date:"d/m/Y \à\s H:i" }}</p>
                                 {% endif %}
                             </div>
                         {% elif app.status == 'rejected' %}
@@ -63,7 +63,7 @@
                                 Não seleccionado
                             </span>
                         {% elif app.status == 'withdrawn' %}
-                            <span class="badge" style="background:rgba(255,255,255,0.06);color:rgba(241,245,249,0.4);border:1px solid rgba(255,255,255,0.08);">
+                            <span class="badge" style="background:rgba(var(--surface-rgb),0.06);color:rgba(var(--text-rgb),0.4);border:1px solid rgba(var(--surface-rgb),0.08);">
                                 Candidatura Retirada
                             </span>
                         {% else %}
@@ -78,7 +78,7 @@
                 <!-- Score de compatibilidade -->
                 {% if app.similarity_score > 0 %}
                 <div class="mt-3 flex items-center gap-3">
-                    <p class="text-xs font-bold uppercase tracking-wider" style="color:rgba(241,245,249,0.35);">Compatibilidade com a vaga:</p>
+                    <p class="text-xs font-bold uppercase tracking-wider" style="color:rgba(var(--text-rgb),0.35);">Compatibilidade com a vaga:</p>
                     <span class="text-sm font-bold {% if app.similarity_score >= 80 %}text-emerald-400{% elif app.similarity_score >= 60 %}text-amber-400{% else %}text-red-400{% endif %}">
                         {{ app.similarity_score }}%
                     </span>
@@ -93,15 +93,15 @@
                         style="color:{% if app.status == 'pre_selected' %}#6EE7B7{% else %}#A78BFA{% endif %}">
                         Análise de Correspondência
                     </p>
-                    <p class="text-sm leading-relaxed" style="color:rgba(241,245,249,0.65);">{{ app.match_feedback }}</p>
+                    <p class="text-sm leading-relaxed" style="color:rgba(var(--text-rgb),0.65);">{{ app.match_feedback }}</p>
                 </div>
                 {% elif app.similarity_score == 0.0 and app.status == 'pending' %}
                 <div class="mt-4 rounded-xl p-3 flex items-center gap-2" style="background:rgba(252,211,77,0.07);border:1px solid rgba(252,211,77,0.15);">
-                    <svg class="w-4 h-4 flex-shrink-0 animate-spin" style="color:#FCD34D;" fill="none" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 flex-shrink-0 animate-spin" style="color:var(--clr-amber);" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                     </svg>
-                    <p class="text-sm" style="color:#FCD34D;">A calcular correspondência com a vaga...</p>
+                    <p class="text-sm" style="color:var(--clr-amber);">A calcular correspondência com a vaga...</p>
                 </div>
                 {% endif %}
 
@@ -109,19 +109,19 @@
                 {% if app.status == 'interview_scheduled' and app.candidate_availability_enabled %}
                 <div class="mt-4">
                     {% if app.availability_responded %}
-                    <div class="rounded-xl p-3 flex items-center gap-2" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);">
-                        <svg class="w-4 h-4 flex-shrink-0" style="color:rgba(241,245,249,0.4);" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        <p class="text-xs" style="color:rgba(241,245,249,0.5);">A sua indisponibilidade foi registada. O recrutador foi notificado.</p>
+                    <div class="rounded-xl p-3 flex items-center gap-2" style="background:rgba(var(--surface-rgb),0.04);border:1px solid rgba(var(--surface-rgb),0.08);">
+                        <svg class="w-4 h-4 flex-shrink-0" style="color:rgba(var(--text-rgb),0.4);" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <p class="text-xs" style="color:rgba(var(--text-rgb),0.5);">A sua indisponibilidade foi registada. O recrutador foi notificado.</p>
                     </div>
                     {% else %}
                     <div class="rounded-xl p-4" style="background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2);">
-                        <p class="text-sm font-semibold mb-3" style="color:#FB923C;">Não consegue comparecer à entrevista?</p>
+                        <p class="text-sm font-semibold mb-3" style="color:var(--clr-orange-2);">Não consegue comparecer à entrevista?</p>
                         <form method="post" action="{% url 'submit_unavailability' app.pk %}">
                             {% csrf_token %}
                             <textarea name="reason" rows="2" required
                                 placeholder="Indique o motivo da sua indisponibilidade..."
                                 class="w-full text-sm rounded-lg p-2.5 mb-3 resize-none"
-                                style="background:rgba(20,24,48,0.8);color:#F1F5F9;border:1.5px solid rgba(249,115,22,0.3);"></textarea>
+                                style="background:rgba(var(--solid-rgb),0.8);color:var(--text-primary);border:1.5px solid rgba(249,115,22,0.3);"></textarea>
                             <button type="submit" class="px-4 py-1.5 rounded-xl text-xs font-bold text-white" style="background:rgba(249,115,22,0.8);">
                                 Indicar Indisponibilidade
                             </button>
@@ -137,11 +137,11 @@
 
     {% else %}
     <div class="glass-card text-center py-20 animate-fadeInUp">
-        <svg class="mx-auto h-14 w-14 mb-4 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color:#A78BFA;">
+        <svg class="mx-auto h-14 w-14 mb-4 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color:var(--clr-purple);">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
         </svg>
-        <h3 class="text-base font-bold text-white mb-1">Ainda não se candidatou a nenhuma vaga</h3>
-        <p class="text-sm mb-6" style="color:rgba(241,245,249,0.4);">Explore as oportunidades e candidate-se com o seu currículo.</p>
+        <h3 class="text-base font-bold mb-1">Ainda não se candidatou a nenhuma vaga</h3>
+        <p class="text-sm mb-6" style="color:rgba(var(--text-rgb),0.4);">Explore as oportunidades e candidate-se com o seu currículo.</p>
         <a href="{% url 'job_list' %}" class="btn-primary px-5 py-2.5 rounded-xl text-sm font-bold">Ver Vagas</a>
     </div>
     {% endif %}
