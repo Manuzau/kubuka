@@ -141,6 +141,15 @@
                                 <span class="font-bold text-sm {% if app.similarity_score >= 80 %}text-emerald-400{% elif app.similarity_score >= 60 %}text-amber-400{% else %}text-red-400{% endif %}">
                                     {{ app.similarity_score }}%
                                 </span>
+                                {% if app.match_feedback %}
+                                <button type="button" onclick="toggleFeedbackRow({{ app.pk }})"
+                                    id="feedback-toggle-{{ app.pk }}"
+                                    class="w-[18px] h-[18px] rounded-full flex items-center justify-center flex-shrink-0 transition-colors"
+                                    style="background:rgba(124,58,237,0.15);color:#A78BFA;"
+                                    title="Ver análise de correspondência">
+                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </button>
+                                {% endif %}
                             </div>
                         </td>
                         <td>
@@ -200,6 +209,19 @@
                             </div>
                         </td>
                     </tr>
+                    {% if app.match_feedback %}
+                    <tr id="feedback-row-{{ app.pk }}" class="feedback-row hidden">
+                        <td colspan="6" class="!py-3 !px-5" style="background:rgba(124,58,237,0.05);border-top:1px dashed rgba(124,58,237,0.15);">
+                            <div class="flex items-start gap-2.5">
+                                <svg class="w-4 h-4 flex-shrink-0 mt-0.5" style="color:#A78BFA;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <div>
+                                    <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:#A78BFA;">Análise de Correspondência (IA)</p>
+                                    <p class="text-sm leading-relaxed" style="color:rgba(var(--text-rgb),0.65);">{{ app.match_feedback }}</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
                     {% empty %}
                     <tr>
                         <td colspan="6" class="text-center py-16" style="color:rgba(var(--text-rgb),0.25);">
@@ -309,6 +331,10 @@ function closeNotesModal() {
     const m = document.getElementById('notesModal');
     m.classList.add('hidden');
     m.classList.remove('flex');
+}
+function toggleFeedbackRow(appId) {
+    const row = document.getElementById('feedback-row-' + appId);
+    if (row) row.classList.toggle('hidden');
 }
 </script>
 {% endblock %}

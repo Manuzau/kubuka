@@ -272,5 +272,27 @@ function updateCounters() {
         if (badge) badge.textContent = count;
     });
 }
+
+function toggleKanbanFeedback(btn, appId) {
+    const pop = document.getElementById('feedback-popover-' + appId);
+    if (!pop) return;
+    const wasHidden = pop.classList.contains('hidden');
+    document.querySelectorAll('.kanban-feedback-popover').forEach(p => p.classList.add('hidden'));
+    if (wasHidden) {
+        const rect = btn.getBoundingClientRect();
+        const popWidth = 260;
+        let left = rect.left;
+        if (left + popWidth > window.innerWidth - 12) left = window.innerWidth - popWidth - 12;
+        pop.style.top = (rect.bottom + 6) + 'px';
+        pop.style.left = Math.max(12, left) + 'px';
+        pop.classList.remove('hidden');
+    }
+}
+
+document.addEventListener('click', function (e) {
+    if (!e.target.closest('.kanban-feedback-popover') && !e.target.closest('.feedback-info-btn')) {
+        document.querySelectorAll('.kanban-feedback-popover').forEach(p => p.classList.add('hidden'));
+    }
+});
 </script>
 {% endblock %}

@@ -20,6 +20,20 @@
         <span class="text-xs font-bold {% if app.similarity_score >= 70 %}text-emerald-400{% elif app.similarity_score >= 40 %}text-amber-400{% else %}text-red-400{% endif %}">
             {{ app.similarity_score|floatformat:0 }}%
         </span>
+        {% if app.match_feedback %}
+        <button type="button"
+            class="feedback-info-btn w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0"
+            style="background:rgba(124,58,237,0.15);color:#A78BFA;font-size:10px;font-weight:700;"
+            title="Ver análise de correspondência"
+            onclick="event.stopPropagation(); toggleKanbanFeedback(this, {{ app.pk }})">ⓘ</button>
+        <div id="feedback-popover-{{ app.pk }}" class="kanban-feedback-popover hidden"
+            style="position:fixed;z-index:100;width:260px;padding:10px 12px;border-radius:10px;
+                   background:rgba(var(--solid-rgb),0.98);border:1px solid rgba(124,58,237,0.3);
+                   box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+            <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:#A78BFA;">Análise de Correspondência</p>
+            <p class="text-xs leading-relaxed" style="color:rgba(var(--text-rgb),0.75);">{{ app.match_feedback }}</p>
+        </div>
+        {% endif %}
     </div>
     {% else %}
     <div class="flex items-center gap-1 mb-2 text-xs" style="color:rgba(var(--text-rgb),0.3);">
