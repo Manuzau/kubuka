@@ -1,6 +1,6 @@
 {% extends 'recruitment/base.html' %}
 
-{% block title %}Painel de Candidatos — KUBUKA{% endblock %}
+{% block title %}Painel de Candidatos - KUBUKA{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-6 py-10">
@@ -176,7 +176,7 @@
                             {% if app.recruiter_notes %}
                             <p class="text-xs max-w-xs truncate" style="color:rgba(var(--text-rgb),0.55);" title="{{ app.recruiter_notes }}">{{ app.recruiter_notes|truncatechars:55 }}</p>
                             {% else %}
-                            <span class="text-xs" style="color:rgba(var(--text-rgb),0.2);">—</span>
+                            <span class="text-xs" style="color:rgba(var(--text-rgb),0.2);">-</span>
                             {% endif %}
                             {% if app.availability_responded %}
                             <p class="text-xs mt-1 font-medium" style="color:var(--clr-orange);" title="{{ app.candidate_unavailability_reason }}">
@@ -238,7 +238,7 @@
         {% if page_obj.has_other_pages %}
         <div class="flex items-center justify-between px-5 py-3.5" style="border-top:1px solid rgba(var(--surface-rgb),0.06);">
             <p class="text-xs" style="color:rgba(var(--text-rgb),0.35);">
-                {{ page_obj.start_index }}–{{ page_obj.end_index }} de {{ page_obj.paginator.count }} candidaturas
+                {{ page_obj.start_index }}-{{ page_obj.end_index }} de {{ page_obj.paginator.count }} candidaturas
             </p>
             <div class="flex items-center gap-1">
                 {% if page_obj.has_previous %}

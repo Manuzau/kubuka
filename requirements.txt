@@ -11,7 +11,7 @@ psycopg2-binary
 gunicorn
 whitenoise
 
-# OCR (opcional — apenas necessário para PDFs digitalizados/scaneados)
+# OCR (opcional - apenas necessário para PDFs digitalizados/scaneados)
 # Requer também Tesseract e Poppler instalados no sistema operativo:
 # choco install tesseract poppler   (Windows)
 # sudo apt install tesseract-ocr poppler-utils   (Linux/WSL)

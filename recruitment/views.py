@@ -164,7 +164,7 @@ def my_applications(request):
 
 
 # ---------------------------------------------------------------------------
-# Candidatura — Retirar / Indisponibilidade
+# Candidatura - Retirar / Indisponibilidade
 # ---------------------------------------------------------------------------
 
 @login_required
@@ -204,7 +204,7 @@ def submit_unavailability(request, application_id):
 
 
 # ---------------------------------------------------------------------------
-# Notificações — Candidato
+# Notificações - Candidato
 # ---------------------------------------------------------------------------
 
 @login_required
@@ -226,7 +226,7 @@ def mark_notification_read(request, pk):
 
 
 # ---------------------------------------------------------------------------
-# Dashboard — Admin / Recrutador
+# Dashboard - Admin / Recrutador
 # ---------------------------------------------------------------------------
 
 def _build_dashboard_context(request):
@@ -345,14 +345,14 @@ def analytics_dashboard(request):
     job_labels = [item['job__title'] for item in top_jobs]
     job_data   = [item['count'] for item in top_jobs]
 
-    # 3. Distribuição de scores (histogram — 10 buckets de 10 pts)
+    # 3. Distribuição de scores (histogram - 10 buckets de 10 pts)
     buckets = [0] * 10
     for score in base_qs.exclude(similarity_score=0).values_list('similarity_score', flat=True):
         idx = min(int(score // 10), 9)
         buckets[idx] += 1
-    score_labels = [f"{i*10}–{i*10+9}%" for i in range(10)]
+    score_labels = [f"{i*10}-{i*10+9}%" for i in range(10)]
 
-    # 4. Candidaturas por semana (linha — últimas 8 semanas)
+    # 4. Candidaturas por semana (linha - últimas 8 semanas)
     from django.utils import timezone
     import datetime
     eight_weeks_ago = timezone.now() - datetime.timedelta(weeks=8)
@@ -426,7 +426,7 @@ class ResumeDetailView(LoginRequiredMixin, DetailView):
 
 
 # ---------------------------------------------------------------------------
-# Vagas — Candidato
+# Vagas - Candidato
 # ---------------------------------------------------------------------------
 
 class JobListView(LoginRequiredMixin, ListView):
@@ -554,7 +554,7 @@ def apply_job(request, pk):
 
 
 # ---------------------------------------------------------------------------
-# Vagas — Recrutador
+# Vagas - Recrutador
 # ---------------------------------------------------------------------------
 
 class JobRecruiterListView(LoginRequiredMixin, ListView):

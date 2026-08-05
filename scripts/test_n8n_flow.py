@@ -35,4 +35,4 @@ for i in range(18):
         break
 else:
     print()
-    print('TIMEOUT — callback nao chegou em 90s')
+    print('TIMEOUT - callback nao chegou em 90s')

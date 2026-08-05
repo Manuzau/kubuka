@@ -75,7 +75,7 @@ class Application(models.Model):
     match_feedback = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='pending')
     awaiting_score = models.BooleanField(default=False)
-    # CV específico para esta candidatura (opcional — sobrepõe o CV do perfil no scoring)
+    # CV específico para esta candidatura (opcional - sobrepõe o CV do perfil no scoring)
     cv_file = models.FileField(upload_to='applications/', blank=True, null=True, verbose_name="CV específico")
     cv_parsed_text = models.TextField(blank=True, null=True, verbose_name="Texto extraído do CV específico")
     recruiter_notes = models.TextField(blank=True, null=True, verbose_name="Notas internas do recrutador")
@@ -113,7 +113,7 @@ class AuditLog(models.Model):
         verbose_name_plural = 'Registos de Auditoria'
 
     def __str__(self):
-        return f"[{self.timestamp:%Y-%m-%d %H:%M}] {self.user} — {self.get_action_display()}"
+        return f"[{self.timestamp:%Y-%m-%d %H:%M}] {self.user} - {self.get_action_display()}"
 
 
 class Notification(models.Model):

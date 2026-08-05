@@ -94,7 +94,7 @@
 
         var hint = document.createElement('p');
         hint.className = 'kbk-pw-hint';
-        hint.textContent = 'Estes pontos ajudam a evitar erros comuns — a palavra-passe também não pode ser demasiado óbvia (ex: "password123").';
+        hint.textContent = 'Estes pontos ajudam a evitar erros comuns - a palavra-passe também não pode ser demasiado óbvia (ex: "password123").';
         container.appendChild(hint);
 
         var anchor = input.closest('.kbk-pw-wrap') || input;

@@ -5,7 +5,7 @@ import pdfplumber
 
 logger = logging.getLogger(__name__)
 
-# OCR é opcional — funciona sem ele, mas não lê PDFs digitalizados
+# OCR é opcional - funciona sem ele, mas não lê PDFs digitalizados
 try:
     import pytesseract
     from pdf2image import convert_from_path
@@ -69,16 +69,16 @@ def extract_text_from_pdf(pdf_path: str) -> str:
     # --- Fase 2: OCR como fallback ---
     if len(texto.strip()) < 50:
         if not OCR_AVAILABLE:
-            logger.warning("[cv_processor] pytesseract/pdf2image não instalados — OCR indisponível.")
+            logger.warning("[cv_processor] pytesseract/pdf2image não instalados - OCR indisponível.")
             return texto.strip()
 
         if not _poppler_disponivel():
-            logger.warning("[cv_processor] Poppler não encontrado — OCR indisponível.")
+            logger.warning("[cv_processor] Poppler não encontrado - OCR indisponível.")
             return texto.strip()
 
         caminho_tesseract = _find_tesseract()
         if not caminho_tesseract:
-            logger.warning("[cv_processor] Tesseract não encontrado — OCR indisponível.")
+            logger.warning("[cv_processor] Tesseract não encontrado - OCR indisponível.")
             return texto.strip()
 
         try:

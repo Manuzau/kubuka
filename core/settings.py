@@ -254,7 +254,7 @@ if not DEBUG:
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
 
 # ---------------------------------------------------------------------------
-# django-axes — protecção contra força bruta no login
+# django-axes - protecção contra força bruta no login
 # ---------------------------------------------------------------------------
 AXES_FAILURE_LIMIT = 5          # Bloquear após 5 tentativas falhadas
 AXES_COOLOFF_TIME = 1           # Cooldown de 1 hora
@@ -262,7 +262,7 @@ AXES_RESET_ON_SUCCESS = True    # Reinicia contador após login bem-sucedido
 AXES_LOCKOUT_PARAMETERS = ['username', 'ip_address']
 
 # ---------------------------------------------------------------------------
-# Django REST Framework — throttling global
+# Django REST Framework - throttling global
 # ---------------------------------------------------------------------------
 REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_CLASSES': [
@@ -276,7 +276,7 @@ REST_FRAMEWORK = {
 }
 
 # ---------------------------------------------------------------------------
-# Logging — consola sempre; ficheiro rotativo em logs/kubuka.log
+# Logging - consola sempre; ficheiro rotativo em logs/kubuka.log
 # ---------------------------------------------------------------------------
 LOGS_DIR = BASE_DIR / 'logs'
 LOGS_DIR.mkdir(exist_ok=True)

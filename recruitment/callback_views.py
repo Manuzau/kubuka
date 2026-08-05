@@ -16,7 +16,7 @@ def _verify_secret(request):
     # Se o secret não estiver configurado no .env, bloqueia sempre.
     expected = getattr(settings, 'N8N_CALLBACK_SECRET', '') or getattr(settings, 'CALLBACK_SECRET', '')
     if not expected:
-        logger.error("[security] N8N_CALLBACK_SECRET não configurado — callback bloqueado por segurança.")
+        logger.error("[security] N8N_CALLBACK_SECRET não configurado - callback bloqueado por segurança.")
         return False
     received = request.headers.get('X-Kubuka-Secret', '') or request.headers.get('X-Callback-Secret', '')
     return hmac.compare_digest(expected, received)
@@ -25,7 +25,7 @@ def _verify_secret(request):
 @csrf_exempt
 @require_POST
 def resume_ai_callback(request, resume_id: int):
-    # rota legada — mantida por compatibilidade com workflows antigos
+    # rota legada - mantida por compatibilidade com workflows antigos
     return _resume_ai_result(request, resume_id)
 
 
@@ -71,14 +71,14 @@ def _resume_ai_result(request, resume_id: int):
         'education', 'languages', 'feedback', 'ai_processed'
     ])
 
-    logger.info(f"[callback] Resume {resume_id} actualizado — score={resume.score}")
+    logger.info(f"[callback] Resume {resume_id} actualizado - score={resume.score}")
     return JsonResponse({'success': True, 'resume_id': resume_id, 'score': resume.score})
 
 
 @csrf_exempt
 @require_POST
 def application_score_result(request, application_id: int):
-    """POST /api/application/<id>/score-result/ — callback n8n com score de candidatura."""
+    """POST /api/application/<id>/score-result/ - callback n8n com score de candidatura."""
     if not _verify_secret(request):
         return JsonResponse({'error': 'Token inválido.'}, status=403)
 
@@ -104,13 +104,13 @@ def application_score_result(request, application_id: int):
     # Bloquear se o score não foi pedido através do fluxo normal de candidatura
     if not application.awaiting_score:
         logger.warning(
-            f"[security] Score rejeitado para Application {application_id} — scoring não foi pedido."
+            f"[security] Score rejeitado para Application {application_id} - scoring não foi pedido."
         )
         return JsonResponse({'error': 'Score não solicitado para esta candidatura.'}, status=409)
 
     application.similarity_score = round(score, 1)
     application.match_feedback = data.get('match_feedback', '')
-    application.awaiting_score = False  # Scoring concluído — não aceitar novos resultados
+    application.awaiting_score = False  # Scoring concluído - não aceitar novos resultados
     update_fields = ['similarity_score', 'match_feedback', 'awaiting_score']
 
     job = application.job
@@ -130,7 +130,7 @@ def application_score_result(request, application_id: int):
         notify_candidate(application)
 
     logger.info(
-        f"[callback] Application {application_id} actualizada — score={application.similarity_score}"
+        f"[callback] Application {application_id} actualizada - score={application.similarity_score}"
         + (' (auto-rejeitada)' if auto_rejected else '')
     )
     return JsonResponse({'success': True, 'application_id': application_id, 'score': application.similarity_score, 'auto_rejected': auto_rejected})
@@ -167,7 +167,7 @@ def kanban_update_status(request, application_id: int):
 
 @require_POST
 def application_update_status(request, application_id: int):
-    """POST /api/application/<id>/update-status/ — recrutador pré-selecciona ou rejeita."""
+    """POST /api/application/<id>/update-status/ - recrutador pré-selecciona ou rejeita."""
     if not request.user.is_authenticated:
         return JsonResponse({'error': 'Autenticação necessária.'}, status=401)
     if not (request.user.is_recruiter or request.user.is_staff or getattr(request.user, 'is_admin', False)):

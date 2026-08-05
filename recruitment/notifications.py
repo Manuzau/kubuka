@@ -7,14 +7,14 @@ logger = logging.getLogger(__name__)
 
 _STATUS_TEMPLATES = {
     'pre_selected': 'A sua candidatura para "{job}" foi pré-seleccionada! Aguarde contacto do recrutador.',
-    'rejected': 'A sua candidatura para "{job}" não foi seleccionada nesta fase. Não desanime — continue a explorar outras vagas.',
+    'rejected': 'A sua candidatura para "{job}" não foi seleccionada nesta fase. Não desanime - continue a explorar outras vagas.',
     'interview_scheduled': 'Entrevista agendada para a vaga "{job}"{date_part}. Verifique os detalhes na página de candidaturas.',
 }
 
 _EMAIL_SUBJECTS = {
-    'pre_selected': 'A sua candidatura foi pré-seleccionada — KUBUKA',
-    'rejected': 'Actualização da sua candidatura — KUBUKA',
-    'interview_scheduled': 'Entrevista agendada — KUBUKA',
+    'pre_selected': 'A sua candidatura foi pré-seleccionada - KUBUKA',
+    'rejected': 'Actualização da sua candidatura - KUBUKA',
+    'interview_scheduled': 'Entrevista agendada - KUBUKA',
 }
 
 _STATUS_COLOR = {
@@ -68,7 +68,7 @@ def _build_html_email(name, message, status, job_title, base_url):
         <!-- Footer -->
         <tr>
           <td style="padding:16px 36px;border-top:1px solid rgba(255,255,255,0.06);text-align:center;">
-            <p style="color:#475569;font-size:12px;margin:0;">Este é um email automático — não responda a esta mensagem.</p>
+            <p style="color:#475569;font-size:12px;margin:0;">Este é um email automático - não responda a esta mensagem.</p>
             <p style="color:#334155;font-size:11px;margin:6px 0 0;">© 2026 KUBUKA · Luanda, Angola</p>
           </td>
         </tr>
@@ -101,7 +101,7 @@ def notify_candidate(application):
     if not candidate_email:
         return
 
-    subject = _EMAIL_SUBJECTS.get(application.status, 'Actualização da sua candidatura — KUBUKA')
+    subject = _EMAIL_SUBJECTS.get(application.status, 'Actualização da sua candidatura - KUBUKA')
     name = application.candidate.get_full_name() or application.candidate.username
     base_url = getattr(settings, 'DJANGO_BASE_URL', 'http://localhost:8000')
 
@@ -109,7 +109,7 @@ def notify_candidate(application):
         f"Olá {name},\n\n"
         f"{message}\n\n"
         f"Aceda a KUBUKA para mais detalhes: {base_url}/my-applications/\n\n"
-        f"— Equipa KUBUKA"
+        f"- Equipa KUBUKA"
     )
     html_body = _build_html_email(name, message, application.status, application.job.title, base_url)
 
@@ -122,6 +122,6 @@ def notify_candidate(application):
         )
         email.attach_alternative(html_body, "text/html")
         email.send(fail_silently=True)
-        logger.info(f"[notify] Email enviado para {candidate_email} — status={application.status}")
+        logger.info(f"[notify] Email enviado para {candidate_email} - status={application.status}")
     except Exception as exc:
         logger.warning(f"[notify] Falha ao enviar email para {candidate_email}: {exc}")

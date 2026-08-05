@@ -1,7 +1,7 @@
-# Anexo — Prompts de IA utilizados no n8n
+# Anexo - Prompts de IA utilizados no n8n
 
 Fonte canónica: `scripts/update_n8n_workflows.py` (script que escreve estes nós directamente
-nos workflows do n8n — `KUBUKA — Análise de CV` e `KUBUKA — Scoring de Candidatura`).
+nos workflows do n8n - `KUBUKA - Análise de CV` e `KUBUKA - Scoring de Candidatura`).
 
 Ambos os prompts são enviados ao motor de IA (Ollama local ou Groq na cloud, consoante a
 variável de ambiente `AI_PROVIDER`) dentro de um nó *Code* ("Preparar Pedido"), com os
@@ -15,7 +15,7 @@ pedido.
 
 ---
 
-## 1. Prompt — Análise de CV
+## 1. Prompt - Análise de CV
 
 Usado quando o candidato submete o currículo (`webhook/cv-analysis`), para preencher os
 campos `score`, `skills`, `summary`, `experience`, `education`, `languages` e `feedback` do
@@ -52,12 +52,12 @@ CURRÍCULO:
 {{cv_text}}
 ```
 
-*(`{{cv_text}}` — texto do currículo extraído por `cv_processor.py`, truncado a 6000
+*(`{{cv_text}}` - texto do currículo extraído por `cv_processor.py`, truncado a 6000
 caracteres antes de ser enviado ao modelo.)*
 
 ---
 
-## 2. Prompt — Scoring de Candidatura (correspondência candidato × vaga)
+## 2. Prompt - Scoring de Candidatura (correspondência candidato × vaga)
 
 Usado quando o candidato se candidata a uma vaga (`webhook/job-scoring`), para preencher
 `similarity_score` e `match_feedback` do modelo `Application`.
@@ -96,7 +96,7 @@ Responde sempre em português, mesmo que os dados estejam noutra língua.
 ```
 
 *(`{{candidate_skills}}`, `{{candidate_summary}}`, `{{candidate_experience}}`,
-`{{job_title}}`, `{{job_requirements}}` — dados da candidatura e da vaga, truncados a 2000,
+`{{job_title}}`, `{{job_requirements}}` - dados da candidatura e da vaga, truncados a 2000,
 1000, 2000 e 3000 caracteres respectivamente antes de serem enviados ao modelo.)*
 
 ---
@@ -105,7 +105,7 @@ Responde sempre em português, mesmo que os dados estejam noutra língua.
 
 - Ambos os prompts exigem resposta em **JSON estrito** (sem texto antes/depois), para que o
   nó seguinte do workflow (`Processar Resposta` / `Processar Score`) consiga extrair os
-  campos de forma automática e robusta — o parser procura os campos recursivamente em
+  campos de forma automática e robusta - o parser procura os campos recursivamente em
   qualquer estrutura devolvida pelo modelo, tolerando pequenas variações de formatação.
 - Os critérios de pontuação (pesos, limiares) estão explicitados directamente no prompt para
   reduzir a subjectividade e a variabilidade das respostas do modelo entre execuções.

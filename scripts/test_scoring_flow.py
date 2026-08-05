@@ -62,5 +62,5 @@ for i in range(24):
         break
 else:
     print()
-    print('TIMEOUT — callback de scoring nao chegou em 120s')
+    print('TIMEOUT - callback de scoring nao chegou em 120s')
     print(f'Estado final: awaiting_score={app.awaiting_score}  score={app.similarity_score}')

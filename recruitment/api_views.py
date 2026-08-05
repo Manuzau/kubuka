@@ -47,7 +47,7 @@ class UserProfileViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class ApplicationStatusView(APIView):
-    """POST /api/application/<id>/update-status/ — pré-seleccionar, rejeitar ou agendar entrevista."""
+    """POST /api/application/<id>/update-status/ - pré-seleccionar, rejeitar ou agendar entrevista."""
     permission_classes = [IsRecruiterOrAdmin]
 
     def post(self, request, application_id):
@@ -91,7 +91,7 @@ class ApplicationStatusView(APIView):
 
 
 class RecruiterNotesView(APIView):
-    """POST /api/application/<id>/notes/ — guardar notas internas do recrutador."""
+    """POST /api/application/<id>/notes/ - guardar notas internas do recrutador."""
     permission_classes = [IsRecruiterOrAdmin]
 
     def post(self, request, application_id):

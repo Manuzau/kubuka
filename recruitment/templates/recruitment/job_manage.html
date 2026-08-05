@@ -1,5 +1,5 @@
 {% extends 'recruitment/base.html' %}
-{% block title %}Gestão de Vagas — KUBUKA{% endblock %}
+{% block title %}Gestão de Vagas - KUBUKA{% endblock %}
 {% block content %}
 <div class="max-w-6xl mx-auto px-6 py-10">
 
@@ -45,7 +45,7 @@
                         <td style="color:rgba(var(--text-rgb),0.6);">{{ job.company }}</td>
                         <td style="color:rgba(var(--text-rgb),0.5);">{{ job.location }}</td>
                         <td class="text-xs" style="color:rgba(var(--text-rgb),0.5);">
-                            {% if job.deadline %}{{ job.deadline|date:"d/m/Y" }}{% else %}—{% endif %}
+                            {% if job.deadline %}{{ job.deadline|date:"d/m/Y" }}{% else %}-{% endif %}
                         </td>
                         <td>
                             <span class="font-bold" style="color:var(--clr-purple);">{{ job.application_count }}</span>
@@ -54,7 +54,7 @@
                             {% if job.min_score_required > 0 %}
                                 <span class="badge badge-warning">≥ {{ job.min_score_required|floatformat:0 }}%</span>
                             {% else %}
-                                <span style="color:rgba(var(--text-rgb),0.3);">—</span>
+                                <span style="color:rgba(var(--text-rgb),0.3);">-</span>
                             {% endif %}
                         </td>
                         <td>

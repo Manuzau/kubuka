@@ -4,7 +4,7 @@ env/
 .venv/
 
 # Base de dados local (fallback SQLite automático quando o PostgreSQL não
-# está acessível — ver _postgres_reachable em core/settings.py; o nome exacto
+# está acessível - ver _postgres_reachable em core/settings.py; o nome exacto
 # vem de DB_NAME no .env, por omissão "kubuka_db")
 db.sqlite3
 kubuka_db
@@ -23,7 +23,7 @@ docs/testes/coverage_html/
 # Dumps de segurança criados por `python manage.py reset_sistema`
 backups/
 
-# Logs da aplicação (gerados em runtime — ver LOGGING em core/settings.py)
+# Logs da aplicação (gerados em runtime - ver LOGGING em core/settings.py)
 logs/*.log
 !logs/.gitkeep
 

@@ -122,14 +122,14 @@ def make_use_case_diagram():
     f16 = load_font(FONT_BOLD,    22)
 
     # Title
-    title = "Diagrama de Casos de Uso — KUBUKA"
+    title = "Diagrama de Casos de Uso - KUBUKA"
     tw, _ = text_size(draw, title, f16)
     draw.text(((W - tw) // 2, 14), title, font=f16, fill="#1E293B")
 
     # System boundary
     SX1, SY1, SX2, SY2 = 210, 58, 1450, 1160
     rect(draw, SX1, SY1, SX2, SY2, outline="#7C3AED", width=3)
-    sys_label = "KUBUKA — Sistema de Pré-Selecção Inteligente de Candidatos"
+    sys_label = "KUBUKA - Sistema de Pré-Selecção Inteligente de Candidatos"
     slw, _ = text_size(draw, sys_label, f11)
     draw.text(((SX1 + SX2) // 2 - slw // 2, SY1 + 7), sys_label, font=f11, fill="#7C3AED")
 
@@ -189,7 +189,7 @@ def make_use_case_diagram():
         (RX, 900,  ["Consultar", "Analytics"]),
     ]
 
-    # Admin-exclusive UCs (purple) — x=1350
+    # Admin-exclusive UCs (purple) - x=1350
     AX2 = 1350
     uc_adm = [
         (AX2, 990,  ["Aprovar", "Recrutadores"]),
@@ -309,7 +309,7 @@ def make_context_diagram():
     f16 = load_font(FONT_BOLD,    23)
 
     # Title
-    title = "Diagrama de Contexto (DFD Nível 0) — KUBUKA"
+    title = "Diagrama de Contexto (DFD Nível 0) - KUBUKA"
     tw, _ = text_size(draw, title, f16)
     draw.text(((W - tw) // 2, 14), title, font=f16, fill="#1E293B")
 
@@ -372,7 +372,7 @@ def make_context_diagram():
 
         dx, dy = ex2 - rx, ey2 - ry
         dist = math.hypot(dx, dy) or 1
-        # perpendicular offset — larger separation so labels don't overlap
+        # perpendicular offset - larger separation so labels don't overlap
         sep = 18
         px, py = int(-dy / dist * sep), int(dx / dist * sep)
 
@@ -517,7 +517,7 @@ def make_class_diagram():
     f11 = load_font(FONT_BOLD, 15)
     f9 = load_font(FONT_REGULAR, 13)
 
-    title = "Diagrama de Classes (UML) — KUBUKA"
+    title = "Diagrama de Classes (UML) - KUBUKA"
     tw, _ = text_size(draw, title, f16)
     draw.text(((W - tw) // 2, 16), title, font=f16, fill="#1E293B")
 
@@ -623,7 +623,7 @@ def make_class_diagram():
     draw.line([(LX + 10, LY + 40), (LX + 45, LY + 40)], fill="#334155", width=2)
     draw.text((LX + 55, LY + 32), "Associação com multiplicidade (ex: 1 → 0..*)", font=f9, fill="#1E293B")
     draw.text((LX + 10, LY + 58), "Compartimentos: Nome / Atributos (-) / Métodos (+)", font=f9, fill="#1E293B")
-    draw.text((LX + 10, LY + 80), "«enum» — campo com conjunto fixo de valores (choices)", font=f9, fill="#1E293B")
+    draw.text((LX + 10, LY + 80), "«enum» - campo com conjunto fixo de valores (choices)", font=f9, fill="#1E293B")
     draw.text((LX + 10, LY + 102), "1 = exactamente um · 0..1 = zero ou um · 0..* = zero ou muitos", font=f9, fill="#1E293B")
 
     out = os.path.join(OUT_DIR, "diagrama_classes.png")

@@ -24,8 +24,8 @@ from pathlib import Path
 
 DEFAULT_DB_PATH = Path.home() / '.n8n' / 'database.sqlite'
 
-CV_WORKFLOW_NAME    = 'KUBUKA — Análise de CV'
-SCORE_WORKFLOW_NAME = 'KUBUKA — Scoring de Candidatura'
+CV_WORKFLOW_NAME    = 'KUBUKA - Análise de CV'
+SCORE_WORKFLOW_NAME = 'KUBUKA - Scoring de Candidatura'
 
 # Dois modelos locais: llama3.2:1b (rapido) para analise de CV, qwen2.5:3b (melhor) para scoring
 OLLAMA_MODEL_CV    = 'llama3.2:1b'
@@ -329,7 +329,7 @@ SCORE_CODE_PREPARE = (
     "}}];"
 )
 
-# Parser Score: bulletproof — aceita qualquer estrutura devolvida pelo modelo
+# Parser Score: bulletproof - aceita qualquer estrutura devolvida pelo modelo
 SCORE_CODE_PARSE = (
     "const ollamaResp = $input.first().json;\n"
     "const prev = $('Preparar Pedido Score').first().json;\n"

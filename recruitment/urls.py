@@ -47,21 +47,21 @@ urlpatterns = [
     path('password-reset-confirm/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name='recruitment/password_reset_confirm.html'), name='password_reset_confirm'),
     path('password-reset-complete/', auth_views.PasswordResetCompleteView.as_view(template_name='recruitment/password_reset_complete.html'), name='password_reset_complete'),
 
-    # Vagas — candidato
+    # Vagas - candidato
     path('jobs/', views.JobListView.as_view(), name='job_list'),
     path('jobs/<int:pk>/', views.JobDetailView.as_view(), name='job_detail'),
     path('jobs/<int:pk>/apply/', views.apply_job, name='apply_job'),
     path('my-applications/', views.my_applications, name='my_applications'),
 
-    # Notificações — candidato
+    # Notificações - candidato
     path('notifications/', views.notifications_view, name='notifications'),
     path('notifications/<int:pk>/read/', views.mark_notification_read, name='mark_notification_read'),
 
-    # Candidatura — retirar / indisponibilidade
+    # Candidatura - retirar / indisponibilidade
     path('application/<int:application_id>/withdraw/', views.withdraw_application, name='withdraw_application'),
     path('application/<int:application_id>/unavailability/', views.submit_unavailability, name='submit_unavailability'),
 
-    # Vagas — recrutador
+    # Vagas - recrutador
     path('recruiter/jobs/', views.JobRecruiterListView.as_view(), name='job_manage'),
     path('recruiter/jobs/new/', views.JobCreateView.as_view(), name='job_create'),
     path('recruiter/jobs/<int:pk>/edit/', views.JobUpdateView.as_view(), name='job_edit'),
@@ -74,10 +74,10 @@ urlpatterns = [
     path('api/application/<int:application_id>/score-result/', application_score_result, name='application_score_result'),
     path('api/application/<int:application_id>/update-status/', application_update_status, name='application_update_status'),
 
-    # Kanban — endpoint JSON para drag-and-drop
+    # Kanban - endpoint JSON para drag-and-drop
     path('api/kanban/application/<int:application_id>/status/', kanban_update_status, name='kanban_update_status'),
 
-    # API REST — acções do recrutador
+    # API REST - acções do recrutador
     path('api/application/<int:application_id>/status/', api_views.ApplicationStatusView.as_view(), name='application_status_api'),
     path('api/application/<int:application_id>/notes/', api_views.RecruiterNotesView.as_view(), name='application_notes_api'),
 

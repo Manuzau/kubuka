@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 def send_cv_to_n8n(resume):
     cv_text = resume.parsed_text or ''
     if not cv_text.strip():
-        logger.warning(f'Resume {resume.pk} sem texto extraído — análise de IA ignorada.')
+        logger.warning(f'Resume {resume.pk} sem texto extraído - análise de IA ignorada.')
         return False
 
     callback_url = f"{settings.DJANGO_BASE_URL}/api/resume/{resume.pk}/ai-result/"
@@ -24,7 +24,7 @@ def send_cv_to_n8n(resume):
             timeout=30,
         )
         resp.raise_for_status()
-        logger.info(f'Resume {resume.pk} enviado para n8n — a aguardar callback.')
+        logger.info(f'Resume {resume.pk} enviado para n8n - a aguardar callback.')
         return True
     except requests.RequestException as exc:
         logger.error(f'Erro ao contactar n8n para Resume {resume.pk}: {exc}')
