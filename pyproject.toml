@@ -8,8 +8,6 @@ exclude = [
     # Scripts avulsos (geração de diagramas, instalador de OCR, testes manuais
     # end-to-end) - fora do âmbito da limpeza de qualidade de código, mantidos
     # tal como estão.
-    "generate_diagrams.py",
-    "install_ocr_dependencies.py",
     "scripts",
 ]
 

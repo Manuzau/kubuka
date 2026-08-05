@@ -342,13 +342,13 @@ if ($HasN8n) {
                     Write-Host "[ ] 1a vez a usar este n8n - falta criar a conta inicial." -ForegroundColor Yellow
                     Write-Host "    A abrir http://localhost:5678 no browser - cria a conta e depois:" -ForegroundColor DarkGray
                     Write-Host "    Workflows -> Import from File -> importa n8n_workflow_kubuka.json" -ForegroundColor DarkGray
-                    Write-Host "    e n8n_workflow_job_scoring.json (raiz do projecto), activa ambos." -ForegroundColor DarkGray
+                    Write-Host "    e n8n_workflow_job_scoring.json (pasta scripts), activa ambos." -ForegroundColor DarkGray
                     Start-Process "http://localhost:5678"
                 } elseif ($wfCount -eq 0) {
                     Write-Host "[ ] Workflows do KUBUKA ainda nao importados." -ForegroundColor Yellow
                     Write-Host "    A abrir http://localhost:5678 no browser ->" -ForegroundColor DarkGray
                     Write-Host "    Workflows -> Import from File -> importa n8n_workflow_kubuka.json" -ForegroundColor DarkGray
-                    Write-Host "    e n8n_workflow_job_scoring.json (raiz do projecto), activa ambos." -ForegroundColor DarkGray
+                    Write-Host "    e n8n_workflow_job_scoring.json (pasta scripts), activa ambos." -ForegroundColor DarkGray
                     Start-Process "http://localhost:5678"
                 } else {
                     Write-Host "[OK] Workflows do KUBUKA presentes no n8n" -ForegroundColor Green

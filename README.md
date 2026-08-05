@@ -516,14 +516,15 @@ kubuka/
 ├── scripts/                          — scripts utilitários e testes end-to-end
 │   ├── setup_postgres.ps1            — repõe a password do postgres e cria a BD/utilizador do KUBUKA
 │   ├── update_n8n_workflows.py       — reinstalar workflows na SQLite do n8n
+│   ├── n8n_workflow_kubuka.json      — workflow de análise de CV (importação manual)
+│   ├── n8n_workflow_job_scoring.json — workflow de scoring (importação manual)
+│   ├── generate_diagrams.py          — gera diagramas UML/DFD do TFC
+│   ├── install_ocr_dependencies.py   — helper para instalar Tesseract/Poppler
 │   ├── test_end_to_end.py            — teste CV + scoring
 │   ├── test_n8n_flow.py              — só CV
 │   └── test_scoring_flow.py          — só scoring
-├── n8n_workflow_kubuka.json          — workflow de análise de CV
-├── n8n_workflow_job_scoring.json     — workflow de scoring
 ├── start.ps1                         — script de arranque (Windows)
 ├── run_project.bat                   — duplo clique para arrancar
-├── install_ocr_dependencies.py       — helper para instalar Tesseract/Poppler
 ├── .github/workflows/ci.yml          — lint + testes em cada push/PR
 ├── Dockerfile / docker-compose.yml   — imagem e stack de produção
 ├── entrypoint.sh                     — migrate + collectstatic + gunicorn
@@ -531,7 +532,6 @@ kubuka/
 ├── requirements.txt / requirements-dev.txt
 ├── pyproject.toml                    — configuração do ruff (lint)
 ├── .env.example
-├── CLAUDE.md                         — contexto do projecto (para IA)
 ├── SECURITY_REPORT.md                — relatório de segurança
 ├── CHANGELOG.md
 └── README.md

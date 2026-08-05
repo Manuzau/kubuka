@@ -15,7 +15,6 @@ INSTALL_PATH = Path(r"C:\poppler")
 BIN_PATH = INSTALL_PATH / "bin"
 
 def download_file(url, destination):
-    """Download a file from URL"""
     print(f"Baixando {url}...")
     try:
         urllib.request.urlretrieve(url, destination)
@@ -26,7 +25,6 @@ def download_file(url, destination):
         return False
 
 def extract_zip(zip_path, extract_to):
-    """Extract ZIP file"""
     print(f"Extraindo {zip_path}...")
     try:
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
@@ -38,14 +36,11 @@ def extract_zip(zip_path, extract_to):
         return False
 
 def add_to_path():
-    """Add Poppler bin to Windows PATH"""
     print(f"Adicionando {BIN_PATH} ao PATH...")
     try:
-        # Update current session PATH
         os.environ['PATH'] = str(BIN_PATH) + os.pathsep + os.environ['PATH']
         print(f"✓ PATH atualizado para esta sessão")
-        
-        # Also add to system PATH if possible (requires admin)
+
         try:
             import winreg
             key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, 
@@ -63,7 +58,6 @@ def add_to_path():
     return True
 
 def verify_installation():
-    """Verify Poppler is working"""
     print("\nVerificando instalação...")
     try:
         result = subprocess.run(['pdftoppm', '-v'], 
@@ -82,30 +76,24 @@ def main():
     print("Instalador de Dependências OCR (Poppler + Tesseract)")
     print("="*60)
     
-    # Create install directory
     INSTALL_PATH.mkdir(parents=True, exist_ok=True)
     print(f"\n📁 Diretório de instalação: {INSTALL_PATH}")
-    
-    # Download Poppler
+
     zip_file = INSTALL_PATH / "poppler.zip"
     if not download_file(POPPLER_RELEASE_URL, zip_file):
         print("Erro ao baixar Poppler. Verifique sua conexão com a internet.")
         return False
-    
-    # Extract Poppler
+
     if not extract_zip(zip_file, INSTALL_PATH):
         print("Erro ao extrair Poppler.")
         return False
-    
-    # Add to PATH
+
     if not add_to_path():
         print("Erro ao atualizar PATH.")
         return False
-    
-    # Verify
+
     verify_installation()
-    
-    # Clean up ZIP
+
     try:
         os.remove(zip_file)
         print(f"\n✓ Arquivo temporário removido")

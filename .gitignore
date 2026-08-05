@@ -14,6 +14,11 @@ kubuka_db
 
 # Ficheiros de CV submetidos pelos candidatos
 media/resumes/
+media/applications/
+
+# Relatórios de cobertura de testes (gerados por `coverage run` / `coverage html`)
+.coverage
+docs/testes/coverage_html/
 
 # Dumps de segurança criados por `python manage.py reset_sistema`
 backups/
@@ -40,3 +45,7 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# Ferramentas de desenvolvimento locais
+.claude/
+CLAUDE.md
